@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Le Mystère du Manoir Blackwood - Murder Party</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- QRCode.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#f39c12',
+                        cyan: '#66fcf1',
+                        redAcc: '#e74c3c',
+                        darkBg: '#0b0c10',
+                        panelBg: '#1f2833',
+                        borderCyan: '#45a29e'
+                    },
+                    fontFamily: {
+                        mono: ['Courier New', 'Courier', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0b0c10;
+            color: #edf5e1;
+            font-family: 'Courier New', Courier, monospace;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Effet HUD Neon Glow */
+        .hud-border {
+            border: 1px solid #45a29e;
+            box-shadow: 0 0 10px rgba(69, 162, 158, 0.3);
+        }
+
+        .hud-title {
+            text-shadow: 0 0 8px rgba(243, 156, 18, 0.6);
+        }
+
+        .hud-cyan-glow {
+            text-shadow: 0 0 8px rgba(102, 252, 241, 0.6);
+        }
+
+        /* Animation Typewriter / Reveal */
+        .typewriter-text {
+            overflow: hidden;
+            white-space: pre-wrap;
+            animation: typing 2s steps(40, end);
+        }
+
+        /* Animation de Glitch au Scan */
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+
+        .glitch-effect {
+            animation: glitch 0.2s ease-in-out infinite;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0c10;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #45a29e;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-3 sm:p-5">
+
+    <!-- HEADER / TERMINAL D'ENQUÊTE -->
+    <header class="w-full max-w-xl text-center mb-4 pb-3 border-b-2 border-dashed border-borderCyan relative">
+        <h1 class="hud-title text-xl sm:text-2xl font-bold text-gold uppercase tracking-widest flex items-center justify-center gap-2">
+            <i class="fa-solid fa-ghost text-redAcc"></i> MANOIR BLACKWOOD <i class="fa-solid fa-ghost text-redAcc"></i>
+        </h1>
+        <p class="text-xs text-gray-400 mt-1">Le Trésor de la Chouquette • Terminal d'Investigation</p>
+        
+        <!-- BARRE DE PROGRESSION & CHRONO -->
+        <div id="status-bar" class="mt-3 bg-panelBg p-2 rounded-lg hud-border text-xs flex justify-between items-center hidden">
+            <div class="flex items-center gap-2">
+                <span class="text-cyan font-bold"><i class="fa-solid fa-clock text-gold"></i> <span id="timer-display">45:00</span></span>
+            </div>
+            <div class="text-right">
+                <span id="phase-badge" class="px-2 py-0.5 rounded text-[10px] bg-redAcc text-white font-bold uppercase tracking-wider">PHASE 1 : RECHERCHE</span>
+            </div>
+        </div>
+
+        <!-- PROGRESS STEPS -->
+        <div id="progress-tracker" class="mt-2 grid grid-cols-4 gap-1 text-[10px] text-center hidden">
+            <div id="step-node-1" class="p-1 rounded bg-panelBg border border-gray-700 text-gray-500 font-bold">1. SERPENT</div>
+            <div id="step-node-2" class="p-1 rounded bg-panelBg border border-gray-700 text-gray-500 font-bold">2. DRAGON</div>
+            <div id="step-node-3" class="p-1 rounded bg-panelBg border border-gray-700 text-gray-500 font-bold">3. 4812</div>
+            <div id="step-node-4" class="p-1 rounded bg-panelBg border border-gray-700 text-gray-500 font-bold">4. ENOLA</div>
+        </div>
+    </header>
+
+    <!-- BOUTONS NAVEGATION ONGLET (Si rôle sélectionné) -->
+    <nav id="app-nav" class="w-full max-w-xl flex mb-4 gap-2 hidden">
+        <button onclick="switchTab('my-panel')" id="nav-btn-panel" class="flex-1 py-2 text-xs font-bold rounded-lg bg-panelBg text-cyan border border-borderCyan hover:bg-black transition">
+            <i class="fa-solid fa-user-secret mr-1"></i> MON DOSSIER
+        </button>
+        <button onclick="switchTab('evidence-wall')" id="nav-btn-wall" class="flex-1 py-2 text-xs font-bold rounded-lg bg-panelBg text-gray-400 border border-gray-700 hover:bg-black transition">
+            <i class="fa-solid fa-magnifying-glass mr-1"></i> MUR DES PREUVES
+        </button>
+    </nav>
+
+    <!-- MAIN CONTAINER -->
+    <main class="w-full max-w-xl flex-1 flex flex-col items-center">
+
+        <!-- 0. ÉCRAN SÉLECTION DE RÔLE -->
+        <section id="role-select-screen" class="w-full bg-panelBg hud-border rounded-xl p-5 text-center my-auto">
+            <h2 class="text-gold font-bold text-lg mb-2 uppercase hud-title"><i class="fa-solid fa-users-viewfinder mr-2"></i>SÉLECTIONNE TON ROLE</h2>
+            <p class="text-xs text-gray-300 mb-4 italic">Attention : L'écran est strictement confidentiel. Ne le montre pas à tes voisins !</p>
+            
+            <div class="space-y-2 text-left">
+                <button onclick="lockRole('james')" class="w-full p-3 bg-darkBg border border-borderCyan rounded-lg text-cyan hover:border-gold transition flex items-center justify-between group">
+                    <span class="font-bold text-sm"><i class="fa-solid fa-wand-magic-sparkles text-gold mr-2"></i>🤡 James (8 ans)</span>
+                    <i class="fa-solid fa-chevron-right text-xs opacity-0 group-hover:opacity-100 transition"></i>
+                </button>
+                <button onclick="lockRole('nino')" class="w-full p-3 bg-darkBg border border-borderCyan rounded-lg text-cyan hover:border-gold transition flex items-center justify-between group">
+                    <span class="font-bold text-sm"><i class="fa-solid fa-shirt text-gold mr-2"></i>👔 Nino (13 ans)</span>
+                    <i class="fa-solid fa-chevron-right text-xs opacity-0 group-hover:opacity-100 transition"></i>
+                </button>
+                <button onclick="lockRole('andreas')" class="w-full p-3 bg-darkBg border border-borderCyan rounded-lg text-cyan hover:border-gold transition flex items-center justify-between group">
+                    <span class="font-bold text-sm"><i class="fa-solid fa-futbol text-gold mr-2"></i>⚽ Andreas (12 ans)</span>
+                    <i class="fa-solid fa-chevron-right text-xs opacity-0 group-hover:opacity-100 transition"></i>
+                </button>
+                <button onclick="lockRole('matys')" class="w-full p-3 bg-darkBg border border-borderCyan rounded-lg text-cyan hover:border-gold transition flex items-center justify-between group">
+                    <span class="font-bold text-sm"><i class="fa-solid fa-heart text-gold mr-2"></i>❤️ Matys (16 ans)</span>
+                    <i class="fa-solid fa-chevron-right text-xs opacity-0 group-hover:opacity-100 transition"></i>
+                </button>
+                <button onclick="lockRole('mj')" class="w-full p-3 bg-darkBg border border-redAcc rounded-lg text-redAcc hover:bg-redAcc/10 transition flex items-center justify-between group">
+                    <span class="font-bold text-sm"><i class="fa-solid fa-headset mr-2"></i>🎮 Maître du Jeu (MJ) / Régie</span>
+                    <i class="fa-solid fa-chevron-right text-xs opacity-0 group-hover:opacity-100 transition"></i>
+                </button>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-gray-800 text-[11px] text-gray-500">
+                APPLICATION OFFICIELLE HÉBERGÉE SUR GITHUB PAGES
+            </div>
+        </section>
+
+        <!-- 1. DOSSIERS INDIVIDUELS -->
+
+        <!-- PANEL JAMES -->
+        <section id="panel-james" class="role-panel w-full bg-panelBg hud-border rounded-xl p-4 hidden space-y-4">
+            <div class="border-b border-borderCyan pb-2 flex justify-between items-center">
+                <h2 class="text-gold font-bold text-base"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>🤡 JAMES - L'Apprenti Sorcier</h2>
+                <span class="text-[10px] bg-darkBg text-cyan px-2 py-0.5 rounded border border-borderCyan">NIVEAU 1</span>
+            </div>
+
+            <div class="bg-darkBg p-3 rounded-lg border-l-4 border-gold text-xs space-y-2">
+                <p><strong class="text-cyan">Profil :</strong> Tu adore faire rire la galerie avec des blagues et des grimaces, mais elles agacent parfois.</p>
+                <p><strong class="text-cyan">Mon Alibi :</strong> <em>« J'étais dans le couloir en train de préparer une super blague pour effrayer tout le monde ! »</em></p>
+                <p><strong class="text-cyan">Ma Faille :</strong> Tu cherches sans arrêt à capter l'attention et à créer des distractions.</p>
+            </div>
+
+            <!-- INDICE SECRET REVELÉ EN PHASE 4 -->
+            <div id="testimony-james" class="testimony-box hidden bg-cyan/10 p-3 rounded-lg border-l-4 border-cyan text-xs text-cyan space-y-1">
+                <p class="font-bold text-gold"><i class="fa-solid fa-user-secret mr-1"></i> TON TÉMOIGNAGE SECRET (À dire à la table) :</p>
+                <p class="italic">« J'ai vu Nino sortir du dressing avec les poches tellement blindées de bonbons qu'il pouvait à peine marcher et avec une tache de chocolat sur sa veste ! »</p>
+            </div>
+
+            <!-- CHAMP CODE -->
+            <div class="bg-darkBg p-3 rounded-lg border border-gray-800 space-y-2">
+                <label class="block text-xs font-bold text-gold"><i class="fa-solid fa-key mr-1"></i> ÉTAPE 1 : VALIDE LE CODE MAGIQUE</label>
+                <p class="text-[11px] text-gray-400">Trouve le mot-clé secret dissimulé sur la carte du salon.</p>
+                <input type="text" id="input-james" placeholder="ENTRER LE CODE..." class="w-full bg-black border border-borderCyan rounded p-2 text-center text-green-400 font-bold uppercase tracking-wider text-sm focus:outline-none focus:border-gold">
+                <button onclick="submitCode('james', 'SERPENT')" class="w-full py-2 bg-gold hover:bg-yellow-600 text-black font-bold text-xs rounded uppercase tracking-wider transition">Valider l'Étape</button>
+                <div id="msg-james" class="text-xs text-center font-bold hidden"></div>
+            </div>
+
+            <!-- CARNET DE NOTES ET CHECKLIST -->
+            <div class="bg-darkBg p-3 rounded-lg border border-gray-800 space-y-3">
+                <h3 class="text-xs font-bold text-cyan flex justify-between items-center">
+                    <span><i class="fa-solid fa-book-bookmark mr-1"></i> CARNET DE NOTES SECRET</span>
+                    <span class="text-[9px] text-gray-500">Sauvegarde auto</span>
+                </h3>
+                
+                <!-- CHECKLIST SUSPECTS -->
+                <div class="space-y-1.5 text-xs">
+                    <p class="text-[10px] text-gray-400">Marque les suspects selon le débat :</p>
+                    <div id="checklist-james" class="space-y-1"></div>
+                </div>
+
+                <!-- ZONE DE TEXTE LIBRE -->
+                <textarea id="notes-james" oninput="saveNotes('james')" placeholder="Tape tes intuitions privées ici..." class="w-full h-20 bg-black border border-gray-800 rounded p-2 text-xs text-gray-300 focus:outline-none focus:border-borderCyan resize-none"></textarea>
+            </div>
+        </section>
+
+        <!-- PANEL NINO -->
+        <section id="panel-nino" class="role-panel w-full bg-panelBg hud-border rounded-xl p-4 hidden space-y-4">
+            <div class="border-b border-borderCyan pb-2 flex justify-between items-center">
+                <h2 class="text-gold font-bold text-base"><i class="fa-solid fa-shirt mr-2"></i>👔 NINO - L'Astronome Stylé</h2>
+                <span class="text-[10px] bg-darkBg text-cyan px-2 py-0.5 rounded border border-borderCyan">NIVEAU 2</span>
+            </div>
+
+            <div class="bg-darkBg p-3 rounded-lg border-l-4 border-gold text-xs space-y-2">
+                <p><strong class="text-cyan">Profil :</strong> En recherche de style ultime, tu changes de veste 5 fois par soirée. Tu adores voler les bonbons.</p>
+                <p><strong class="text-cyan">Mon Alibi :</strong> <em>« Impossible que ce soit moi, j'essayais ma 4ème tenue dans le dressing ! »</em></p>
+                <p><strong class="text-cyan">Ma Faille :</strong> Tes poches débordent de bonbons et tes changements de look te rendent louche.</p>
+            </div>
+
+            <!-- INDICE SECRET REVELÉ EN PHASE 4 -->
+            <div id="testimony-nino" class="testimony-box hidden bg-cyan/10 p-3 rounded-lg border-l-4 border-cyan text-xs text-cyan space-y-1">
+                <p class="font-bold text-gold"><i class="fa-solid fa-user-secret mr-1"></i> TON TÉMOIGNAGE SECRET (À dire à la table) :</p>
+                <p class="italic">« Mathieu faisait un long discours au salon, mais il y a eu un SILENCE TOTAL de 30 secondes ! Mathieu qui se tait, c'est hyper suspect ! »</p>
+            </div>
+
+            <!-- CHAMP CODE -->
+            <div class="bg-darkBg p-3 rounded-lg border border-gray-800 space-y-2">
+                <label class="block text-xs font-bold text-gold"><i class="fa-solid fa-star mr-1"></i> ÉTAPE 2 : ALIGNE LA CONSTELLATION</label>
+                <p class="text-[11px] text-gray-400">Attends que James te valide la première étape pour entrer le nom de la constellation.</p>
+                <input type="text" id="input-nino" placeholder="NOM DE LA CONSTELLATION..." class="w-full bg-black border border-borderCyan rounded p-2 text-center text-green-400 font-bold uppercase tracking-wider text-sm focus:outline-none focus:border-gold">
+                <button onclick="submitCode('nino', 'DRAGON')" class="w-full py-2 bg-gold hover:bg-yellow-600 text-black font-bold text-xs rounded uppercase tracking-wider transition">Aligner le Signal</button>
+                <div id="msg-nino" class="text-xs text-center font-bold hidden"></div>
+            </div>
+
+            <!-- CARNET DE NOTES ET CHECKLIST -->
+            <div class="bg-darkBg p-3 rounded-lg border border-gray-800 space-y-3">
+                <h3 class="text-xs font-bold text-cyan flex justify-between items-center">
+                    <span><i class="fa-solid fa-book-bookmark mr-1"></i> CARNET DE NOTES SECRET</span>
+                    <span class="text-[9px] text-gray-500">Sauvegarde auto</span>
+                </h3>
+                
+                <div class="space-y-1.5 text-xs">
+                    <p class="text-[10px] text-gray-400">Marque les suspects selon le débat :</p>
+                    <div id="checklist-nino" class="space-y-1"></div>
+                </div>
+
+                <textarea id="notes-nino" oninput="saveNotes('nino')" placeholder="Tape tes intuitions privées ici..." class="w-full h-20 bg-black border border-gray-800 rounded p-2 text-xs text-gray-300 focus:outline-none focus:border-borderCyan resize-none"></textarea>
+            </div>
+        </section>
+
+        <!-- PANEL ANDREAS -->
+        <section id="panel-andreas" class="role-panel w-full bg-panelBg hud-border rounded-xl p-4 hidden space-y-4">
+            <div class="border-b border-borderCyan pb-2 flex justify-between items-center">
+                <h2 class="text-gold font-bold text-base"><i class="fa-solid fa-futbol mr-2"></i>⚽ ANDREAS - Blue Lock Striker</h2>
+                <span class="text-[10px] bg-darkBg text-cyan px-2 py-0.5 rounded border border-borderCyan">NIVEAU 3</span>
+            </div>
+
+            <div class="bg-darkBg p-3 rounded-lg border-l-4 border-gold text-xs space-y-2">
+                <p><strong class="text-cyan">Profil :</strong> Fan ultime de manga Blue Lock. Seul compte l'esprit de compétition et la victoire ultime.</p>
+                <p><strong class="text-cyan">Mon Alibi :</strong> <em>« J'étais dans ma bulle tactique, je visualisais la trajectoire du Direct Shot ultime dans ma tête ! »</em></p>
+                <p><strong class="text-cyan">Ma Faille :</strong> Prêt à tout pour prouver que tu es le plus fort de la soirée.</p>
+            </div>
+
+            <!-- INDICE SECRET REVELÉ EN PHASE 4 -->
+            <div id="testimony-andreas" class="testimony-box hidden bg-cyan/10 p-3 rounded-lg border-l-4 border-cyan text-xs text-cyan space-y-1">
+                <p class="font-bold text-gold"><i class="fa-solid fa-user-secret mr-1"></i> TON TÉMOIGNAGE SECRET (À dire à la table) :</p>
+                <p class="italic">« J'ai vu un mot gribouillé "I Love Norah" avec des petits cœurs tombé juste au pied de la table du trésor ! »</p>
+            </div>
+
+            <!-- CHAMP CODE -->
+            <div class="bg-darkBg p-3 rounded-lg border border-gray-800 space-y-2">
+                <label class="block text-xs font-bold text-gold"><i class="fa-solid fa-calculator mr-1"></i> ÉTAPE 3 : CALCULE LE CODE DU CADENAS</label>
+                <p class="text-[11px] text-gray-400">Demande le résultat du calcul (Le double de 2406) pour déverrouiller l'Enveloppe B.</p>
+                <input type="text" id="input-andreas" placeholder="ENTRER LES 4 CHIFFRES..." class="w-full bg-black border border-borderCyan rounded p-2 text-center text-green-400 font-bold uppercase tracking-wider text-sm focus:outline-none focus:border-gold">
+                <button onclick="submitCode('andreas', '4812')" class="w-full py-2 bg-gold hover:bg-yellow-600 text-black font-bold text-xs rounded uppercase tracking-wider transition">Débloquer le Coffre</button>
+                <div id="msg-andreas" class="text-xs text-center font-bold hidden"></div>
+            </div>
+
+            <!-- CARNET DE NOTES ET CHECKLIST -->
+            <div class="bg-darkBg p-3 rounded-lg border border-gray-800 space-y-3">
+                <h3 class="text-xs font-bold text-cyan flex justify-between items-center">
+                    <span><i class="fa-solid fa-book-bookmark mr-1"></i> CARNET DE NOTES SECRET</span>
+                    <span class="text-[9px] text-gray-500">Sauvegarde auto</span>
+                </h3>
+                
+                <div class="space-y-1.5 text-xs">
+                    <p class="text-[10px] text-gray-400">Marque les suspects selon le débat :</p>
+                    <div id="checklist-andreas" class="space-y-1"></div>
+                </div>
+
+                <textarea id="notes-andreas" oninput="saveNotes('andreas')" placeholder="Tape tes intuitions privées ici..." class="w-full h-20 bg-black border border-gray-800 rounded p-2 text-xs text-gray-300 focus:outline-none focus:border-borderCyan resize-none"></textarea>
+            </div>
+        </section>
+
+        <!-- PANEL MATYS -->
+        <section id="panel-matys" class="role-panel w-full bg-panelBg hud-border rounded-xl p-4 hidden space-y-4">
+            <div class="border-b border-borderCyan pb-2 flex justify-between items-center">
+                <h2 class="text-gold font-bold text-base"><i class="fa-solid fa-heart mr-2"></i>❤️ MATYS - Le Capitaine Amoureux</h2>
+                <span class="text-[10px] bg-darkBg text-cyan px-2 py-0.5 rounded border border-borderCyan">VERDICT FINAL</span>
+            </div>
+
+            <div class="bg-darkBg p-3 rounded-lg border-l-4 border-gold text-xs space-y-2">
+                <p><strong class="text-cyan">Profil :</strong> Grand frère bienveillant, mais actuellement scotché à ton téléphone en train d'écrire des SMS à Norah.</p>
+                <p><strong class="text-cyan">Mon Alibi :</strong> <em>« J'étais au téléphone avec Norah tout en veillant sur les enfants, je gérais tout ! »</em></p>
+                <p><strong class="text-cyan">Ma Faille :</strong> Totalement déconnecté du reste du monde à cause des papillons dans le ventre.</p>
+            </div>
+
+            <!-- INDICE SECRET REVELÉ EN PHASE 4 -->
+            <div id="testimony-matys" class="testimony-box hidden bg-cyan/10 p-3 rounded-lg border-l-4 border-cyan text-xs text-cyan space-y-1">
+                <p class="font-bold text-gold"><i class="fa-solid fa-user-secret mr-1"></i> TON TÉMOIGNAGE SECRET (À dire à la table) :</p>
+                <p class="italic">« Charlotte a éteint une lampe et a regardé son chrono avec un air paniqué en disant qu'on était en retard ! »</p>
+            </div>
+
+            <!-- CHAMP CODE ENOLA -->
+            <div class="bg-darkBg p-3 rounded-lg border border-gray-800 space-y-2">
+                <label class="block text-xs font-bold text-gold"><i class="fa-solid fa-gavel mr-1"></i> ÉTAPE 4 : REGISTRE DE VOTE FINAL</label>
+                <p class="text-[11px] text-gray-400">Une fois l'enquête débloquée et le vrai coupable déduit par la famille, enregistre son prénom ici :</p>
+                <input type="text" id="input-matys" placeholder="PRENOM DU COUPABLE..." class="w-full bg-black border border-borderCyan rounded p-2 text-center text-green-400 font-bold uppercase tracking-wider text-sm focus:outline-none focus:border-gold">
+                <button onclick="submitCode('matys', 'ENOLA')" class="w-full py-2 bg-redAcc hover:bg-red-700 text-white font-bold text-xs rounded uppercase tracking-wider transition">Valider l'Accusation Finale</button>
+                <div id="msg-matys" class="text-xs text-center font-bold hidden"></div>
+            </div>
+
+            <!-- CARNET DE NOTES ET CHECKLIST -->
+            <div class="bg-darkBg p-3 rounded-lg border border-gray-800 space-y-3">
+                <h3 class="text-xs font-bold text-cyan flex justify-between items-center">
+                    <span><i class="fa-solid fa-book-bookmark mr-1"></i> CARNET DE NOTES SECRET</span>
+                    <span class="text-[9px] text-gray-500">Sauvegarde auto</span>
+                </h3>
+                
+                <div class="space-y-1.5 text-xs">
+                    <p class="text-[10px] text-gray-400">Marque les suspects selon le débat :</p>
+                    <div id="checklist-matys" class="space-y-1"></div>
+                </div>
+
+                <textarea id="notes-matys" oninput="saveNotes('matys')" placeholder="Tape tes intuitions privées ici..." class="w-full h-20 bg-black border border-gray-800 rounded p-2 text-xs text-gray-300 focus:outline-none focus:border-borderCyan resize-none"></textarea>
+            </div>
+        </section>
+
+        <!-- PANEL MAÎTRE DU JEU / RÉGIE -->
+        <section id="panel-mj" class="role-panel w-full bg-panelBg hud-border rounded-xl p-4 hidden space-y-4">
+            <div class="border-b border-redAcc pb-2 flex justify-between items-center">
+                <h2 class="text-redAcc font-bold text-base"><i class="fa-solid fa-headset mr-2"></i>INTERFACE REGIE - MAÎTRE DU JEU</h2>
+                <span class="text-[10px] bg-redAcc text-white px-2 py-0.5 rounded font-bold">CONTROL CENTER</span>
+            </div>
+
+            <!-- DOSSIER SECRETS DES ADULTES -->
+            <div class="bg-darkBg p-3 rounded-lg border border-gray-800 text-xs space-y-3">
+                <h3 class="text-gold font-bold"><i class="fa-solid fa-user-ninja mr-1"></i> RÔLES SECRETS DES ADULTES (À LA TABLE) :</h3>
+                
+                <div class="border-l-2 border-gold pl-2 space-y-1">
+                    <p class="text-cyan font-bold">🗣️ Mathieu (Papa) - L'Orateur :</p>
+                    <p>• <em>Alibi :</em> Expliquait une théorie passionnante.</p>
+                    <p>• <em>Son Indice :</em> A vu Andreas faire une feinte Blue Lock près du coffre.</p>
+                    <p>• <em>Sa Fausse Piste :</em> Trace brillante / calvitie sur le fauteuil.</p>
+                </div>
+
+                <div class="border-l-2 border-gold pl-2 space-y-1">
+                    <p class="text-cyan font-bold">📋 Charlotte (Maman) - La Cheffe d'Orchestre :</p>
+                    <p>• <em>Alibi :</em> Vérifiait le planning et les alarmes.</p>
+                    <p>• <em>Son Indice :</em> A subi une grimace de James pour la distraire.</p>
+                    <p>• <em>Sa Fausse Piste :</em> Planning raturé oublié à côté du trésor.</p>
+                </div>
+            </div>
+
+            <!-- CONTROLES DU GAMEPLAY -->
+            <div class="bg-darkBg p-3 rounded-lg border border-gray-800 space-y-2">
+                <h3 class="text-xs font-bold text-gold"><i class="fa-solid fa-sliders mr-1"></i> COMMANDES DE PARTIE</h3>
+                <button onclick="triggerSound('success')" class="w-full py-1.5 bg-panelBg border border-borderCyan text-cyan rounded text-xs font-bold">🔊 Tester Bip Sonore Succès</button>
+                <button onclick="triggerSound('error')" class="w-full py-1.5 bg-panelBg border border-redAcc text-redAcc rounded text-xs font-bold">🔊 Tester Buzzer Erreur</button>
+            </div>
+
+            <!-- QR CODE DE PARTAGE GENERÉ DYNAMIQUEMENT -->
+            <div class="bg-darkBg p-3 rounded-lg border border-gray-800 text-center space-y-2">
+                <h3 class="text-xs font-bold text-cyan"><i class="fa-solid fa-qrcode mr-1"></i> FLASHER POUR REJOINDIR SUR SMARTPHONE</h3>
+                <div id="qrcode-container" class="flex justify-center p-2 bg-white rounded-lg inline-block my-2"></div>
+                <p class="text-[10px] text-gray-400">https://charlottebataille45-cell.github.io/MurderParty/</p>
+            </div>
+
+            <button onclick="resetGame()" class="w-full py-2.5 bg-redAcc hover:bg-red-700 text-white font-bold text-xs rounded uppercase tracking-wider transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-rotate-right"></i> Réinitialiser Toute la Partie
+            </button>
+        </section>
+
+        <!-- 2. ONGLET MUR DES PREUVES (ACCESSIBLE A TOUS) -->
+        <section id="evidence-wall" class="w-full bg-panelBg hud-border rounded-xl p-4 hidden space-y-4">
+            <div class="border-b border-borderCyan pb-2 text-center">
+                <h2 class="text-cyan font-bold text-base hud-cyan-glow"><i class="fa-solid fa-table-cells-large mr-2"></i>LE MUR DES PREUVES MATÉRIELLES</h2>
+                <p class="text-[11px] text-gray-400">Cliquez sur une pièce à conviction pour examiner le rapport d'analyse :</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 text-xs">
+                <div onclick="examineEvidence('clown')" class="bg-darkBg p-3 rounded-lg border border-gray-800 hover:border-gold cursor-pointer transition text-center space-y-1">
+                    <div class="text-2xl">🤡</div>
+                    <div class="font-bold text-gold">Nez de Clown</div>
+                    <div class="text-[10px] text-gray-500">Objet Retrouvé</div>
+                </div>
+
+                <div onclick="examineEvidence('bonbon')" class="bg-darkBg p-3 rounded-lg border border-gray-800 hover:border-gold cursor-pointer transition text-center space-y-1">
+                    <div class="text-2xl">🍬</div>
+                    <div class="font-bold text-gold">Papier de Bonbon</div>
+                    <div class="text-[10px] text-gray-500">Pièce N°2</div>
+                </div>
+
+                <div onclick="examineEvidence('foot')" class="bg-darkBg p-3 rounded-lg border border-gray-800 hover:border-gold cursor-pointer transition text-center space-y-1">
+                    <div class="text-2xl">⚽</div>
+                    <div class="font-bold text-gold">Schéma Tactique</div>
+                    <div class="text-[10px] text-gray-500">Blue Lock</div>
+                </div>
+
+                <div onclick="examineEvidence('love')" class="bg-darkBg p-3 rounded-lg border border-gray-800 hover:border-gold cursor-pointer transition text-center space-y-1">
+                    <div class="text-2xl">💌</div>
+                    <div class="font-bold text-gold">Mot "I Love Norah"</div>
+                    <div class="text-[10px] text-gray-500">Papier Froissé</div>
+                </div>
+
+                <div onclick="examineEvidence('planning')" class="bg-darkBg p-3 rounded-lg border border-gray-800 hover:border-gold cursor-pointer transition text-center space-y-1">
+                    <div class="text-2xl">📋</div>
+                    <div class="font-bold text-gold">Planning Surligné</div>
+                    <div class="text-[10px] text-gray-500">Note d'Alarme</div>
+                </div>
+
+                <div onclick="examineEvidence('fauteuil')" class="bg-darkBg p-3 rounded-lg border border-gray-800 hover:border-gold cursor-pointer transition text-center space-y-1">
+                    <div class="text-2xl">✨</div>
+                    <div class="font-bold text-gold">Trace Luisante</div>
+                    <div class="text-[10px] text-gray-500">Dossier Fauteuil</div>
+                </div>
+            </div>
+
+            <!-- MODAL DETAIL PREUVE -->
+            <div id="evidence-modal" class="bg-darkBg p-3 rounded-lg border border-cyan text-xs hidden space-y-2">
+                <h4 id="evidence-modal-title" class="font-bold text-cyan">Rapport d'analyse :</h4>
+                <p id="evidence-modal-text" class="text-gray-300 italic"></p>
+            </div>
+        </section>
+
+        <!-- 3. ÉCRAN VICTOIRE FINALE -->
+        <section id="victory-screen" class="w-full bg-emerald-950/90 border-2 border-emerald-500 rounded-xl p-5 text-center hidden space-y-4 my-auto">
+            <div class="text-4xl animate-bounce">🏆</div>
+            <h2 class="text-xl font-bold text-emerald-400 tracking-wider">BRAVO ! LE TRÉSOR EST RETROUVÉ !</h2>
+            
+            <div class="bg-black/60 p-4 rounded-lg border border-emerald-500/30 text-xs text-left space-y-2 text-emerald-100 leading-relaxed">
+                <p><strong>LA RÉVÉLATION FINALE :</strong></p>
+                <p>Pendant que James faisait le pitre, que Nino cachait ses bonbons, qu'Andreas visualisait son tir, que Matys écrivait à Norah, que Mathieu faisait de grands discours et que Charlotte stressait sur son chrono...</p>
+                <p class="text-gold font-bold">La petite Enola (3 ans) a profité du bazar ambiant pour prendre le Trésor de la Chouquette et aller le cacher sagement sous son doudou !</p>
+            </div>
+
+            <p class="text-xs text-gray-300">Vous pouvez désormais déverrouiller le coffre physique au centre de la table !</p>
+
+            <button onclick="resetGame()" class="py-2 px-4 bg-redAcc hover:bg-red-700 text-white text-xs font-bold rounded uppercase tracking-wider transition">
+                Rejouer une Nouvelle Partie
+            </button>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="w-full max-w-xl text-center mt-4 pt-2 border-t border-gray-800 text-[10px] text-gray-500 flex justify-between items-center">
+        <span>Manoir Blackwood v2.0</span>
+        <button onclick="changeRole()" class="hover:text-cyan underline">Changer de rôle</button>
+    </footer>
+
+    <!-- SCRIPT APPLICATION -->
+    <script>
+        // CONFIGURATION & ETAT DU JEU
+        const APP_URL = "https://charlottebataille45-cell.github.io/MurderParty/";
+        const SUSPECTS_LIST = ["James", "Nino", "Andreas", "Matys", "Mathieu", "Charlotte"];
+        
+        let audioCtx = null;
+
+        // ETAT INITIAL DU GAMESTATE
+        function getGameState() {
+            return JSON.parse(localStorage.getItem('murder_state_v2')) || {
+                step: 1, // 1: James(SERPENT), 2: Nino(DRAGON), 3: Andreas(4812), 4: Enquête(Enola), 5: Victoire
+                notes: { james: "", nino: "", andreas: "", matys: "" },
+                checklists: { james: {}, nino: {}, andreas: {}, matys: {} }
+            };
+        }
+
+        function saveGameState(state) {
+            localStorage.setItem('murder_state_v2', JSON.stringify(state));
+            updateUI();
+        }
+
+        // INITIALISATION AUDIOCONTEXT (Web Audio API pour bip sonores)
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function triggerSound(type) {
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'success') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+                    osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.25);
+                }
+            } catch(e) { console.log('Audio non supporté'); }
+
+            // Vibration Tactile API
+            if (navigator.vibrate) {
+                if (type === 'success') navigator.vibrate([50, 50, 100]);
+                else if (type === 'error') navigator.vibrate([200]);
+            }
+        }
+
+        // VERROUILLAGE RÔLE
+        function lockRole(role) {
+            initAudio();
+            triggerSound('success');
+            localStorage.setItem('my_murder_role', role);
+            
+            document.getElementById('role-select-screen').style.display = 'none';
+            document.getElementById('app-nav').classList.remove('hidden');
+            document.getElementById('status-bar').classList.remove('hidden');
+            document.getElementById('progress-tracker').classList.remove('hidden');
+            
+            if (role === 'mj') {
+                generateQRCode();
+            }
+
+            renderChecklists();
+            loadNotes();
+            switchTab('my-panel');
+            updateUI();
+        }
+
+        function changeRole() {
+            localStorage.removeItem('my_murder_role');
+            location.reload();
+        }
+
+        // SWITCH TAB (Dossier / Mur des Preuves)
+        function switchTab(tabId) {
+            let role = localStorage.getItem('my_murder_role');
+            if (!role) return;
+
+            document.querySelectorAll('.role-panel').forEach(p => p.classList.add('hidden'));
+            document.getElementById('evidence-wall').classList.add('hidden');
+
+            const btnPanel = document.getElementById('nav-btn-panel');
+            const btnWall = document.getElementById('nav-btn-wall');
+
+            if (tabId === 'my-panel') {
+                document.getElementById(`panel-${role}`).classList.remove('hidden');
+                btnPanel.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-panelBg text-cyan border border-borderCyan hover:bg-black transition";
+                btnWall.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-panelBg text-gray-400 border border-gray-700 hover:bg-black transition";
+            } else if (tabId === 'evidence-wall') {
+                document.getElementById('evidence-wall').classList.remove('hidden');
+                btnWall.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-panelBg text-cyan border border-borderCyan hover:bg-black transition";
+                btnPanel.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-panelBg text-gray-400 border border-gray-700 hover:bg-black transition";
+            }
+        }
+
+        // VALIDER CODE
+        function submitCode(role, expected) {
+            let state = getGameState();
+            let input = document.getElementById(`input-${role}`).value.trim().toUpperCase();
+            let msgDiv = document.getElementById(`msg-${role}`);
+            msgDiv.classList.remove('hidden');
+
+            if (role === 'james' && state.step === 1 && input === expected) {
+                state.step = 2;
+                saveGameState(state);
+                triggerSound('success');
+                msgDiv.className = "text-xs text-center font-bold text-green-400 mt-2";
+                msgDiv.innerHTML = "✅ SIGNAL SERPENT VALIDE ! Dis à NINO d'aligner la constellation DRAGON.";
+            } 
+            else if (role === 'nino' && state.step === 2 && input === expected) {
+                state.step = 3;
+                saveGameState(state);
+                triggerSound('success');
+                msgDiv.className = "text-xs text-center font-bold text-green-400 mt-2";
+                msgDiv.innerHTML = "✅ CONSTELLATION ALIGNÉE ! Transmets le calcul (2406 x 2) à ANDREAS.";
+            } 
+            else if (role === 'andreas' && state.step === 3 && input === expected) {
+                state.step = 4;
+                saveGameState(state);
+                triggerSound('success');
+                msgDiv.className = "text-xs text-center font-bold text-green-400 mt-2";
+                msgDiv.innerHTML = "🔓 CADENAS DÉBLOQUÉ ! Vous pouvez ouvrir l'ENVELOPPE B physique et lire vos indices !";
+            } 
+            else if (role === 'matys' && state.step === 4 && input === expected) {
+                state.step = 5;
+                saveGameState(state);
+                triggerSound('success');
+            } 
+            else {
+                triggerSound('error');
+                msgDiv.className = "text-xs text-center font-bold text-redAcc mt-2";
+                if (role === 'matys' && state.step < 4) {
+                    msgDiv.innerHTML = "❌ L'enquête n'est pas encore débloquée ! Validez d'abord les étapes 1, 2 et 3.";
+                } else {
+                    msgDiv.innerHTML = "❌ CODE INCORRECT OU CE N'EST PAS ENCORE TON TOUR !";
+                }
+            }
+        }
+
+        // MISE A JOUR DE L'INTERFACE SELON ETAT DU GAMESTATE
+        function updateUI() {
+            let state = getGameState();
+            let role = localStorage.getItem('my_murder_role');
+
+            // Mise à jour des trackers visuels de progression
+            for (let i = 1; i <= 4; i++) {
+                let node = document.getElementById(`step-node-${i}`);
+                if (state.step > i) {
+                    node.className = "p-1 rounded bg-green-950 border border-green-500 text-green-400 font-bold";
+                } else if (state.step === i) {
+                    node.className = "p-1 rounded bg-panelBg border border-gold text-gold font-bold glitch-effect";
+                } else {
+                    node.className = "p-1 rounded bg-panelBg border border-gray-700 text-gray-600 font-bold";
+                }
+            }
+
+            // Déblocage des témoignages secrets en Phase 4
+            if (state.step >= 4) {
+                document.querySelectorAll('.testimony-box').forEach(el => el.classList.remove('hidden'));
+                document.getElementById('phase-badge').innerText = "PHASE 2 : ENQUÊTE ET DÉBAT";
+                document.getElementById('phase-badge').className = "px-2 py-0.5 rounded text-[10px] bg-green-600 text-white font-bold uppercase tracking-wider";
+            } else {
+                document.querySelectorAll('.testimony-box').forEach(el => el.classList.add('hidden'));
+                document.getElementById('phase-badge').innerText = "PHASE 1 : RECHERCHE";
+                document.getElementById('phase-badge').className = "px-2 py-0.5 rounded text-[10px] bg-redAcc text-white font-bold uppercase tracking-wider";
+            }
+
+            // Affichage Victoire
+            if (state.step === 5) {
+                document.querySelectorAll('.role-panel').forEach(p => p.classList.add('hidden'));
+                document.getElementById('evidence-wall').classList.add('hidden');
+                document.getElementById('app-nav').classList.add('hidden');
+                document.getElementById('victory-screen').classList.remove('hidden');
+            }
+        }
+
+        // CARNET DE NOTES - CHECKLISTS INTERACTIVES
+        function renderChecklists() {
+            let state = getGameState();
+            ['james', 'nino', 'andreas', 'matys'].forEach(r => {
+                let container = document.getElementById(`checklist-${r}`);
+                if (!container) return;
+                container.innerHTML = "";
+
+                SUSPECTS_LIST.forEach(s => {
+                    let status = (state.checklists[r] && state.checklists[r][s]) ? state.checklists[r][s] : 'Inconnu';
+                    let badgeClass = "bg-gray-800 text-gray-400";
+                    if (status === 'Suspect') badgeClass = "bg-redAcc text-white font-bold";
+                    if (status === 'Douteux') badgeClass = "bg-gold text-black font-bold";
+                    if (status === 'Innocent') badgeClass = "bg-green-600 text-white font-bold";
+
+                    let item = document.createElement('div');
+                    item.className = "flex justify-between items-center bg-black/50 p-1.5 rounded border border-gray-800";
+                    item.innerHTML = `
+                        <span class="text-gray-300">${s}</span>
+                        <button onclick="toggleSuspectStatus('${r}', '${s}')" class="px-2 py-0.5 rounded text-[10px] ${badgeClass} transition">
+                            ${status}
+                        </button>
+                    `;
+                    container.appendChild(item);
+                });
+            });
+        }
+
+        function toggleSuspectStatus(role, suspect) {
+            let state = getGameState();
+            if (!state.checklists[role]) state.checklists[role] = {};
+            
+            let current = state.checklists[role][suspect] || 'Inconnu';
+            let next = 'Suspect';
+            if (current === 'Suspect') next = 'Douteux';
+            else if (current === 'Douteux') next = 'Innocent';
+            else if (current === 'Innocent') next = 'Inconnu';
+
+            state.checklists[role][suspect] = next;
+            saveGameState(state);
+            renderChecklists();
+        }
+
+        // CARNET DE NOTES - SAUVEGARDE TEXTE
+        function saveNotes(role) {
+            let state = getGameState();
+            let text = document.getElementById(`notes-${role}`).value;
+            state.notes[role] = text;
+            localStorage.setItem('murder_state_v2', JSON.stringify(state));
+        }
+
+        function loadNotes() {
+            let state = getGameState();
+            ['james', 'nino', 'andreas', 'matys'].forEach(r => {
+                let textarea = document.getElementById(`notes-${r}`);
+                if (textarea && state.notes[r]) {
+                    textarea.value = state.notes[r];
+                }
+            });
+        }
+
+        // MUR DES PREUVES INTERACTIF
+        function examineEvidence(type) {
+            triggerSound('success');
+            let modal = document.getElementById('evidence-modal');
+            let title = document.getElementById('evidence-modal-title');
+            let text = document.getElementById('evidence-modal-text');
+            modal.classList.remove('hidden');
+
+            const details = {
+                clown: { t: "🤡 Nez de Clown en Plastique", text: "Retrouvé sous le fauteuil près du coffre. Porte de légères traces de poudre blanche/farine." },
+                bonbon: { t: "🍬 Emballage de Bonbon Mâchouillé", text: "Trouvé au pied de la table du trésor. Parfum fraise intense." },
+                foot: { t: "⚽ Schéma Tactique Blue Lock", text: "Dessin au crayon représentant une feinte de frappe ultime 'Direct Shot'." },
+                love: { t: "💌 Mot Froissé 'I Love Norah'", text: "Petit mot doux griffonné à la hâte avec de nombreux cœurs dessinés autour." },
+                planning: { t: "📋 Planning d'Organisation Raturé", text: "Surligné en fluo rouge à l'heure exacte du vol avec la mention : URGENT TIMING !" },
+                fauteuil: { t: "✨ Zone Luisante sur le Fauteuil", text: "Un reflet brillant repéré sur le dossier en cuir, causé par des frottements répétés." }
+            };
+
+            title.innerText = details[type].t;
+            text.innerText = details[type].text;
+        }
+
+        // GENERATION AUTOMATIQUE DU QR CODE
+        function generateQRCode() {
+            const container = document.getElementById('qrcode-container');
+            if (container && container.innerHTML.trim() === "") {
+                new QRCode(container, {
+                    text: APP_URL,
+                    width: 128,
+                    height: 128,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+            }
+        }
+
+        // REINITIALISATION COMPLETE
+        function resetGame() {
+            if (confirm("Voulez-vous vraiment réinitialiser toute la partie pour tous les joueurs ?")) {
+                localStorage.removeItem('murder_state_v2');
+                localStorage.removeItem('my_murder_role');
+                location.reload();
+            }
+        }
+
+        // CHRONOMETRE COMPTE A REBOURS
+        let timeLeft = 45 * 60;
+        setInterval(() => {
+            if (timeLeft > 0) {
+                timeLeft--;
+                let m = Math.floor(timeLeft / 60);
+                let s = timeLeft % 60;
+                let display = document.getElementById('timer-display');
+                if (display) {
+                    display.innerText = `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+                }
+            }
+        }, 1000);
+
+        // DEMARRAGE AUTO AU CHARGEMENT
+        window.onload = function() {
+            let role = localStorage.getItem('my_murder_role');
+            if (role) {
+                lockRole(role);
+            }
+        };
+    </script>
+</body>
+</html>
