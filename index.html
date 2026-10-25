@@ -295,6 +295,8 @@ function App() {
   const [offlineOverride, setOfflineOverride] = useState(false);
   const [roomSession, setRoomSession] = useState(null);
   const lastRound = React.useRef(null);
+  // Alerte ponctuelle à l'ouverture de la révélation (et lors d'une reprise de salle).
+  const lastRevealState = React.useRef(false);
   const [remoteProgress, setRemoteProgress] = useState(null);
   const [roomPlayers, setRoomPlayers] = useState({});
   const [remoteVotes, setRemoteVotes] = useState(null);
@@ -321,6 +323,24 @@ function App() {
   const setMargueriteUnlocked = val => { if (sharedMode) {window.RoubatvotFirebase.hostFlag(roomSession.code,'confession',val).catch(e=>setFirebaseError(e.message)); return;} setGame(g=>({...g,margueriteUnlocked: typeof val === 'function' ? val(g.margueriteUnlocked):val})); };
   const setVotes = val => setGame(g => ({...g, votes: typeof val === 'function' ? val(g.votes) : val}));
   const setVoteSubmitted = val => { if (sharedMode) { window.RoubatvotFirebase.castVote(roomSession.code,roomSession.playerId,votes).catch(e=>setFirebaseError('Vote non enregistré : '+e.message)); return; } setGame(g=>({...g,voteSubmitted:val})); };
+
+  // L'indicateur « confession » est déjà partagé par Firebase et protégé par les règles MJ.
+  // Quand Charlotte le passe à true, chaque appareil ouvre la scène une seule fois.
+  // Le joueur peut ensuite naviguer librement et retrouver la scène via « Révélation ».
+  useEffect(() => {
+    if (!currentUser) {
+      lastRevealState.current = false;
+      return;
+    }
+    if (margueriteUnlocked && !lastRevealState.current) {
+      setActiveTab('reveal');
+      // Au déclenchement, montrer le début de la scène même si le joueur était en bas de page.
+      window.scrollTo(0, 0);
+    } else if (!margueriteUnlocked && lastRevealState.current) {
+      setActiveTab(tab => tab === 'reveal' ? 'dossier' : tab);
+    }
+    lastRevealState.current = margueriteUnlocked;
+  }, [margueriteUnlocked, currentUser?.id, roomSession?.code]);
 
   useEffect(() => {
     let alive = true;
@@ -528,6 +548,9 @@ function App() {
             <button onClick={() => setActiveTab('common')} className={`px-2.5 py-1.5 rounded whitespace-nowrap ${activeTab === 'common' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300'}`}>Écran Commun</button>
             <button onClick={() => setActiveTab('dossier')} className={`px-2.5 py-1.5 rounded whitespace-nowrap ${activeTab === 'dossier' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300'}`}>Preuves</button>
             <button onClick={() => setActiveTab('vote')} className={`px-2.5 py-1.5 rounded whitespace-nowrap ${activeTab === 'vote' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300'}`}>Vote</button>
+            {margueriteUnlocked && (
+              <button onClick={() => setActiveTab('reveal')} className={`px-2.5 py-1.5 rounded whitespace-nowrap ${activeTab === 'reveal' ? 'bg-purple-500 text-slate-950 font-bold' : 'bg-purple-950 text-purple-200'}`}>🎭 Révélation</button>
+            )}
             {currentUser.isMJ && (
               <button onClick={() => setActiveTab('mj')} className={`px-2.5 py-1.5 rounded whitespace-nowrap ${activeTab === 'mj' ? 'bg-rose-600 text-white font-bold' : 'bg-rose-950 text-rose-300'}`}>MJ</button>
             )}
@@ -538,6 +561,11 @@ function App() {
       {/* MAIN CONTAINER */}
       <main className="p-4 space-y-4 flex-1">
         {firebaseError && <div role="alert" className="rounded-lg border border-rose-700 bg-rose-950/40 p-3 text-xs text-rose-200">⚠️ {firebaseError}</div>}
+        {currentUser && margueriteUnlocked && activeTab !== 'reveal' && (
+          <button type="button" onClick={() => setActiveTab('reveal')} className="w-full rounded-xl border border-purple-500/70 bg-purple-950/50 p-3 text-left text-sm font-semibold text-purple-100" aria-label="Afficher à nouveau la révélation finale">
+            🎭 La révélation finale est disponible — la revoir
+          </button>
+        )}
         {sharedMode && <div className="rounded-lg border border-emerald-800 bg-emerald-950/30 p-3 text-xs flex items-center justify-between gap-2">
           <span>🟢 Salle <strong className="font-mono select-all">{roomSession.code}</strong> · {Object.keys(roomPlayers).length}/6 profils · temps réel</span>
           <button className="underline text-emerald-200 shrink-0" onClick={()=>{navigator.clipboard?.writeText(location.origin+location.pathname+'?room='+roomSession.code);}}>Copier le lien</button>
@@ -904,6 +932,45 @@ function App() {
               </div>
             )}
 
+            {/* SCÈNE FINALE : affichée automatiquement dès que Charlotte libère H-02.
+                Elle reste accessible via l'onglet Révélation après fermeture. */}
+            {activeTab === 'reveal' && margueriteUnlocked && (
+              <section aria-label="Révélation finale de la Murder Party" aria-live="polite" className="space-y-4 animate-fade-in">
+                <div className="rounded-2xl border-2 border-purple-500/70 bg-gradient-to-b from-purple-950/80 to-slate-900 p-5 text-center space-y-3 shadow-xl">
+                  <div className="text-5xl" aria-hidden="true">🕯️</div>
+                  <p className="uppercase tracking-[0.22em] text-[10px] font-bold text-purple-300">Dossier déclassifié · H-02</p>
+                  <h2 className="font-cinzel text-xl font-bold text-amber-300">La vérité des Roubatvot</h2>
+                  <p className="text-xs text-slate-200 leading-relaxed">Le dernier sceau vient de céder. Les indices racontaient deux histoires différentes, séparées par plus d'un siècle.</p>
+                </div>
+
+                <div className="rounded-xl border border-amber-700/50 bg-slate-900 p-4 space-y-2 text-xs leading-relaxed">
+                  <h3 className="font-cinzel font-bold text-amber-300 text-sm">📜 1897 — Le secret de Marguerite</h3>
+                  <p className="italic text-slate-200">« J'ai pris l'Œil des Roubatvot avant que mon oncle ne découvre sa disparition... »</p>
+                  <p className="text-slate-300">Cette confession éclaire la disparition historique du médaillon. Le registre d'Émile rappelle aussi que l'héritage familial ne se résume pas à un objet.</p>
+                </div>
+
+                <div className="rounded-xl border border-cyan-800/60 bg-slate-900 p-4 space-y-2 text-xs leading-relaxed">
+                  <h3 className="font-cinzel font-bold text-cyan-300 text-sm">🕒 Ce soir — Le piège des horaires</h3>
+                  <p className="text-slate-200"><strong>20 h 27 :</strong> session N0CT-7. <strong>20 h 31 :</strong> apparition de la lettre.</p>
+                  <p className="text-slate-300">L'écart de quatre minutes est établi. Mais il ne prouve pas, à lui seul, qui a provoqué l'apparition de la lettre. Accuser quelqu'un à partir d'un simple rapprochement aurait été une erreur.</p>
+                </div>
+
+                <div className="rounded-xl border-2 border-pink-500/60 bg-pink-950/30 p-5 text-center space-y-3">
+                  <div className="text-5xl" aria-hidden="true">🍒</div>
+                  <h3 className="font-cinzel text-lg text-pink-200 font-bold">Et pendant ce temps… Enola !</h3>
+                  <p className="text-sm text-slate-100 leading-relaxed">Tout le monde cherchait un coupable parmi les grands. Mais la surprise de ce soir était ailleurs : <strong>le Trésor de la Chouquette est au cœur de l'histoire d'Enola.</strong></p>
+                  <p className="text-xs text-pink-100">Ce n'est pas une accusation contre Enola : c'est le dernier clin d'œil de l'enquête. Charlotte peut maintenant dévoiler le trésor qu'elle a préparé pour la famille.</p>
+                </div>
+
+                <div className="rounded-lg bg-slate-900 border border-slate-700 p-3 space-y-2 text-xs text-slate-300">
+                  <p className="text-amber-300 font-semibold">🎬 À lire par Charlotte</p>
+                  <p className="italic">« Vous avez percé le secret de 1897, reconstitué la chronologie et évité de condamner sans preuve. Mais personne n'avait pensé à regarder du côté de notre plus petite enquêtrice… Enola ! Le Trésor de la Chouquette peut enfin être dévoilé ! »</p>
+                </div>
+                <button type="button" onClick={() => setActiveTab('dossier')} className="w-full rounded-lg border border-purple-700 bg-slate-800 py-3 text-xs font-semibold text-purple-100">Fermer la scène · Retour aux preuves</button>
+                <p className="text-center text-[11px] text-slate-400">La révélation reste disponible dans l'onglet « Révélation » tant que Charlotte ne la masque pas.</p>
+              </section>
+            )}
+
             {/* ONGLET 6 : PANNEAU MJ */}
             {activeTab === 'mj' && currentUser.isMJ && (
               <div className="space-y-3 animate-fade-in">
@@ -922,9 +989,19 @@ function App() {
                   <button onClick={() => sharedMode ? window.RoubatvotFirebase.hostFlag(roomSession.code,'hintAll',!remoteProgress?.hintAll).catch(e=>setFirebaseError(e.message)) : setMjForceHints(!mjForceHints)} className="w-full bg-amber-900/60 text-amber-200 py-2 rounded font-semibold">
                     {(sharedMode ? remoteProgress?.hintAll : mjForceHints) ? 'Verrouiller Indices' : '💡 Forcer Indices pour Tous'}
                   </button>
-                  <button onClick={() => setMargueriteUnlocked(!margueriteUnlocked)} className="w-full bg-rose-900/60 text-rose-200 py-2 rounded font-semibold">
-                    {margueriteUnlocked ? 'Masquer Confession H-02' : '🔓 Libérer Confession H-02'}
-                  </button>
+                  <div className="rounded-lg border border-purple-800/70 bg-purple-950/25 p-3 space-y-2">
+                    <p className="font-semibold text-purple-200">🎭 Révélation finale sur tous les téléphones</p>
+                    <p className="text-[11px] text-slate-300">À lancer de préférence après les cinq énigmes et les cinq votes. L'écran final s'ouvre automatiquement chez les joueurs, et reste consultable ensuite.</p>
+                    {sharedMode && <p className="text-[11px] text-slate-400">Énigmes : {solvedLevels.length}/5 · Votes : {Object.keys(remoteVotes || {}).length}/5</p>}
+                    <button onClick={() => {
+                      if (!margueriteUnlocked && sharedMode && (solvedLevels.length < 5 || Object.keys(remoteVotes || {}).length < 5)) {
+                        if (!confirm('Toutes les énigmes ou tous les votes ne sont pas terminés. Déclencher quand même la révélation finale ?')) return;
+                      }
+                      setMargueriteUnlocked(!margueriteUnlocked);
+                    }} className="w-full bg-rose-900/70 text-rose-100 py-3 rounded-lg font-bold">
+                      {margueriteUnlocked ? 'Masquer la révélation pour tous' : '🎬 Déclencher la révélation finale'}
+                    </button>
+                  </div>
                   <div className="pt-2 border-t border-slate-800 font-bold text-slate-300">{sharedMode ? 'Déblocage forcé pour tous :' : 'Déblocage forcé (sur cet appareil) :'}</div>
                   {PUZZLES.map(p => (
                     <div key={p.id} className="flex justify-between items-center bg-slate-950 p-2 rounded">
