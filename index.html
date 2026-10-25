@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>La Malédiction des Roubatvot — V4.2</title>
+  <title>La Malédiction des Roubatvot — V4.2.1</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- React & ReactDOM -->
@@ -1024,7 +1024,7 @@ function App() {
                           </span>
                         </div>
                         <p className="text-[11px] text-slate-400">
-                          {isSolved ? '✅ Preuve archivée au dossier.' : `🔒 En attente de l'action du ${owner.pseudonym} (${owner.name}).`}
+                          {isSolved ? '✅ Preuve archivée au dossier.' : `🔒 En attente de l'action du ${owner.role} (${owner.name}).`}
                         </p>
                       </div>
                     );
@@ -1124,7 +1124,7 @@ function App() {
 
             {activeTab === 'mj' && currentUser.isMJ && (
               <div className="space-y-3 animate-fade-in">
-                <h2 className="font-cinzel font-bold text-rose-400 text-sm">Panneau Charlotte (MJ) · V4.2</h2>
+                <h2 className="font-cinzel font-bold text-rose-400 text-sm">Panneau Charlotte (MJ) · V4.2.1</h2>
                 <p className="text-xs text-slate-400">{sharedMode ? 'Commandes protégées par ton compte Google. Les preuves et votes sont synchronisés.' : 'Mode secours : le tableau reflète ce téléphone uniquement. Reçois les codes des joueurs dans « Écran commun ».'}</p>
                 <div className="rounded-xl border border-amber-700/60 bg-slate-900 p-4 space-y-3 text-xs">
                   <div className="flex items-center justify-between"><h3 className="font-cinzel text-amber-200 text-sm font-bold">🎬 Acte {stage+1}/5 — {ACTS[stage].name}</h3><span className="text-slate-400">{ACTS[stage].duration}</span></div>
