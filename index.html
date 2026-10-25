@@ -274,8 +274,46 @@ const STORY_STEPS = [
 const SCENE_TRACES = [
   {after:0, id:'S-00', title:'Constat de départ', text:'Le coffret était sur la table avant l’agitation provoquée par la lettre. Personne n’a vu précisément le moment où il a bougé.'},
   {after:3, id:'S-01', title:'Traces près de la table', text:'Une petite trace chocolatée et une très petite empreinte apparaissent près de l’endroit où reposait le Trésor. Leur auteur n’est pas identifié.'},
-  {after:4, id:'S-02', title:'Note d’archive', text:'Matys possède une note de l’ancien dossier technique : « N0CT-7 / séquence 3 → 1 → 2 / mode d’essai ». Elle prend un sens nouveau lorsqu’on la rapproche de la carte de James.'}
+  {after:4, id:'S-02', title:'Note d’archive', text:'Matys possède une note de l’ancien dossier technique : « N0CT-7 / séquence 3 → 1 → 2 / mode d’essai ». Elle prend un sens nouveau lorsqu’on la rapproche de la carte de James.'},
+  {after:4, id:'S-03', title:'Page manquante du registre de 1897', text:'Un feuillet d’inventaire indique que Marguerite avait consulté les affaires conservées par Augustin peu avant la disparition du médaillon. Émile est accusé dans un récit écrit plus tard, sans témoin direct du vol.'},
+  {after:5, id:'S-04', title:'Souvenir près du coin des jouets', text:'Pendant l’agitation, quelqu’un a entendu de tout petits pas s’éloigner de la table vers les jouets. Personne n’a regardé ce que cette petite personne avait dans les mains.'}
 ];
+// Aides à la lecture : elles ne donnent aucune réponse du tribunal.
+// Les formulations séparent volontairement constat, piste et élément encore inconnu.
+const PROOF_EXPLAINERS = {
+  1: {label:'La carte de James', meaning:'Une carte portant N0CT-7 existe et a été retrouvée.', limit:'Cette carte ne dit pas qui a utilisé le dispositif, ni pourquoi.'},
+  2: {label:'Le message de Nino', meaning:'NODE-7 désigne un élément du système technique.', limit:'Un nom de machine ne désigne pas un coupable.'},
+  3: {label:'Les horaires d’Andreas', meaning:'Le système a enregistré une session à 20 h 27 ; la lettre a été vue à 20 h 31.', limit:'Quatre minutes d’écart ne prouvent pas qu’une personne a volontairement provoqué la lettre.'},
+  4: {label:'Le registre de Matys', meaning:'Émile parle d’un héritage affectif. Le registre ne contient pas d’aveu de vol.', limit:'Ce texte ne révèle pas, à lui seul, qui a pris le médaillon.'},
+  5: {label:'Le diagnostic de Mathieu', meaning:'Les journaux confirment l’ordre des événements.', limit:'Ils ne permettent pas de démontrer à eux seuls une cause, un sabotage ou une intention.'}
+};
+const TRACE_EXPLAINERS = {
+  'S-00': {meaning:'Le coffret était là avant la lettre et il a disparu ensuite.', limit:'Personne n’a vu le geste précis.'},
+  'S-01': {meaning:'La trace et l’empreinte sont petites : ce sont des indices à comparer.', limit:'Une empreinte sans identification ne suffit pas à accuser quelqu’un.'},
+  'S-02': {meaning:'La carte de James et l’ancienne note contiennent la même référence et la même séquence.', limit:'Le mode d’essai ne révèle pas qui l’a utilisé ce soir.'},
+  'S-03': {meaning:'Marguerite a eu accès aux affaires d’Augustin et l’accusation contre Émile est postérieure.', limit:'Avoir eu accès à un objet ne prouve pas qu’on l’a pris.'},
+  'S-04': {meaning:'Une toute petite personne a quitté la table vers les jouets pendant l’agitation.', limit:'Personne n’a vu le coffret dans ses mains.'}
+};
+const CASE_GUIDES = [
+  {id:'passe', icon:'📜', color:'amber', title:'Enquête A · Le secret de 1897', question:'Qui a pris le médaillon ? Émile est-il vraiment coupable ?', why:'La lettre de ce soir réveille une ancienne accusation familiale.', puzzleIds:[4], traceIds:['S-03'],
+    talk:['Pourquoi la famille accuse-t-elle Émile ?', 'Le registre est-il un aveu ou une défense ?', 'Qui avait accès aux affaires d’Augustin ?'],
+    takeaway:'Vous devez choisir une hypothèse sur 1897 au tribunal. L’aveu définitif n’arrivera qu’après les votes.'},
+  {id:'machine', icon:'🖥️', color:'cyan', title:'Enquête B · La lettre sur l’écran', question:'Que s’est-il passé entre 20 h 27 et 20 h 31 ? Était-ce volontaire ?', why:'Un mécanisme a été utilisé, mais les horaires ne suffisent pas à désigner son auteur.', puzzleIds:[1,2,3,5], traceIds:['S-02'],
+    talk:['À quoi servent N0CT-7 et NODE-7 ?', 'Qu’est-ce qui se passe à 20 h 27 puis à 20 h 31 ?', 'Qui a été vu avec un objet technique ? Cela prouve-t-il une intention ?'],
+    takeaway:'Au tribunal, vous répondrez à deux questions différentes : qui a manipulé le protocole et dans quelle intention.'},
+  {id:'coffret', icon:'🍬', color:'pink', title:'Enquête C · Le coffret d’Halloween', question:'Qui a déplacé le Trésor de la Chouquette ?', why:'La disparition du coffret a eu lieu pendant que tous regardaient la lettre.', puzzleIds:[], traceIds:['S-00','S-01','S-04'],
+    talk:['Quand a-t-on vu le coffret pour la dernière fois ?', 'Que suggèrent l’empreinte et les traces de chocolat ?', 'Où chercher si une petite personne a joué près de la table ?'],
+    takeaway:'Ne confondez pas la personne qui a déplacé le coffret avec celle qui a utilisé le système.'}
+];
+function ProofExplanation({label,source,detail,meaning,limit}) {
+  return <div className="rounded-lg bg-slate-950/80 border border-slate-700 p-3 space-y-2 text-xs">
+    <p className="font-bold text-amber-200">🔎 {label}</p>
+    <p className="text-slate-200 leading-relaxed">{detail}</p>
+    <p className="text-emerald-200 leading-relaxed"><strong>✅ Ce qu’on sait :</strong> {meaning}</p>
+    <p className="text-slate-400 leading-relaxed"><strong>❓ Ce qu’on ignore :</strong> {limit}</p>
+    <p className="text-[10px] text-slate-500">Source : {source}</p>
+  </div>;
+}
 const VOTE_QUESTIONS = [
   {key:'historique', title:'1897 — Qui a réellement pris le médaillon ?', help:'La légende accuse Émile. Les documents vous permettent-ils de le croire ?', options:[['Émile','Émile, comme le raconte la légende'],['Marguerite','Marguerite'],['Augustin','Augustin'],['Indéterminé','Impossible à déterminer']]},
   {key:'protocole', title:'Ce soir — Qui a manipulé le protocole ?', help:'Il s’agit du dispositif N0CT-7, pas de la personne qui a déplacé le Trésor.', options:[['Mathieu','Mathieu'],['Nino','Nino'],['Andreas','Andreas'],['Indéterminé','Impossible à déterminer']]},
@@ -586,7 +624,7 @@ function App() {
             <button onClick={() => setActiveTab('perso')} className={`px-2.5 py-1.5 rounded whitespace-nowrap ${activeTab === 'perso' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300'}`}>Mon Profil</button>
             <button onClick={() => setActiveTab('my_puzzle')} className={`px-2.5 py-1.5 rounded whitespace-nowrap ${activeTab === 'my_puzzle' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300'}`}>Mon Énigme</button>
             <button onClick={() => setActiveTab('common')} className={`px-2.5 py-1.5 rounded whitespace-nowrap ${activeTab === 'common' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300'}`}>Écran Commun</button>
-            <button onClick={() => setActiveTab('dossier')} className={`px-2.5 py-1.5 rounded whitespace-nowrap ${activeTab === 'dossier' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300'}`}>Preuves</button>
+            <button onClick={() => setActiveTab('dossier')} className={`px-2.5 py-1.5 rounded whitespace-nowrap ${activeTab === 'dossier' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300'}`}>🔍 Enquête</button>
             <button onClick={() => setActiveTab('vote')} className={`px-2.5 py-1.5 rounded whitespace-nowrap ${activeTab === 'vote' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300'}`}>Vote</button>
             {margueriteUnlocked && (
               <button onClick={() => setActiveTab('reveal')} className={`px-2.5 py-1.5 rounded whitespace-nowrap ${activeTab === 'reveal' ? 'bg-purple-500 text-slate-950 font-bold' : 'bg-purple-950 text-purple-200'}`}>🎭 Révélation</button>
@@ -684,6 +722,19 @@ function App() {
                   <div className="bg-slate-900 border border-slate-700 rounded-lg p-3"><strong className="text-cyan-300">2 · La technologie :</strong> que s’est-il produit entre la session de 20 h 27 et la lettre de 20 h 31 ?</div>
                   <div className="bg-slate-900 border border-slate-700 rounded-lg p-3"><strong className="text-pink-300">3 · Le présent :</strong> qui a déplacé le Trésor de la Chouquette pendant l’agitation ?</div>
                 </div>
+                <div className="rounded-xl border-2 border-emerald-600/50 bg-emerald-950/20 p-4 space-y-3 text-xs">
+                  <h3 className="font-cinzel text-emerald-200 font-bold text-base">🎮 Vos règles du jeu — lisez ceci d’abord</h3>
+                  <p className="text-slate-200">Vous n'avez jamais joué à une enquête ? <strong>Aucun problème.</strong> Vous n'avez pas à vous battre, à chercher un vrai objet dans toute la maison ni à inventer une histoire.</p>
+                  <ol className="list-decimal list-inside space-y-2 text-slate-200">
+                    <li><strong>Chacun lit « Mon Profil »</strong> : c’est son personnage et ses informations.</li>
+                    <li><strong>James commence dans « Mon Énigme »</strong> ; les autres jouent à leur tour quand l’étape précédente est terminée.</li>
+                    <li><strong>À chaque réussite, le joueur raconte sa découverte à voix haute.</strong> Dans « 🔍 Enquête », découvrez ce que cette preuve signifie.</li>
+                    <li><strong>Discutez ensemble</strong> : ce qui est certain, ce que vous supposez et ce qui manque.</li>
+                    <li><strong>Après cinq énigmes, chacun vote</strong> dans « Vote » sur quatre questions. Charlotte dévoilera ensuite la vérité.</li>
+                  </ol>
+                  <p className="rounded-lg bg-slate-950/70 border border-emerald-700/40 p-2 text-emerald-100"><strong>🎯 Votre but :</strong> trouver les explications les plus plausibles aux <strong>trois mystères</strong>, pas simplement réussir cinq mini-jeux. Vous avez le droit de vous tromper.</p>
+                  <button type="button" className="w-full rounded-lg bg-emerald-700 py-3 text-white font-bold" onClick={()=>setActiveTab('dossier')}>🔍 Voir comment utiliser les preuves</button>
+                </div>
                 <div className="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-3">
                   <h3 className="font-cinzel text-amber-300 font-bold text-sm">📖 Journal de l’enquête</h3>
                   <p className="text-[11px] text-slate-400">Les chapitres s’ouvrent au fur et à mesure. Aucun verdict ne sera dévoilé avant le vote.</p>
@@ -697,7 +748,7 @@ function App() {
                 </div>
                 <div className="rounded-xl bg-slate-900 border border-amber-800/50 p-4 space-y-2 text-xs">
                   <h3 className="text-amber-300 font-bold">🎯 Comment jouer ?</h3>
-                  <p>Chaque enquêteur a un rôle secret et une épreuve. Parlez-vous, comparez les alibis et les indices, puis rendez-vous au <strong>Tribunal</strong> une fois les cinq épreuves terminées. Charlotte lira ensuite le dénouement.</p>
+                  <p>Pas besoin de deviner tout de suite. À chaque nouvelle preuve, ouvrez <strong>🔍 Enquête</strong> pour savoir comment en discuter. Le <strong>Vote</strong> s’ouvre seulement quand toutes les épreuves sont terminées.</p>
                 </div>
                 <button type="button" className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg py-3 font-bold text-sm" onClick={() => setActiveTab(currentUser.isMJ ? 'mj' : 'perso')}>{currentUser.isMJ ? '👑 Préparer la partie MJ' : 'Découvrir mon rôle secret'}</button>
               </section>
@@ -799,6 +850,8 @@ function App() {
                               <button onClick={()=>{ if(navigator.clipboard?.writeText) navigator.clipboard.writeText(myPuzzle.relayCode).catch(()=>{}); }} className="text-xs underline text-amber-400">Copier le code</button>
                             </div>
                             <p className="text-[11px] text-slate-400">{sharedMode ? 'La preuve a été synchronisée dans la salle Firebase. Aucun code-relais à transmettre.' : 'La preuve est enregistrée sur ce téléphone. Charlotte doit aussi recevoir le code pour mettre à jour son écran commun.'}</p>
+                            <p className="rounded-lg bg-slate-900 border border-emerald-600/40 p-3 text-xs text-emerald-100"><strong>🗣️ Maintenant :</strong> raconte ta découverte à voix haute aux autres. Ensuite, ouvrez le carnet d’enquête pour comprendre ce qu’elle change dans l’histoire.</p>
+                            <button type="button" className="w-full bg-emerald-700 text-white rounded-lg py-3 font-bold text-sm" onClick={()=>setActiveTab('dossier')}>🔍 Comprendre ma preuve avec les autres</button>
                           </div>
                         ) : (
                           <>
@@ -952,40 +1005,89 @@ function App() {
               </div>
             )}
 
-            {/* ONGLET 4 : DOSSIER DES PREUVES */}
+            {/* ONGLET 4 : CARNET D'ENQUÊTE GUIDÉ — aucune écriture Firebase supplémentaire */}
             {activeTab === 'dossier' && (
-              <div className="space-y-3 animate-fade-in">
-                <h2 className="font-cinzel font-bold text-amber-400 text-sm">Dossier des Preuves</h2>
-                <p className="text-xs text-slate-400">Les preuves documentent des faits. Les accusations restent des hypothèses jusqu’au dénouement. Discutez-en ensemble avant de voter.</p>
-                <div className="rounded-lg bg-slate-900 border border-slate-700 p-3 text-xs space-y-2">
-                  <p className="text-amber-300 font-bold">🧭 Les trois dossiers</p>
-                  <p>📜 <strong>1897 :</strong> le médaillon et l’accusation d’Émile.</p>
-                  <p>🖥️ <strong>Ce soir :</strong> N0CT-7, NODE-7 et la lettre.</p>
-                  <p>🍬 <strong>Dans la maison :</strong> le coffret disparu.</p>
+              <section aria-label="Carnet d’enquête guidé" className="space-y-4 animate-fade-in">
+                <div className="rounded-2xl border border-amber-500/50 bg-gradient-to-b from-amber-950/40 to-slate-900 p-4 space-y-3">
+                  <p className="uppercase tracking-widest text-[10px] font-semibold text-amber-300">Votre carnet d'enquête</p>
+                  <h2 className="font-cinzel font-bold text-amber-200 text-lg">🔍 À quoi servent les preuves ?</h2>
+                  <p className="text-sm text-slate-100 leading-relaxed">Une énigme réussie vous donne une <strong>preuve</strong>. Ce n'est pas encore une réponse : c'est un morceau de l'histoire. <strong>Lisez les preuves ensemble pour comprendre les trois mystères, puis votez.</strong></p>
+                  <div className="rounded-lg bg-slate-950/70 border border-amber-800/40 p-3 space-y-2 text-xs">
+                    <p className="font-bold text-amber-200">🎮 Comment faire, concrètement ?</p>
+                    <p><strong>1.</strong> Le joueur qui vient de réussir son énigme lit sa découverte à voix haute.</p>
+                    <p><strong>2.</strong> Retrouvez sa preuve ci-dessous : lisez « Ce qu'on sait » puis « Ce qu'on ignore ».</p>
+                    <p><strong>3.</strong> Posez-vous les questions du dossier, en discutant tous ensemble.</p>
+                    <p><strong>4.</strong> Après les cinq épreuves, chacun donnera ses quatre réponses dans « Vote ».</p>
+                  </div>
+                  <div className="rounded-lg bg-slate-950/60 border border-slate-700 p-3 text-xs space-y-2">
+                    <p className="font-bold text-emerald-200">💡 Exemple pour apprendre à enquêter</p>
+                    <p className="text-slate-200"><strong>Fait :</strong> la lettre apparaît à 20 h 31.</p>
+                    <p className="text-slate-200"><strong>Hypothèse :</strong> quelqu'un a déclenché son apparition.</p>
+                    <p className="text-slate-200"><strong>Question :</strong> qui l'a fait et était-ce volontaire ? L'heure, à elle seule, ne le dit pas.</p>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  {evidenceList.map((ev, i) => (
-                    <div key={i} className="bg-slate-900 border border-amber-900/30 p-2.5 rounded-lg text-xs flex items-start space-x-2">
-                      <span className="text-amber-400">🔍</span>
-                      <span className="text-slate-200">{ev}</span>
-                    </div>
-                  ))}
-                  {evidenceList.length === 0 && <p className="text-xs text-slate-500 italic text-center py-4">Aucune preuve d’épreuve pour l’instant.</p>}
-                  {SCENE_TRACES.filter(trace => solvedLevels.length >= trace.after).map(trace => (
-                    <div key={trace.id} className="bg-slate-900 border border-pink-800/30 p-3 rounded-lg text-xs space-y-1">
-                      <p className="text-pink-300 font-semibold">🧩 {trace.id} — {trace.title}</p>
-                      <p className="text-slate-300">{trace.text}</p>
-                    </div>
-                  ))}
 
-                  {margueriteUnlocked && (
-                    <div className="bg-purple-950/40 border border-purple-500/50 p-3 rounded-lg text-xs space-y-1">
-                      <span className="font-bold text-purple-300">📜 Pièce H-02 : Confession de Marguerite (1897)</span>
-                      <p className="text-purple-200 italic">"J'ai pris l'Œil des Roubatvot avant que mon oncle ne découvre sa disparition..."</p>
-                    </div>
+                <div className="rounded-xl bg-slate-900 border border-slate-700 p-4 space-y-3" aria-live="polite">
+                  <div className="flex flex-wrap justify-between items-center gap-2 text-xs">
+                    <span className="font-bold text-amber-200">🧭 Où en est-on ?</span>
+                    <span className="font-semibold bg-slate-950 border border-slate-700 rounded-lg px-2 py-1">{solvedLevels.length} preuve(s) sur 5</span>
+                  </div>
+                  <div className="w-full rounded-full h-2 bg-slate-950 border border-slate-700 overflow-hidden"><div className="h-full bg-amber-500 transition-all duration-300" style={{width: `${Math.min(5,solvedLevels.length)*20}%`}} /></div>
+                  {margueriteUnlocked ? (
+                    <p className="text-emerald-200 text-xs"><strong>🎭 La vérité est révélée.</strong> Vous pouvez relire les dossiers pour comprendre le dénouement.</p>
+                  ) : solvedLevels.length === 0 ? (
+                    <p className="text-xs text-slate-200"><strong>À faire maintenant :</strong> James commence son énigme. Le premier indice viendra ensuite s'ajouter ici. Le constat du coffret manquant est déjà visible.</p>
+                  ) : solvedLevels.length < 5 ? (
+                    <p className="text-xs text-slate-200"><strong>À faire maintenant :</strong> discutez de la dernière découverte, puis laissez <strong>{PLAYERS[PUZZLES[solvedLevels.length].assignedTo].name}</strong> résoudre l'épreuve suivante. Les preuves apparaîtront ici automatiquement.</p>
+                  ) : (
+                    <p className="text-xs text-emerald-200"><strong>Vous avez les cinq preuves !</strong> Réunissez tout le monde, relisez les trois dossiers et discutez avant le vote. Vous n'êtes pas obligés d'être tous d'accord.</p>
                   )}
+                  <button type="button" className="w-full rounded-lg bg-amber-500 text-slate-950 py-3 text-sm font-bold" onClick={()=>setActiveTab(margueriteUnlocked ? 'reveal' : solvedLevels.length === 5 ? 'vote' : currentUser.isMJ ? 'common' : 'my_puzzle')}>
+                    {margueriteUnlocked ? '🎭 Voir le dénouement' : solvedLevels.length === 5 ? '🗳️ Passer aux quatre votes' : currentUser.isMJ ? '📋 Voir l’avancement des joueurs' : '🧩 Aller à mon énigme'}
+                  </button>
                 </div>
-              </div>
+
+                {CASE_GUIDES.map(dossier => {
+                  const proofs = dossier.puzzleIds.filter(id => solvedLevels.includes(id));
+                  const traces = SCENE_TRACES.filter(t => dossier.traceIds.includes(t.id) && solvedLevels.length >= t.after);
+                  const available = proofs.length + traces.length;
+                  const toCome = dossier.puzzleIds.length + dossier.traceIds.length - available;
+                  return <article key={dossier.id} className="rounded-2xl border border-slate-700 bg-slate-900 p-4 space-y-3">
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="font-cinzel font-bold text-amber-200 text-base">{dossier.icon} {dossier.title}</h3>
+                        <span className="text-[10px] shrink-0 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-slate-300">{available} indice(s)</span>
+                      </div>
+                      <p className="text-xs text-slate-300">{dossier.why}</p>
+                      <p className="rounded-lg border border-amber-800/60 bg-amber-950/20 p-3 text-xs font-semibold text-amber-100">❓ Votre mission : {dossier.question}</p>
+                    </div>
+                    <div className="space-y-2">
+                      {proofs.map(id => <ProofExplanation key={id} label={PROOF_EXPLAINERS[id].label} source={`preuve n°${id} obtenue par ${PLAYERS[PUZZLES[id-1].assignedTo].name}`} detail={PUZZLES[id-1].rewardEvidence} meaning={PROOF_EXPLAINERS[id].meaning} limit={PROOF_EXPLAINERS[id].limit}/>)}
+                      {traces.map(trace => <ProofExplanation key={trace.id} label={`${trace.id} · ${trace.title}`} source="scène ou archive de l'histoire" detail={trace.text} meaning={TRACE_EXPLAINERS[trace.id].meaning} limit={TRACE_EXPLAINERS[trace.id].limit}/>)}
+                      {available===0 && <p className="rounded-lg bg-slate-950 p-3 text-xs text-slate-400">🔒 Aucun indice précis n'est encore ouvert pour ce dossier. Il se complétera avec les énigmes.</p>}
+                      {toCome>0 && <p className="text-[11px] text-slate-400">🔒 Encore {toCome} indice(s) à découvrir dans cette affaire.</p>}
+                    </div>
+                    <div className="border-t border-slate-700 pt-3 space-y-2 text-xs">
+                      <p className="font-bold text-emerald-200">🗣️ Discutez ensemble — posez ces questions à voix haute :</p>
+                      <ul className="space-y-2 text-slate-200">
+                        {dossier.talk.map((question,i)=><li key={i} className="flex items-start gap-2"><span className="text-emerald-300 shrink-0">{i+1}.</span><span>{question}</span></li>)}
+                      </ul>
+                      <p className="rounded-lg bg-slate-950/70 p-3 text-slate-300"><strong>Pour le vote :</strong> {dossier.takeaway}</p>
+                    </div>
+                  </article>;
+                })}
+                <details className="rounded-xl bg-slate-900 border border-slate-700 p-3 text-xs text-slate-300">
+                  <summary className="cursor-pointer font-bold text-amber-200">📚 Quelques mots expliqués simplement</summary>
+                  <div className="mt-3 space-y-2 leading-relaxed">
+                    <p><strong>Preuve :</strong> information découverte pendant une énigme ou dans l'histoire.</p>
+                    <p><strong>Hypothèse :</strong> ce que l'on pense avoir compris ; ce n'est pas forcément vrai.</p>
+                    <p><strong>Alibi :</strong> ce qu'une personne dit avoir fait au moment des événements.</p>
+                    <p><strong>N0CT-7 :</strong> nom d'une session du dispositif, pas le nom d'un suspect.</p>
+                    <p><strong>NODE-7 :</strong> nom d'une partie du système informatique.</p>
+                    <p><strong>Tribunal / Vote :</strong> chacun choisit ses réponses ; Charlotte révélera ensuite les faits.</p>
+                  </div>
+                </details>
+              </section>
             )}
 
             {/* ONGLET 5 : TRIBUNAL - 4 questions / 3 mystères ; un vote par joueur */}
@@ -996,6 +1098,11 @@ function App() {
                   <h2 className="font-cinzel font-bold text-amber-300 text-lg">Votre verdict, pas un simple suspect</h2>
                   <p className="text-xs text-slate-300">L’enquête comporte <strong>trois affaires liées</strong>. Vote pour tes hypothèses sur le vol historique, le protocole et le coffret d’Halloween. Le choix « Impossible à déterminer » est toujours acceptable : ne confonds pas soupçon et preuve.</p>
                 </div>
+                {solvedLevels.length === PUZZLES.length && !margueriteUnlocked && <div className="rounded-xl border border-emerald-700/60 bg-emerald-950/20 p-3 space-y-2 text-xs text-slate-200">
+                  <p className="font-bold text-emerald-200">🗣️ Avant de voter : 3 minutes de discussion</p>
+                  <p>Chacun raconte au moins un indice qu'il a découvert. Comparez les preuves des trois dossiers, puis choisissez vos réponses personnelles. Vous pouvez ne pas être d'accord et vous pouvez choisir « Impossible à déterminer ».</p>
+                  <button type="button" onClick={()=>setActiveTab('dossier')} className="w-full rounded-lg bg-slate-800 border border-emerald-700 p-2 font-bold text-emerald-200">🔍 Relire les preuves expliquées</button>
+                </div>}
                 {currentUser.isMJ ? (
                   <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl text-xs text-slate-300 space-y-2">
                     <p>👑 Charlotte ne vote pas. Tu peux consulter les bulletins dans <strong>MJ</strong> et lancer la révélation après les enquêteurs.</p>
@@ -1086,7 +1193,9 @@ function App() {
                 <p className="text-xs text-slate-400">{sharedMode ? 'Commandes protégées par ton compte Google. Les preuves et votes sont synchronisés.' : 'Mode secours : le tableau reflète ce téléphone uniquement. Reçois les codes des joueurs dans « Écran commun ».'}</p>
                 <div className="rounded-lg border border-amber-800/40 bg-slate-900 p-3 text-xs space-y-2">
                   <p className="font-bold text-amber-300">🎬 Conduite de la soirée</p>
-                  <p>1. Lire l’introduction dans <strong>Histoire</strong> ; 2. laisser les cinq enquêteurs résoudre les épreuves ; 3. réunir leurs preuves et leurs témoignages ; 4. faire remplir les quatre réponses du <strong>Tribunal</strong> ; 5. révéler les trois actes et sortir le coffret.</p>
+                  <p>1. Lire « 🎮 Vos règles du jeu » dans <strong>Histoire</strong>. 2. James commence, puis les autres à leur tour. 3. Après chaque énigme, le joueur lit sa découverte à voix haute. 4. Ouvrir ensemble <strong>🔍 Enquête</strong> : faites dire à chacun un fait et un doute. 5. Quand les cinq preuves sont réunies, discutez des trois dossiers pendant trois minutes, puis chacun remplit les quatre votes. 6. Révéler les trois actes et sortir le coffret.</p>
+                  <p className="text-emerald-200">Si les enfants bloquent, pose simplement : « Qu'est-ce qu'on sait ? Qu'est-ce qu'on imagine ? Qu'est-ce qu'il faudrait vérifier ? » Ne donne pas le nom du coupable.</p>
+                  <button className="bg-emerald-900/60 border border-emerald-800 p-2 rounded-lg w-full text-emerald-200" onClick={()=>setActiveTab('dossier')}>🔍 Ouvrir le carnet expliqué</button>
                   <button className="bg-slate-800 p-2 rounded-lg w-full text-amber-200" onClick={()=>setActiveTab('histoire')}>Relire le discours d’ouverture</button>
                 </div>
                 {sharedMode && <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl space-y-2 text-xs">
