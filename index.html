@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>La Malédiction des Roubatvot - Murder Party Mobile</title>
+  <title>La Malédiction des Roubatvot — V4.2</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- React & ReactDOM -->
@@ -99,6 +99,7 @@ async function createRoom() {
     try {
       await set(pathFor(code,''), {
         hostUid: uid,
+        edition: '4.2',
         createdAt: serverTimestamp(),
         players: { charlotte: { uid } },
         progress: {
@@ -126,6 +127,8 @@ async function joinRoom(roomCode, playerId) {
   if (!players.includes(playerId) && playerId !== 'charlotte') throw new Error('Choisis un personnage valide.');
   const hostSnap = await get(pathFor(code,'hostUid'));
   if (!hostSnap.exists()) throw new Error('Salle introuvable. Vérifie les huit caractères.');
+  const editionSnap = await get(pathFor(code,'edition'));
+  if (editionSnap.val() !== '4.2') throw new Error('Cette salle appartient à une ancienne version du jeu. Crée une nouvelle salle V4.2.');
   const isHost = hostSnap.val() === uid;
   if (playerId === 'charlotte' && !currentHostAccount()?.verified) throw new Error('La connexion Google est obligatoire pour reprendre le rôle MJ.');
   if (playerId === 'charlotte' && !isHost) throw new Error('Seul le compte Google créateur peut rejoindre le rôle MJ.');
@@ -168,7 +171,7 @@ async function hostClock(code, running, currentClock) {
     : {running:false,elapsedMs:elapsed+(currentClock?.running ? Math.max(0,now-started):0),startedAt:0});
 }
 async function hostStage(code, stage) {
-  if (!Number.isInteger(stage) || stage < 0 || stage > 9) throw new Error('Phase invalide.');
+  if (!Number.isInteger(stage) || stage < 0 || stage > 4) throw new Error('Acte invalide.');
   await update(pathFor(code,'progress'), {stage, beat:0});
 }
 async function hostBeat(code, beat) {
@@ -186,9 +189,6 @@ async function castAccusation(code, playerId, accusation) {
 }
 async function castVote(code, playerId, vote) {
   await set(pathFor(code,`votes/${playerId}`), {
-    historique:vote.historique,
-    protocole:vote.protocole,
-    intention:vote.intention,
     tresor:vote.tresor,
     preuve:vote.preuve,
     argument:vote.argument,
@@ -233,7 +233,7 @@ const PLAYERS = {
     profile:'Tu as remarqué que l’horloge du salon avançait de six minutes et l’as réglée.',
     alibi:'L’horloge indiquait la bonne heure.',failles:['Tu as corrigé l’horloge à 20 h 26 sans en parler.'],cluesAboutOthers:[]},
   matys: {id:'matys',name:'Matys',role:'Gardien des archives',level:4,avatar:'🛡️',color:'from-purple-600 to-indigo-500',
-    profile:'Tu as lu une note de 1897 qui mentionnait un protocole, mais tu n’en comprends pas l’utilité.',
+    profile:'Tu as consulté un dossier moderne consacré à la légende de 1897. Une note technique N0CT-7 y a été ajoutée récemment.',
     alibi:'Je n’ai jamais entendu parler de N0CT-7.',failles:['Tu as consulté les archives à 20 h 20.'],cluesAboutOthers:[]},
   mathieu: {id:'mathieu',name:'Mathieu',role:'Grand Conteur',level:5,avatar:'🧙‍♂️',color:'from-red-600 to-rose-500',
     profile:'Tu as lancé un test de connexion à 20 h 27 ; tu ignores qu’il a eu un effet sur la lettre.',
@@ -248,158 +248,111 @@ const PUZZLES = [
   { id:5, title:"Épreuve 5 : Diagnostic des logs", assignedTo:"mathieu", missionBrief:"La famille soupçonne un sabotage. Distingue ce que prouvent réellement les journaux de ce que chacun imagine.", relayCode:"VERITE-31", hint3min:"Deux événements séparés de quatre minutes ne démontrent pas à eux seuls qui en est responsable.", hint5min:"On sait que la session précède la lettre de quatre minutes. Il manque un identifiant de corrélation pour prouver qu'elle a causé l'affichage.", rewardEvidence:"Preuve #5 (T-01) : Écart de quatre minutes établi ; origine causale de la lettre non prouvée par les seuls journaux." }
 ];
 
-// Fil rouge de l'enquête. Ces chapitres ne révèlent jamais le verdict avant le vote.
-// La fiction V4 : sources publiques uniquement ; jamais la solution avant la révélation.
+// V4.2 : cinq actes. Les énigmes et leurs réponses restent inchangées.
+// La progression collective est pilotée avec un seul bouton MJ.
+const ACTS = [
+ {name:'Le mystère commence',icon:'✉️',duration:'5 min',goal:'James découvre la première piste.',
+  public:'Le Trésor de la Chouquette a disparu. Lisez vos profils sans les montrer, puis écoutez James.',
+  questions:['Qui a vu le coffret avant la lettre ?', 'Une carte retrouvée désigne-t-elle forcément son utilisateur ?'],
+  mj:'Lis le prologue. Fais dire à chacun où il se trouvait. Laisse James résoudre les fils du bureau. Après sa découverte, demande-lui ce que prouve réellement la carte.',
+  spoiler:'Ne parle pas d’Enola. Si l’un des enfants hésite, rassure-le : les mensonges fictifs sont autorisés mais pas obligatoires.'},
+ {name:'Tous suspects',icon:'🍬',duration:'15 min',goal:'Nino et Andreas terminent leurs énigmes.',
+  public:'Deux nouvelles recherches commencent. Après leurs énigmes, interrogez Nino sur la table et Andreas sur les horaires.',
+  questions:['Nino, es-tu passé près de la table ?', 'Andreas, qu’as-tu vu et que sais-tu de l’horloge ?', 'James, as-tu vu Charlotte s’approcher du coffret ?'],
+  mj:'Après la réponse de Nino, donne la parole à Andreas. Il révèle avoir aperçu Nino près de la table vers 20 h 25. Nino peut alors reconnaître sa friandise. Demande à James ce qu’il a vu de Charlotte : elle avoue avoir déplacé une décoration. Andreas explique l’horloge du salon.',
+  spoiler:'Nino a menti sur la friandise mais n’a pas emporté le coffret. Charlotte n’a touché qu’à la décoration. Ne révèle PAS encore l’alibi de 20 h 33.'},
+ {name:'À qui faire confiance ?',icon:'⚖️',duration:'7 min',goal:'Chaque joueur dépose un premier soupçon.',
+  public:'Vous avez découvert plusieurs mensonges. Chacun désigne discrètement une personne suspecte et un indice. Les réponses ne sont pas définitives.',
+  questions:['Qui soupçonnes-tu pour l’instant ?', 'Peut-on accuser quelqu’un seulement parce qu’il a menti ?'],
+  mj:'Invite les cinq enquêteurs à remplir leur première accusation sur leur téléphone. Après les cinq dépôts, lis les soupçons à voix haute sans juger leur justesse.',
+  spoiler:'Garde pour l’acte suivant la confirmation de Matys et Andreas : Nino était à la cuisine vers 20 h 33.'},
+ {name:'Les mensonges éclatent',icon:'🗣️',duration:'15 min',goal:'Confronter les témoignages, puis résoudre les énigmes de Matys et Mathieu.',
+  public:'Un témoignage remet les accusations en question. Interrogez Matys et Andreas, puis écoutez les découvertes de Matys et Mathieu.',
+  questions:['Matys, avec qui étais-tu vers 20 h 33 ?', 'Andreas, peux-tu confirmer ?', 'Matys, connaissais-tu N0CT-7 ?', 'Mathieu, as-tu fait un test informatique avant la lettre ?'],
+  mj:'Matys dit qu’il était avec Nino à la cuisine ; Andreas confirme. Laisse le groupe réévaluer ses soupçons. Matys résout son registre, puis Mathieu ses journaux. Confronte leurs informations. Aucun voleur historique n’est démontré.',
+  spoiler:'Le test de Mathieu à 20 h 27 a déclenché la lettre sans qu’il le sache. Le programme attend 240 secondes. Le groupe ne peut pas encore conclure qu’Enola a pris le coffret.'},
+ {name:'Le verdict et le Trésor',icon:'🎁',duration:'10 min',goal:'Confronter les dernières traces puis voter.',
+  public:'Le système explique la lettre, pas le déplacement du Trésor. Écoutez les derniers souvenirs, puis votez : qui a déplacé le coffret ?',
+  questions:['James, qu’as-tu aperçu vers les jouets ?', 'Andreas, qu’as-tu entendu ?', 'Que prouvent les petites traces ?', 'Qui soupçonnes-tu maintenant et pourquoi ?'],
+  mj:'Demande à James de raconter la petite silhouette ; Andreas évoque un bruit de couvercle. Les traces apparaissent dans le carnet. Chacun vote pour un responsable présumé et choisit un indice. Après cinq votes, le bouton principal lance la révélation.',
+  spoiler:'Enola a transporté innocemment le coffret près des jouets. Ne révèle son nom que lorsque tous ont voté. Autorise seulement alors la recherche physique près des doudous.'}
+];
+const MJ_THREE_ACTIONS = [
+ ['Lire le prologue et les alibis.', 'James résout son énigme.', 'Écouter sa découverte.'],
+ ['Écouter Nino, puis Andreas (friandise et horloge).', 'Demander à James ce qu’il a vu près de Charlotte.', 'Laisser chacun exprimer un soupçon sans le confirmer.'],
+ ['Laisser les cinq joueurs déposer leur soupçon sur leur téléphone.', 'Demander une raison à voix haute.', 'Lire les soupçons sans annoncer de coupable.'],
+ ['Interroger Matys et Andreas sur l’alibi de Nino.', 'Matys résout son énigme, puis Mathieu la sienne.', 'Comparer les deux explications sur la lettre.'],
+ ['James et Andreas racontent leur dernier souvenir.', 'Chacun choisit un suspect et un indice.', 'Après cinq votes, révéler la vérité et autoriser la recherche du coffret.']
+];
+
 const STORY_STEPS = [
- {after:0,stage:0,icon:'✉️',title:'L’enquête commence',text:'La lettre est apparue à 20 h 31. Le coffret manque à 20 h 35. Ce n’est pas forcément le même événement.'},
- {after:1,stage:1,icon:'💳',title:'La carte mystérieuse',text:'James trouve N0CT-7. Qui a pu utiliser le dispositif ?'},
- {after:2,stage:2,icon:'🔐',title:'NODE-7 déchiffré',text:'Nino déchiffre un nom technique. Une machine pourrait être impliquée.'},
- {after:3,stage:3,icon:'🕰️',title:'Une chronologie à vérifier',text:'Un événement est enregistré à 20 h 27. Que signifie cette heure ?'},
- {after:4,stage:6,icon:'📜',title:'Le passé est une piste fragile',text:'Le registre ancien évoque une accusation, sans démontrer un vol.'},
- {after:5,stage:7,icon:'🖥️',title:'Le journal technique',text:'Une trace apparaît dans le système. On doit encore établir ce qu’elle a provoqué.'}
+ {after:0,stage:0,icon:'✉️',title:'Le soir de la disparition',text:'La lettre apparaît à 20 h 31 ; le coffret manque à 20 h 35. Les deux événements ne sont pas forcément liés.'},
+ {after:1,stage:0,icon:'💳',title:'La carte de James',text:'Une carte porte N0CT-7 : elle prouve qu’un dispositif existe, pas qui s’en est servi.'},
+ {after:3,stage:1,icon:'🍬',title:'Des gestes suspects',text:'Un emballage, un passage près de la table et une horloge modifiée brouillent les pistes.'},
+ {after:3,stage:3,icon:'🗣️',title:'Une accusation remise en cause',text:'Deux témoins peuvent préciser où se trouvait Nino au moment critique.'},
+ {after:5,stage:3,icon:'🖥️',title:'La piste informatique',text:'Le test de connexion et le retard d’affichage doivent être interprétés séparément de la disparition du coffret.'}
 ];
-const STAGES = [
- {name:'Le conseil de famille',need:0},
- {name:'Le premier témoin',need:1},
- {name:'Le mensonge de la friandise',need:2},
- {name:'L’horloge d’Andreas',need:3},
- {name:'Premières accusations',need:3},
- {name:'L’alibi à deux voix',need:3},
- {name:'Le document oublié',need:4},
- {name:'Le test de Mathieu',need:5},
- {name:'Les deux confrontations',need:5},
- {name:'Le tribunal',need:5}
-];
-// Chaque étape contient seulement la question publique et la consigne privée du MJ.
-// La pièce n'est visible qu'après le clic de la MJ sur l'étape correspondante.
-const SCENE_BEATS = [
- [
-  {title:'La disparition',action:'Charlotte lit le prologue. Chacun prend connaissance de son profil. Personne ne fouille la maison.',question:'Qui a vu le coffret pour la dernière fois ?',mj:'Laisse James commencer sa première énigme. Tu pourras avancer dès sa réussite.'}
- ],
- [
-  {title:'Des déclarations',action:'Demandez à James ce qu’il a trouvé, puis demandez à Charlotte si elle est allée près du coffret.',question:'Une carte trouvée prouve-t-elle qu’elle a été utilisée ?',mj:'Charlotte nie d’abord être passée près de la table. James conserve son observation jusqu’à l’étape suivante.'},
-  {title:'Le témoignage de James',action:'James raconte ce qu’il a réellement remarqué. Les autres peuvent questionner Charlotte.',question:'Charlotte était-elle près de la table ?',target:'James',private:'Tu as aperçu Charlotte près de la table à 20 h 29. Tu sais aussi que le coffret était encore là juste après la lettre à 20 h 31.',mj:'James révèle avoir aperçu Charlotte. Ne dévoile pas encore l’explication de son geste.'},
-  {title:'La réponse de Charlotte',action:'Charlotte doit maintenant répondre à la contradiction apportée par James. Discutez ce que cela démontre.',question:'Se trouver près du coffret prouve-t-il qu’on l’a pris ?',target:'Charlotte',private:'Reconnais avoir déplacé uniquement une décoration, pas le coffret. Ne donne aucun autre indice.',mj:'Reconnais le déplacement de décoration. Publie C-01 via cette étape. Nino peut maintenant tenter son énigme.'}
- ],
- [
-  {title:'Le doute',action:'Demandez à Nino s’il est passé près du coffret. Il répond selon sa fiche.',question:'Que peut prouver un emballage trouvé près de la table ?',target:'Nino',private:'Tu peux utiliser ta seule fausse phrase : « Je ne suis pas allé près de la table. »',mj:'Fais prononcer la déclaration de Nino avant toute confrontation.'},
-  {title:'Un témoin parle',action:'Andreas est invité à dire ce qu’il a personnellement remarqué à propos de Nino.',question:'Le témoignage permet-il de contredire sa déclaration ?',target:'Andreas',private:'Tu as vu Nino près de la table vers 20 h 25. Tu ne l’as PAS vu prendre le coffret.',mj:'Débloque le témoignage d’Andreas seulement maintenant (A-05).'},
-  {title:'Nino se justifie',action:'Après le témoignage, Nino doit préciser pourquoi il se trouvait là.',question:'Pourquoi cacher une friandise sans avoir volé le coffret ?',target:'Nino',private:'Reconnais être venu prendre une friandise à 20 h 25. Tu ne sais pas qui a pris le Trésor.',mj:'Nino reconnaît la friandise. N-01 est désormais public. Ne révèle surtout pas son alibi à 20 h 33.'}
- ],
- [
-  {title:'Une heure contestée',action:'Rappelez la déclaration initiale d’Andreas : l’horloge était juste. Demandez-lui si elle l’était vraiment.',question:'Les horloges du salon et du serveur indiquent-elles forcément la même chose ?',target:'Andreas',private:'Tu sais avoir réglé l’horloge, mais tu peux rester sur ta déclaration initiale jusqu’à la pièce suivante.',mj:'Ne dis pas encore les six minutes. Fais remarquer au groupe les heures de la lettre et de la session.'},
-  {title:'Historique de correction',action:'Une nouvelle pièce apparaît dans le dossier : l’historique de l’horloge du salon. Comparez-le aux déclarations.',question:'Qui peut expliquer cette correction ?',mj:'Affiche A-02, distinct de A-01 (session serveur). La correction n’a aucun effet sur les logs serveur.'},
-  {title:'Andreas reconnaît le geste',action:'Andreas donne son explication. Le groupe distingue l’heure du salon des traces informatiques.',question:'Modifier l’horloge du salon, est-ce effacer les logs du serveur ?',target:'Andreas',private:'Reconnais avoir corrigé six minutes d’avance à 20 h 26. Tu n’as pas touché au serveur.',mj:'Le secret de l’horloge est levé. Chaque joueur peut maintenant formuler un premier soupçon.'}
- ],
- [
-  {title:'Chacun soupçonne',action:'Sur ton téléphone, choisis un suspect, une pièce déjà visible et explique en une phrase pourquoi.',question:'Quel fait concret motive ton soupçon ?',mj:'Attends les cinq bulletins, puis clique sur « Afficher les soupçons ». Ne livre aucun alibi avant cela.'},
-  {title:'Les soupçons dévoilés',action:'Lisez à voix haute les cinq accusations déposées, sans chercher encore à choisir un coupable définitif.',question:'Un mensonge équivaut-il à une preuve de disparition ?',mj:'Les cinq accusations ont été enregistrées. Lis-les sans corriger les hypothèses.'}
- ],
- [
-  {title:'Un alibi à vérifier',action:'Demandez à Matys où il se trouvait vers 20 h 33, et avec qui.',question:'Un seul témoignage peut-il suffire ?',target:'Matys',private:'Tu étais près de la cuisine avec Nino vers 20 h 33. Ne révèle cela que lorsque Charlotte passe à l’étape suivante.',mj:'Ne révèle pas l’alibi dans le titre ni dans le texte avant le prochain clic.'},
-  {title:'Matys témoigne',action:'Matys révèle qui se trouvait avec lui vers 20 h 33. Demandez si une personne peut confirmer.',question:'Qui aurait pu voir la scène ?',target:'Matys',private:'Dis que Nino discutait avec toi près de la cuisine vers 20 h 33.',mj:'Rends N-02 visible. Son témoignage demande une confirmation extérieure.'},
-  {title:'Andreas confirme',action:'Andreas partage maintenant son observation indépendante.',question:'Quel soupçon devient moins solide ?',target:'Andreas',private:'Tu as vu Matys et Nino ensemble près de la cuisine vers 20 h 33.',mj:'Rends A-03 visible. Ne présente pas cette information comme une preuve absolue.'},
-  {title:'Changement de perspective',action:'Réexaminez les premières accusations. Les mensonges sur la friandise ne suffisent plus à expliquer la disparition.',question:'Qui reste suspect, et que manque-t-il ?',mj:'Clôture le retournement. Matys peut commencer son énigme.'}
- ],
- [
-  {title:'Un document gênant',action:'Matys résume l’énigme du registre. Demandez-lui s’il connaissait déjà N0CT-7.',question:'Pourquoi aurait-il consulté une note technique avant la disparition ?',target:'Matys',private:'Tu connais une ancienne note, mais peux cacher ta consultation jusqu’à l’étape suivante.',mj:'Ne révèle pas sa consultation d’archive immédiatement.'},
-  {title:'Une trace de consultation',action:'Une trace du dossier d’archive apparaît : comparez-la à la carte de James.',question:'Lire un document prouve-t-il qu’on a utilisé un système ?',mj:'Publie M-02 (consultation à 20 h 20).'},
-  {title:'Matys dit la vérité',action:'Matys reconnaît sa consultation. Il explique ce qu’il connaissait vraiment.',question:'Quel autre joueur pourrait connaître les tests de connexion ?',target:'Matys',private:'Avoue avoir lu la note N0CT-7. Tu n’as jamais activé le protocole.',mj:'Rappelle la différence entre connaître le nom d’un système et l’activer. Mathieu peut tenter son épreuve.'}
- ],
- [
-  {title:'Un test contesté',action:'Demandez à Mathieu s’il a utilisé un appareil avant l’apparition de la lettre.',question:'Que faut-il vérifier pour relier un test à une apparition ?',target:'Mathieu',private:'Tu as lancé TEST_CONNEXION à 20 h 27, mais ignores la conséquence. Ta phrase initiale peut nier toute intervention.',mj:'Recueille sa déclaration avant d’ouvrir le journal.'},
-  {title:'Une trace informatique',action:'Le journal serveur est publié. Comparez l’heure avec le récit de Mathieu.',question:'Le journal prouve-t-il l’intention de déclencher une lettre ?',mj:'Publie T-01. Ne dévoile pas encore la configuration des 240 secondes.'},
-  {title:'Mathieu répond',action:'Mathieu est confronté à la trace. Il explique l’opération qu’il a réellement effectuée.',question:'Une action involontaire peut-elle créer une distraction ?',target:'Mathieu',private:'Reconnais TEST_CONNEXION à 20 h 27. Tu ignorais que cela ferait apparaître la lettre.',mj:'Laisse les autres évaluer l’intention ; ne confirme pas la cause du délai avant la confrontation collective.'}
- ],
- [
-  {title:'Matys et Mathieu coopèrent',action:'Confrontez la note technique de Matys et le journal de Mathieu.',question:'Pourquoi deux événements sont-ils espacés de quatre minutes ?',mj:'Fais calculer le délai sans afficher la solution au départ.'},
-  {title:'Le délai est démontré',action:'La configuration apparaît : DELAY_SECONDS = 240. Les joueurs calculent la durée correspondante.',question:'Un système informatique peut-il emporter physiquement un coffret ?',mj:'Publie T-02 : 240 secondes = 4 minutes, ce qui explique la lettre mais pas le déplacement.'},
-  {title:'Le souvenir de James',action:'James est interrogé sur ce qu’il a vu juste après la lettre.',question:'A-t-il distingué une personne ou seulement une silhouette ?',target:'James',private:'Tu as aperçu une PETITE silhouette portant quelque chose vers les jouets à 20 h 33, sans voir son visage.',mj:'Publie J-03. Ne mentionne jamais Enola ici.'},
-  {title:'Andreas apporte un indice',action:'Andreas raconte un bruit qu’il a entendu en direction des jouets.',question:'Les observations de James et d’Andreas se renforcent-elles ?',target:'Andreas',private:'Tu as entendu un bruit de couvercle du côté des jouets vers 20 h 33.',mj:'Publie A-04.'},
-  {title:'Une trace étrange',action:'Une petite empreinte et une trace chocolatée sont ajoutées au dossier.',question:'Peut-on identifier une personne à partir de ces traces ?',mj:'Publie S-01. Ne tire pas de conclusion à leur place.'},
-  {title:'Le dernier détail',action:'James partage un détail qu’il n’avait pas jugé important. Recoupez-le avec les autres indices.',question:'Une personne habituellement négligée pourrait-elle être impliquée ?',target:'James',private:'Tu te rappelles un doudou ressemblant à celui avec lequel joue souvent Enola. Ce n’est pas une preuve certaine.',mj:'Publie S-02. Ne prononce pas « Enola a pris le coffret » avant les votes.'}
- ],
- [
-  {title:'Les bulletins',action:'Chacun dépose un verdict avec les preuves qui l’ont convaincu. L’option « preuves insuffisantes » est autorisée.',question:'Quels éléments réunis expliquent le mieux la disparition ?',mj:'Attends cinq votes complets avant d’ouvrir les conclusions.'},
-  {title:'Le conseil a rendu son verdict',action:'Les cinq votes sont enregistrés. Charlotte peut lire les propositions, puis ouvrir la révélation finale.',question:'Quelles hypothèses vous paraissent encore incertaines ?',mj:'Clôture les votes, puis lance la révélation. Une seule recherche physique au coin des jouets.'}
- ]
-];
-const PUZZLE_UNLOCK = {1:[0,0],2:[1,2],3:[2,2],4:[5,3],5:[6,2]};
-function puzzleAvailable(id,stage,beat) {
- const [s,b]=PUZZLE_UNLOCK[id];
- return stage>s || (stage===s && beat>=b);
-}
-function evidenceAvailable(p,stage,beat,solvedLevels) {
- return solvedLevels.length>=p.need && (stage>p.stage || (stage===p.stage && beat >= (p.beat||0)));
-}
+// Témoignages privés : visibles seulement sur l'appareil du personnage concerné.
+// Le bon témoin peut ensuite raconter librement ce qu'il a vu.
+const PERSONAL_REVELATIONS = {
+ james:[{stage:1,text:'Tu te rappelles avoir aperçu Charlotte près de la table à 20 h 29. Le coffret était encore présent juste après la lettre de 20 h 31.'},
+        {stage:4,text:'Un détail te revient : vers 20 h 33, tu as vu une petite silhouette porter quelque chose en direction des jouets. Tu n’as pas vu son visage.'}],
+ nino:[{stage:1,text:'Tu étais venu prendre une friandise près de la table à 20 h 25. Tu peux commencer par le nier ; lorsque quelqu’un rapporte ton passage, avoue la friandise.'}],
+ andreas:[{stage:1,text:'Tu as aperçu Nino près de la table vers 20 h 25. Tu as aussi réglé l’horloge du salon, qui avançait de six minutes ; cela ne modifie pas les horaires du serveur.'},
+          {stage:3,text:'Vers 20 h 33, tu as vu Matys et Nino ensemble près de la cuisine.'},
+          {stage:4,text:'Vers 20 h 33, tu as entendu un bruit de couvercle en direction du coin des jouets.'}],
+ matys:[{stage:3,text:'Tu discutais avec Nino près de la cuisine vers 20 h 33. Tu avais consulté une archive N0CT-7 à 20 h 20, sans jamais lancer le dispositif.'}],
+ mathieu:[{stage:3,text:'Tu as lancé TEST_CONNEXION à 20 h 27. Tu pensais que ce test était sans conséquence. Si on te confronte à la trace informatique, reconnais ton test.'}],
+ charlotte:[{stage:1,text:'Tu as déplacé une décoration à 20 h 29 ; tu n’as pas touché au coffret. Si James te confronte, reconnais seulement ce geste.'}]
+};
+
+const STAGES = ACTS.map(a=>({name:a.name}));
+const SCENE_BEATS = ACTS.map(a=>[{title:a.name,action:a.public,question:a.questions[0],mj:a.mj}]);
+const PUZZLE_UNLOCK = {1:0,2:1,3:1,4:3,5:3};
+function puzzleAvailable(id,stage,beat) { return stage >= PUZZLE_UNLOCK[id]; }
+function evidenceAvailable(p,stage,beat,solvedLevels) { return stage>=p.stage && solvedLevels.includes(p.need) || (p.need===0 && stage>=p.stage); }
 function getStageGate(stage,beat,solved,accusations,players,votes,shared) {
- const blockers=[];
- if(beat<SCENE_BEATS[stage].length-1) blockers.push('Terminer les étapes de la scène en cours.');
- const requiredSolved={0:1,1:2,2:3,3:3,4:3,5:4,6:5,7:5,8:5};
- if(stage<9 && solved.length<(requiredSolved[stage]||0)) blockers.push(`Attendre ${requiredSolved[stage]} énigme(s) résolue(s).`);
- if(stage===4 && Object.keys(accusations).length<5) blockers.push('Attendre les 5 premières accusations.');
- if(stage===9 && Object.keys(votes||{}).length<5) blockers.push('Attendre les 5 bulletins du verdict.');
- const needed={1:['james'],2:['nino','andreas'],3:['andreas'],5:['matys','andreas'],6:['matys'],7:['mathieu'],8:['matys','mathieu','james','andreas']};
- if(shared) for(const id of (needed[stage]||[])) if(!players[id]) blockers.push(`${id[0].toUpperCase()+id.slice(1)} n’a pas encore rejoint la salle.`);
- return blockers;
-}
-// Conseils contextuels : calculés à partir des validations Firebase (ou du mode secours).
-// Ne changent pas les phases du Conseil, qui restent sous le contrôle de Charlotte.
-const NEXT_STEP_BY_PUZZLE = [
-  {title:'James ouvre l’enquête', action:'James résout les fils du bureau. Tous écoutent ensuite ce qu’il a trouvé.', question:'Que découvre-t-on sur le système N0CT-7 ?'},
-  {title:'James a terminé · À Nino !', action:'James raconte sa découverte, puis Nino peut déchiffrer le message. Interrogez James sur la carte.', question:'James a-t-il simplement découvert la carte, ou l’a-t-il utilisée ?'},
-  {title:'Nino a terminé · À Andreas !', action:'Nino explique NODE-7 à voix haute. Andreas peut maintenant reconstituer les horaires.', question:'Un message codé et un emballage de friandise prouvent-ils un vol ?'},
-  {title:'Andreas a terminé · À Matys !', action:'Comparez les horaires et les témoignages. Charlotte peut organiser les premières accusations avant de poursuivre. Matys peut résoudre son énigme.', question:'À quelle heure le coffret a-t-il été vu pour la dernière fois ?'},
-  {title:'Matys a terminé · À Mathieu !', action:'Matys raconte ce qu’il a lu dans le registre. Mathieu peut maintenant examiner les journaux système.', question:'L’affaire de 1897 apporte-t-elle une preuve sur la disparition de ce soir ?'},
-  {title:'Les cinq énigmes sont résolues !', action:'Charlotte organise les confrontations, fait consulter les preuves débloquées, puis ouvre le tribunal final.', question:'Quelles preuves établissent les faits, et quelles accusations restent des suppositions ?'}
-];
-function getLiveAdvice(solvedLevels,stage,beat,reveal,accusationCount,myAccusation,isMJ,voteSubmitted) {
- if(reveal) return {title:'La révélation est disponible',action:'Charlotte dirige la dernière scène puis autorise une recherche limitée près des jouets.',question:'Quels indices aviez-vous remarqués ?',tab:'reveal'};
- const b=SCENE_BEATS[stage][Math.min(beat,SCENE_BEATS[stage].length-1)];
- if(stage===0 && solvedLevels.length===0) return {title:'James ouvre l’enquête',action:'James résout son énigme. Les autres préparent leur déclaration.',question:'Que s’est-il passé entre 20 h 31 et 20 h 35 ?',tab:'my_puzzle'};
- if(stage===0 && solvedLevels.length>0) return {title:'La carte a été retrouvée',action:'Charlotte peut ouvrir le premier interrogatoire.',question:'La carte a-t-elle été utilisée ?',tab:isMJ?'mj':'interro'};
- const nextPuzzle={1:2,2:3,5:4,6:5}[stage];
- if(nextPuzzle && beat===SCENE_BEATS[stage].length-1 && !solvedLevels.includes(nextPuzzle)) {
-   const p=PUZZLES[nextPuzzle-1];
-   return {title:`À ${PLAYERS[p.assignedTo].name} de jouer`,action:`La confrontation est terminée. ${PLAYERS[p.assignedTo].name} résout son énigme pendant que les autres préparent leurs questions. Charlotte ouvrira la scène suivante après sa réussite.`,question:'Les soupçons précédents reposent-ils sur des faits ou des suppositions ?',tab:isMJ?'mj':'my_puzzle'};
- }
- return {title:b.title,action:b.action,question:b.question,tab:stage===9 && !isMJ?'vote':isMJ?'mj':'interro'};
+ if (stage===0 && !solved.includes(1)) return ['James doit terminer sa première énigme.'];
+ if (stage===1 && ![1,2,3].every(n=>solved.includes(n))) return ['Attendre les énigmes de Nino et Andreas.'];
+ if (stage===2 && Object.keys(accusations).length<5) return [`Attendre les cinq premiers soupçons (${Object.keys(accusations).length}/5).`];
+ if (stage===3 && ![1,2,3,4,5].every(n=>solved.includes(n))) return ['Attendre les énigmes de Matys et Mathieu.'];
+ if (stage===4 && Object.keys(votes||{}).length<5) return [`Attendre les cinq verdicts (${Object.keys(votes||{}).length}/5).`];
+ return [];
 }
 const EVIDENCE_V4 = [
- {id:'S-00',stage:0,beat:0,need:0,category:'Coffret',title:'Disparition constatée',fact:'Le coffret manque à 20 h 35.',limit:'La disparition ne prouve pas un vol.'},
- {id:'J-01',stage:0,beat:0,need:1,category:'Système',title:'Carte trouvée par James',fact:'James a découvert une carte N0CT-7.',limit:'Une carte trouvée ne désigne pas un utilisateur.'},
- {id:'J-02',stage:1,beat:1,need:1,category:'Coffret',title:'Le coffret encore présent à 20 h 31',fact:'James l’a encore remarqué juste après la lettre.',limit:'Cela ne désigne pas qui l’a emporté.'},
- {id:'C-01',stage:1,beat:2,need:1,category:'Alibis',title:'Charlotte près de la table',fact:'James a vu Charlotte près de la table à 20 h 29. Elle a déplacé une décoration.',limit:'Ce geste n’est pas un déplacement du coffret.'},
- {id:'N-00',stage:1,beat:2,need:2,category:'Système',title:'Message décodé NODE-7',fact:'Le message crypté identifie le nœud de contrôle NODE-7.',limit:'Déchiffrer un nom technique ne désigne pas son utilisateur.'},
- {id:'A-05',stage:2,beat:1,need:2,category:'Alibis',title:'Andreas a vu Nino',fact:'Andreas a aperçu Nino près de la table vers 20 h 25.',limit:'Il ne l’a pas vu prendre le coffret.'},
- {id:'N-01',stage:2,beat:2,need:2,category:'Alibis',title:'La friandise de Nino',fact:'Nino reconnaît avoir pris une friandise près de la table à 20 h 25.',limit:'Ce passage ne démontre pas la disparition.'},
- {id:'A-01',stage:2,beat:2,need:3,category:'Horaires',title:'Session serveur N0CT-7',fact:'Une session serveur porte l’heure de 20 h 27.',limit:'Elle n’identifie pas à elle seule son auteur.'},
- {id:'A-02',stage:3,beat:1,need:3,category:'Horaires',title:'Correction de l’horloge du salon',fact:'À 20 h 26, l’horloge du salon a fait l’objet d’une correction de six minutes. L’auteur reste à identifier.',limit:'Cela ne modifie pas l’horloge indépendante du serveur.'},
- {id:'N-02',stage:5,beat:1,need:3,category:'Alibis',title:'Matys témoigne pour Nino',fact:'Matys déclare être avec Nino vers 20 h 33.',limit:'Ce témoignage attend une confirmation indépendante.'},
- {id:'A-03',stage:5,beat:2,need:3,category:'Alibis',title:'Alibi confirmé par Andreas',fact:'Andreas a vu Nino et Matys ensemble près de la cuisine vers 20 h 33.',limit:'Cela n’identifie pas la personne qui a pris le coffret.'},
- {id:'M-01',stage:6,beat:0,need:4,category:'Archives',title:'Registre d’Émile',fact:'Le mot AMOUR apparaît dans le registre ; la vieille accusation reste non démontrée.',limit:'Aucun voleur historique certain n’est identifié.'},
- {id:'M-02',stage:6,beat:1,need:4,category:'Système',title:'Historique d’archive',fact:'Matys a consulté une note N0CT-7 à 20 h 20.',limit:'Lire un document ne signifie pas activer le système.'},
- {id:'T-01',stage:7,beat:1,need:5,category:'Système',title:'Journal TEST_CONNEXION',fact:'À 20 h 27, le serveur enregistre TEST_CONNEXION puis TRIGGER N0CT-7.',limit:'Le journal ne prouve pas l’intention de Mathieu.'},
- {id:'T-02',stage:8,beat:1,need:5,category:'Système',title:'Temporisation de 240 secondes',fact:'DELAY_SECONDS = 240 : la lettre est programmée quatre minutes après le test.',limit:'Ce mécanisme ne peut pas transporter le coffret.'},
- {id:'J-03',stage:8,beat:2,need:5,category:'Coffret',title:'Observation de James',fact:'Une petite silhouette portant un objet allait vers les jouets à 20 h 33.',limit:'Le visage et l’objet n’ont pas été identifiés.'},
- {id:'A-04',stage:8,beat:3,need:5,category:'Coffret',title:'Bruit de couvercle',fact:'Andreas a entendu un bruit de couvercle du côté des jouets à 20 h 33.',limit:'Un bruit seul n’identifie personne.'},
- {id:'S-01',stage:8,beat:4,need:5,category:'Coffret',title:'Petites traces',fact:'Une petite empreinte et une trace chocolatée sont observées près du coffret.',limit:'Leur propriétaire n’est pas identifié.'},
- {id:'S-02',stage:8,beat:5,need:5,category:'Coffret',title:'Souvenir du doudou',fact:'James se souvient d’un doudou près de la petite silhouette, ressemblant à celui d’Enola.',limit:'Cette ressemblance ne suffit pas à une identification certaine.'}
+ {id:'S-00',stage:0,need:0,category:'Coffret',title:'Le Trésor a disparu',fact:'Le coffret manque à 20 h 35.',limit:'On ignore encore qui l’a emporté.'},
+ {id:'J-01',stage:0,need:1,category:'Système',title:'La carte de James',fact:'La carte trouvée par James mentionne N0CT-7.',limit:'La découvrir ne signifie pas avoir activé le système.'},
+ {id:'J-02',stage:1,need:1,category:'Coffret',title:'Coffret encore présent',fact:'James avait encore vu le coffret après l’apparition de la lettre à 20 h 31.',limit:'Il n’a pas vu qui l’a pris.'},
+ {id:'N-01',stage:1,need:3,category:'Suspects',title:'L’emballage de Nino',fact:'Un emballage se trouve près de la table. Andreas affirme y avoir vu Nino vers 20 h 25.',limit:'Son mensonge ne démontre pas un vol.'},
+ {id:'A-01',stage:1,need:3,category:'Système',title:'Session de 20 h 27',fact:'Le serveur a enregistré N0CT-7 à 20 h 27. L’horloge du salon était indépendante.',limit:'Une heure ne révèle pas à elle seule son auteur.'},
+ {id:'N-02',stage:3,need:3,category:'Suspects',title:'Deux témoins pour Nino',fact:'Matys affirme être avec Nino à la cuisine vers 20 h 33 ; Andreas les a vus ensemble.',limit:'Cet alibi fragilise les soupçons, sans identifier la personne responsable.'},
+ {id:'M-01',stage:3,need:4,category:'Archives',title:'Le registre de 1897',fact:'Le mot AMOUR apparaît dans le texte ancien ; l’accusation contre Émile n’est pas établie.',limit:'La vieille légende ne prouve rien sur le coffret de ce soir.'},
+ {id:'T-01',stage:3,need:5,category:'Système',title:'Le test de connexion',fact:'Mathieu a lancé un test à 20 h 27 ; le journal porte la même heure.',limit:'Il ne savait pas que ce test déclencherait la lettre.'},
+ {id:'T-02',stage:4,need:5,category:'Système',title:'Quatre minutes programmées',fact:'N0CT-7 prévoit DELAY_SECONDS = 240. La lettre apparaît donc à 20 h 31.',limit:'Un programme informatique n’a pas déplacé le coffret.'},
+ {id:'J-03',stage:4,need:5,category:'Coffret',title:'Vers le coin des jouets',fact:'James a aperçu une petite silhouette transportant un objet vers les jouets ; Andreas y a entendu un bruit de couvercle.',limit:'Personne n’a reconnu le visage de la silhouette.'},
+ {id:'S-01',stage:4,need:5,category:'Coffret',title:'De petites traces',fact:'Une petite empreinte et une trace chocolatée ont été repérées près de la table.',limit:'Ces traces ne donnent pas une identité certaine.'}
 ];
-const EVIDENCE_LABELS = Object.fromEntries(EVIDENCE_V4.map(p=>[p.id,`${p.id} — ${p.title}`]));
+const EVIDENCE_LABELS = Object.fromEntries(EVIDENCE_V4.map(p=>[p.id,p.title]));
 const SUSPECT_OPTIONS = ['James','Nino','Andreas','Matys','Mathieu','Charlotte','Enola','Indéterminé'];
-const ACCUSATION_CLUES = ['S-00','J-01','J-02','C-01','A-05','N-01','A-01','A-02','Indéterminé'];
-const VOTE_QUESTIONS = [
- {key:'historique',title:'Que vaut l’accusation de 1897 ?',help:'Les documents historiques permettent-ils réellement d’accuser quelqu’un ?', options:[['Légende','C’est une légende non démontrée'],['Émile','Émile est coupable'],['Marguerite','Marguerite est coupable'],['Indéterminé','Les documents ne suffisent pas à trancher']]},
- {key:'protocole',title:'Qui a déclenché N0CT-7 ?',help:'Pense au test enregistré à 20 h 27, sans confondre déclenchement et vol.', options:[['Mathieu','Mathieu'],['Nino','Nino'],['Andreas','Andreas'],['Indéterminé','Impossible à établir']]},
- {key:'intention',title:'Le déclenchement était-il voulu ?',help:'Le lancement d’un test peut avoir des conséquences inconnues.', options:[['Accidentelle','Non, c’était involontaire'],['Volontaire','Oui, c’était délibéré'],['Indéterminée','Preuves insuffisantes']]},
- {key:'tresor',title:'Qui a déplacé le Trésor ?',help:'Croise les témoignages de 20 h 33. Tu peux aussi choisir de ne pas conclure.', options:SUSPECT_OPTIONS.map(v=>[v,v==='Indéterminé'?'Preuves insuffisantes':v])}
-];
-const VOTE_PROOFS = [['J-03+A-03','J-03 + A-03 : témoin et bruit'],['J-03+S-02','J-03 + S-02 : silhouette et doudou'],['N-01','N-01 : emballage'],['T-01+T-02','T-01 + T-02 : journaux et délai'],['N-02+A-02','N-02 + A-02 : alibi confirmé'],['M-01','M-01 : registre'],['Indéterminé','Preuves insuffisantes']];
-const EMPTY_VOTE = {historique:'',protocole:'',intention:'',tresor:'',preuve:'',argument:''};
-const FINAL_VERDICT = {historique:'Légende',protocole:'Mathieu',intention:'Accidentelle',tresor:'Enola'};
+const ACCUSATION_CLUES = ['S-00','J-01','J-02','N-01','A-01','Indéterminé'];
+const VOTE_QUESTIONS = [{key:'tresor',title:'Qui a déplacé le Trésor ?',help:'Tu peux changer d’avis depuis ton premier soupçon.',options:SUSPECT_OPTIONS.map(v=>[v,v==='Indéterminé'?'Je ne sais pas encore':v])}];
+const VOTE_PROOFS = EVIDENCE_V4.map(p=>[p.id,p.title]).concat([['Indéterminé','Les preuves ne suffisent pas']]);
+const EMPTY_VOTE = {tresor:'',preuve:'',argument:''};
+const FINAL_VERDICT = {tresor:'Enola'};
 function voteLabel(question, value) { return question.options.find(([k]) => k === value)?.[1] || value || '—'; }
-const STORE_KEY = 'roubatvot_refonte_v4';
+function getLiveAdvice(solvedLevels,stage,beat,reveal,accusationCount,myAccusation,isMJ,voteSubmitted) {
+ if(reveal) return {title:'Le Trésor vous attend',action:'Charlotte lit la vérité puis autorise une seule recherche près des doudous.',question:'Quels détails vous avaient mis sur la bonne piste ?',tab:'reveal'};
+ const current=ACTS[stage]||ACTS[0];
+ let action=current.public;
+ if(stage===0) action=solvedLevels.includes(1)?'James a terminé. Charlotte peut ouvrir le deuxième acte.':'James commence son énigme. Les autres découvrent leur personnage.';
+ if(stage===1) action=solvedLevels.includes(3)?'Nino et Andreas ont terminé. Réunissez-vous pour les questions, puis Charlotte ouvre les soupçons.':'Nino puis Andreas résolvent leur énigme, ensuite discutez ensemble.';
+ if(stage===2) action=myAccusation?'Ton soupçon est enregistré. Écoute les autres.':`Dépose ton premier soupçon (${accusationCount}/5) ; Charlotte lancera ensuite les nouveaux témoignages.`;
+ if(stage===3) action=solvedLevels.includes(5)?'Les cinq énigmes sont résolues : discutez du test de Mathieu et de l’alibi de Nino.':'Matys puis Mathieu résolvent leurs énigmes. Discutez de l’alibi de Nino.';
+ if(stage===4) action=voteSubmitted?'Verdict enregistré. Écoute les autres sans révéler la fin.':'Écoutez James et Andreas, puis votez pour le responsable présumé.';
+ return {title:`Acte ${stage+1}/5 · ${current.name}`,action,question:current.questions[0],tab:isMJ?'mj':'interro'};
+}
+
+const STORE_KEY = 'roubatvot_refonte_v42';
 const defaultProgress = { solvedLevels: [], margueriteUnlocked: false, votes: {...EMPTY_VOTE}, voteSubmitted: false, timerSeconds: 0, isTimerActive: false, stage:0, beat:0, accusations:{}, puzzleStarts: {}, hintsAsked: {} };
 function readGame() {
   try {
@@ -461,42 +414,30 @@ function App() {
   const accusations = sharedMode ? remoteAccusations : (game.accusations || {});
   const myAccusation = currentUser && !currentUser.isMJ ? accusations[currentUser.id] : null;
   const setStage = async next => {
-    if (!currentUser?.isMJ || hostBusy) return;
-    if(!testMode && next>stage && gateReasons.length) {setFirebaseError('Scène bloquée : '+gateReasons.join(' '));return;}
+    if(!currentUser?.isMJ || hostBusy || next!==stage+1 || next>4) return;
+    if (!testMode && gateReasons.length) {setFirebaseError('Avant de continuer : '+gateReasons.join(' '));return;}
     setHostBusy(true);
     try {
-      if (sharedMode) await window.RoubatvotFirebase.hostStage(roomSession.code,next);
+      if(sharedMode) await window.RoubatvotFirebase.hostStage(roomSession.code,next);
       else setGame(g=>({...g,stage:next,beat:0}));
-      setFirebaseError('');
-    } catch(e) {setFirebaseError('Phase MJ : '+e.message);}
+      setFirebaseError('');setActiveTab('mj');
+    } catch(e){setFirebaseError('Changement d’acte : '+e.message);}
     finally{setHostBusy(false);}
-  };
-  const advanceBeat = async () => {
-    if(!currentUser?.isMJ || hostBusy || beat>=SCENE_BEATS[stage].length-1)return;
-    const target=SCENE_BEATS[stage][beat+1].target?.toLowerCase();
-    if(!testMode && sharedMode && target && target!=='charlotte' && !roomPlayers[target]) {setFirebaseError(`${target} doit rejoindre la salle avant son témoignage.`);return;}
-    if(!testMode && stage===4 && beat===0 && Object.keys(accusations).length!==5) {setFirebaseError('Attends les cinq accusations avant de les révéler.');return;}
-    if(!testMode && stage===9 && beat===0 && Object.keys(remoteVotes||{}).length!==5) {setFirebaseError('Attends les cinq bulletins avant de les révéler.');return;}
-    setHostBusy(true);
-    try {
-      if(sharedMode) await window.RoubatvotFirebase.hostBeat(roomSession.code,beat+1);
-      else setGame(g=>({...g,beat:beat+1}));
-      setFirebaseError('');
-    } catch(e) {setFirebaseError('Étape MJ : '+e.message);}
-    finally{setHostBusy(false);}
-  };
-  const sendAccusation = async () => {
-    if (!currentUser || currentUser.isMJ || myAccusation || stage !== 4) return;
-    if (!SUSPECT_OPTIONS.includes(accusation.suspect) || (!ACCUSATION_CLUES.includes(accusation.indice) || (accusation.indice!=='Indéterminé' && !accusationProofs.some(p=>p.id===accusation.indice))) || accusation.argument.trim().length<12 || accusation.argument.trim().length>220) {
-      setAccusationError('Choisis un suspect, une pièce et une justification de 12 à 220 caractères.'); return;
-    }
-    try {
-      if(sharedMode) await window.RoubatvotFirebase.castAccusation(roomSession.code,currentUser.id,accusation);
-      else setGame(g=>({...g,accusations:{...g.accusations,[currentUser.id]:{...accusation,submittedAt:Date.now()}}}));
-      setAccusationError('');
-    } catch(e){setAccusationError('Accusation non enregistrée : '+e.message);}
   };
 
+  const sendAccusation = async () => {
+    if (!currentUser || currentUser.isMJ || myAccusation || stage !== 2) return;
+    if (!SUSPECT_OPTIONS.includes(accusation.suspect) || !ACCUSATION_CLUES.includes(accusation.indice) ||
+        (accusation.indice !== 'Indéterminé' && !accusationProofs.some(p=>p.id===accusation.indice))) {
+      setAccusationError('Choisis un suspect et un indice, puis explique ton choix à voix haute.');return;
+    }
+    const argument=`Je soupçonne ${accusation.suspect} à cause de ${EVIDENCE_LABELS[accusation.indice]||'faits encore incertains'}.`;
+    try {
+      if(sharedMode) await window.RoubatvotFirebase.castAccusation(roomSession.code,currentUser.id,{...accusation,argument});
+      else setGame(g=>({...g,accusations:{...g.accusations,[currentUser.id]:{...accusation,argument,submittedAt:Date.now()}}}));
+      setAccusationError('');
+    }catch(e){setAccusationError('Soupçon non enregistré : '+e.message);}
+  };
 
   const solvedLevels = sharedMode ? Object.keys(remoteProgress?.solved || {}).filter(k => remoteProgress.solved[k]).map(Number).sort((a,b)=>a-b) : game.solvedLevels;
   const evidenceList = PUZZLES.filter(p => solvedLevels.includes(p.id)).map(p => p.rewardEvidence);
@@ -509,13 +450,13 @@ function App() {
   const votes = {...EMPTY_VOTE, ...(game.votes || {})};
   const voteSubmitted = sharedMode ? !!remoteVotes?.submittedAt : game.voteSubmitted;
   const liveAdvice = getLiveAdvice(solvedLevels,stage,beat,margueriteUnlocked,Object.keys(accusations).length,myAccusation,!!currentUser?.isMJ,voteSubmitted);
-  const voteComplete = VOTE_QUESTIONS.every(q => q.options.some(([key]) => key === votes[q.key])) && VOTE_PROOFS.some(([k])=>k===votes.preuve) && votes.argument.trim().length>=12 && votes.argument.trim().length<=220;
+  const voteComplete = SUSPECT_OPTIONS.includes(votes.tresor) && VOTE_PROOFS.some(([k])=>k===votes.preuve) && votes.argument.trim().length<=220;
   const setIsTimerActive = val => { if (sharedMode) { window.RoubatvotFirebase.hostClock(roomSession.code, val, activeClock).catch(e=>setFirebaseError(e.message)); return; } setGame(g => ({...g,isTimerActive: typeof val === 'function' ? val(g.isTimerActive):val})); };
   const setMargueriteUnlocked = val => { if (sharedMode) {window.RoubatvotFirebase.hostFlag(roomSession.code,'confession',val).catch(e=>setFirebaseError(e.message)); return;} setGame(g=>({...g,margueriteUnlocked: typeof val === 'function' ? val(g.margueriteUnlocked):val})); };
   const setVotes = val => setGame(g => ({...g, votes: typeof val === 'function' ? val(g.votes) : val}));
   const submitVote = async () => {
     if (!voteComplete || voteSubmitted || voteBusy || currentUser?.isMJ) return;
-    if (!margueriteUnlocked && (solvedLevels.length < PUZZLES.length || stage < 9)) {setVoteError('Attendez le lancement du tribunal final par Charlotte.'); return;}
+    if (!margueriteUnlocked && (solvedLevels.length < PUZZLES.length || stage < 4)) {setVoteError('Attendez le lancement du tribunal final par Charlotte.'); return;}
     setVoteError(''); setVoteBusy(true);
     try {
       if (sharedMode) {
@@ -575,6 +516,7 @@ function App() {
     try {previousSession = JSON.parse(localStorage.getItem('roubatvot_room_session') || 'null');} catch (_) {}
     if (previousSession?.code !== session.code) {
       setGame(g=>({...g,puzzleStarts:{},hintsAsked:{},votes:{...EMPTY_VOTE},voteSubmitted:false,accusations:{},stage:0,beat:0}));
+      setTestMode(false);
     }
     setRoomSession(session);
     setCurrentUser(PLAYERS[session.playerId]);
@@ -662,10 +604,8 @@ function App() {
   }, [currentUser, activeTab, solvedLevels, game.puzzleStarts]);
 
   useEffect(() => {
-    // La MJ annonce la phase ; on ouvre la scène commune aux moments décisifs seulement.
-    if (currentUser && [4,5,8,9].includes(stage) && !margueriteUnlocked) {
-      setActiveTab(stage === 9 ? 'vote' : 'interro');
-    }
+    if (currentUser && stage===2 && !margueriteUnlocked) setActiveTab('interro');
+    if (currentUser && stage===4 && !margueriteUnlocked) setActiveTab('interro');
   }, [stage,roomSession?.code]);
 
   const handleSelectUser = key => {
@@ -685,7 +625,7 @@ function App() {
   const markSolved = async id => { if (sharedMode) await window.RoubatvotFirebase.publishSolved(roomSession.code,id,roomSession.playerId); else setGame(g=>({...g,solvedLevels:[...new Set([...g.solvedLevels,id])].sort((a,b)=>a-b)})); };
   const handleSolveMyPuzzle = async p => {
     if (p.id > 1 && !solvedLevels.includes(p.id-1)) { setPuzzleError('Attends la réussite de l’enquêteur précédent.'); return; }
-    if (!puzzleAvailable(p.id,stage,beat)) {setPuzzleError('Charlotte doit terminer la scène du Conseil avant ton énigme.');return;}
+    if (!puzzleAvailable(p.id,stage,beat)) {setPuzzleError('Charlotte doit ouvrir ton acte avant ton énigme.');return;}
     const ans = normalizeCode(puzzleInput);
     let isCorrect = false;
     switch(p.id) {
@@ -698,7 +638,7 @@ function App() {
     if (isCorrect) { try {await markSolved(p.id);setPuzzleError('');setPuzzleInput('');}catch(e){setPuzzleError('La validation n’a pas été enregistrée : '+e.message);} }
     else { setPuzzleError('Il manque un élément ou la réponse ne correspond pas aux indices. Réessaie.'); }
   };
-  // Une transmission orale explicite remplace la synchronisation serveur absente.
+  // Les codes-relais restent disponibles en mode secours (sans Firebase).
   const handleRelay = () => {
     if (sharedMode) {setRelayMessage('En mode Firebase, les validations arrivent automatiquement.');return;}
     const code = normalizeCode(relayInput);
@@ -841,13 +781,12 @@ function App() {
         ) : (
           <>
             <div className="rounded-xl border border-indigo-600/50 bg-indigo-950/30 p-3 text-xs space-y-2" role="status" aria-live="polite">
-              <div className="flex items-center justify-between gap-2"><strong className="text-indigo-200">🧭 Prochaine action · {liveAdvice.title}</strong><span className="text-slate-400 whitespace-nowrap">{solvedLevels.length}/5 énigmes</span></div>
+              <div className="flex items-center justify-between gap-2"><strong className="text-indigo-200">🧭 {liveAdvice.title}</strong><span className="text-slate-400 whitespace-nowrap">{solvedLevels.length}/5 énigmes</span></div>
               <p className="text-slate-100">{liveAdvice.action}</p>
-              <p className="text-indigo-200/90"><strong>À discuter :</strong> {liveAdvice.question}</p>
-              <p className="text-slate-400 border-t border-indigo-700/40 pt-2">🎭 Scène en cours : {STAGES[stage]?.name || 'Conseil'} (phase {stage+1}/10, pilotée par Charlotte).</p>
-              {currentUser.isMJ && stage < 9 && <p className="text-amber-300">👑 {gateReasons.length ? 'À faire avant la prochaine phase : '+gateReasons[0] : 'Scène terminée : tu peux ouvrir la phase suivante.'}</p>}
-              <button className="w-full rounded-lg bg-indigo-800/80 py-2 font-semibold text-indigo-100" onClick={()=>setActiveTab(liveAdvice.tab)}> {liveAdvice.tab==='vote'?'⚖️ Ouvrir mon vote':liveAdvice.tab==='reveal'?'🎭 Voir le dénouement':liveAdvice.tab==='mj'?'👑 Piloter la partie':'🗣️ Ouvrir le Conseil'} </button>
+              <p className="text-indigo-200/90"><strong>Question à discuter :</strong> {liveAdvice.question}</p>
+              <button className="w-full rounded-lg bg-indigo-800/80 py-2 font-semibold text-indigo-100" onClick={()=>setActiveTab(liveAdvice.tab)}>{currentUser.isMJ?'👑 Voir ma prochaine action':'🗣️ Ouvrir le Conseil'}</button>
             </div>
+
             {/* BRIEFING ET CHAPITRES — mêmes informations publiques chez tous les joueurs */}
             {activeTab === 'histoire' && (
               <section className="space-y-4">
@@ -862,9 +801,9 @@ function App() {
                   <h3 className="font-bold text-emerald-200 text-sm">🎮 Comment jouer — première fois ?</h3>
                   <p><strong>1.</strong> Lis ton <strong>profil privé</strong>. Tu sais ce que tu as fait, mais pas toutes les conséquences.</p>
                   <p><strong>2.</strong> Résous ton énigme quand elle est débloquée. Raconte ta découverte à voix haute.</p>
-                  <p><strong>3.</strong> À chaque phase annoncée par Charlotte, ouvre <strong>🗣️ Conseil</strong>. Pose les questions affichées et réponds selon ton profil.</p>
+                  <p><strong>3.</strong> À chaque nouvel acte annoncé par Charlotte, ouvrez <strong>🗣️ Conseil</strong> et discutez ensemble.</p>
                   <p><strong>4.</strong> Une seule phrase mensongère préparée est autorisée. Si une preuve te contredit, révèle la vérité.</p>
-                  <p><strong>5.</strong> Premier soupçon, nouveaux témoignages, puis vote final avec une <strong>preuve</strong> à citer.</p>
+                  <p><strong>5.</strong> Tu choisiras d'abord un suspect, puis tu pourras changer d'avis lors du verdict final.</p>
                   <p className="text-emerald-100"><strong>Règle du manoir :</strong> tout se passe autour de la table. Pas de fouille, pas de course. Charlotte n’autorise qu’une recherche très limitée à la fin.</p>
                   <button onClick={()=>setActiveTab(currentUser.isMJ?'mj':'perso')} className="w-full rounded-lg bg-emerald-700 p-3 font-bold">{currentUser.isMJ?'👑 Préparer la première scène':'👤 Lire mon rôle secret'}</button>
                 </div>
@@ -884,6 +823,7 @@ function App() {
                   <p className="text-xs rounded-lg bg-rose-950/30 p-3 border border-rose-800/50"><strong>🔒 Ton petit secret :</strong> {currentUser.failles[0]}</p>
                   <p className="text-xs text-slate-400">Tu peux garder ton secret jusqu’à ce qu’une preuve le contredise. Après, tu dois dire la vérité. N’invente pas d’autres faits.</p>
                 </div>
+                {(PERSONAL_REVELATIONS[currentUser.id]||[]).filter(c=>stage>=c.stage).map((c,i)=><div key={i} className="rounded-xl border border-indigo-700 bg-indigo-950/40 p-3 text-xs space-y-1"><strong className="text-indigo-200">🔐 Nouveau souvenir pour toi uniquement</strong><p>{c.text}</p><p className="text-slate-400">Tu peux le raconter au Conseil quand on te pose la question.</p></div>)}
                 {currentUser.id==='james' && <div className="rounded-xl p-3 text-xs bg-emerald-950/30 border border-emerald-700">Tu peux dire tout de suite la vérité si tu préfères. Ton rôle est surtout de bien regarder et de raconter ce que tu as vu.</div>}
                 {currentUser.isMJ && <div className="rounded-xl border border-rose-700 bg-rose-950/20 p-3 space-y-2 text-xs"><strong className="text-rose-200">👑 Deux casquettes</strong><p>Comme personnage, tu avais déplacé une décoration près de la table à 20 h 29. Devant une contradiction, tu dois l’avouer.</p><p>Comme MJ, tu ne confirmes jamais l’identité de la personne responsable. Tu ne lis que les consignes prévues dans le panneau MJ.</p></div>}
                 {!currentUser.isMJ && <button onClick={()=>setActiveTab('my_puzzle')} className="w-full bg-amber-500 rounded-lg py-3 font-bold text-slate-950">🧩 Voir mon énigme</button>}
@@ -909,7 +849,7 @@ function App() {
                           <div className="bg-slate-900 border border-rose-900/50 rounded-xl p-6 text-center space-y-3 shadow-lg">
                             <div className="text-rose-400 text-3xl">🔒</div>
                             <h3 className="font-cinzel font-bold text-slate-100 text-sm">Épreuve verrouillée</h3>
-                            <p className="text-xs text-slate-300">{!isPreviousSolved ? `Attends la réussite de ${PLAYERS[PUZZLES[myPuzzle.id-2].assignedTo].name}.` : 'Le Conseil doit finir sa scène. Charlotte te donnera le départ pour ton énigme.'}</p>
+                            <p className="text-xs text-slate-300">{!isPreviousSolved ? `Attends la réussite de ${PLAYERS[PUZZLES[myPuzzle.id-2].assignedTo].name}.` : 'Charlotte ouvrira ton acte avant de lancer ton énigme.'}</p>
                           </div>
                           {!sharedMode && relayForm}
                         </div>
@@ -1093,42 +1033,42 @@ function App() {
               </div>
             )}
 
-            {/* CONSEIL V4.1 : une seule étape visible à la fois ; les réponses ne sont données qu'au témoin et au MJ. */}
+            {/* CONSEIL V4.2 : une consigne collective par acte ; aucune réponse secrète affichée aux autres joueurs. */}
             {activeTab === 'interro' && (
-              <section className="space-y-4">
+              <section className="space-y-3">
                 <div className="rounded-2xl border border-indigo-600 bg-indigo-950/30 p-4 space-y-3">
-                  <p className="text-xs uppercase tracking-widest text-indigo-300">🗣️ Conseil des suspects · Scène {stage+1}/10 · Étape {beat+1}/{SCENE_BEATS[stage].length}</p>
-                  <h2 className="font-cinzel text-lg text-amber-200">{STAGES[stage].name}</h2>
-                  <p className="text-lg font-bold">{SCENE_BEATS[stage][beat].title}</p>
-                  <p className="text-sm">{SCENE_BEATS[stage][beat].action}</p>
-                  <div className="rounded-lg bg-slate-950 border border-slate-700 p-3 text-sm"><strong>❓ Question à discuter :</strong> {SCENE_BEATS[stage][beat].question}</div>
-                  {SCENE_BEATS[stage][beat].target && <div className="bg-slate-900 border border-amber-700/50 rounded-lg p-3 text-sm">🎤 La parole est à <strong>{SCENE_BEATS[stage][beat].target}</strong>.</div>}
-                  {(currentUser.isMJ || currentUser.name===SCENE_BEATS[stage][beat].target) && SCENE_BEATS[stage][beat].private && (
-                    <div className="rounded-lg bg-indigo-950 border border-indigo-600 p-3 text-xs space-y-1"><strong>🔐 À lire sur TON appareil uniquement</strong><p>{SCENE_BEATS[stage][beat].private}</p></div>
-                  )}
-                  {currentUser.isMJ && <div className="rounded-lg bg-rose-950/40 border border-rose-700 p-3 text-xs space-y-1"><strong>👑 Consigne confidentielle Charlotte</strong><p>{SCENE_BEATS[stage][beat].mj}</p></div>}
-                  {!currentUser.isMJ && <p className="text-xs text-slate-400">Attendez que Charlotte annonce la suite. Ne montrez pas votre fiche secrète aux autres.</p>}
+                  <p className="text-xs tracking-widest uppercase text-indigo-300">🗣️ Conseil des suspects · Acte {stage+1}/5</p>
+                  <h2 className="font-cinzel text-lg font-bold text-amber-200">{ACTS[stage].icon} {ACTS[stage].name}</h2>
+                  <p className="text-sm">{ACTS[stage].public}</p>
+                  <p className="text-xs text-slate-400">Prenez la parole à tour de rôle, sans bouger de la table.</p>
                 </div>
-                {stage===4 && <div className="bg-slate-900 border border-amber-600/60 rounded-xl p-4 space-y-3 text-xs">
-                  <h3 className="font-cinzel font-bold text-amber-300">⚖️ Première accusation — {Object.keys(accusations).length}/5</h3>
-                  {beat===0 ? currentUser.isMJ ? <p>Fais déposer les cinq bulletins. Les soupçons ne seront affichés qu’après ton signal.</p> : myAccusation ? <div className="rounded-lg bg-emerald-950/30 border border-emerald-700 p-3">✅ Tu as envoyé ton soupçon et ta justification. Attends les autres.</div> : <>
-                    <label className="block font-bold">Je soupçonne :</label>
-                    <select className="w-full bg-slate-950 border border-slate-600 rounded-lg p-3" value={accusation.suspect} onChange={e=>setAccusation(v=>({...v,suspect:e.target.value}))}><option value="">Choisir un suspect</option>{SUSPECT_OPTIONS.map(x=><option value={x} key={x}>{x}</option>)}</select>
-                    <label className="block font-bold">À cause de cette pièce :</label>
-                    <select className="w-full bg-slate-950 border border-slate-600 rounded-lg p-3" value={accusation.indice} onChange={e=>setAccusation(v=>({...v,indice:e.target.value}))}><option value="">Choisir une preuve</option>{accusationProofs.map(p=><option value={p.id} key={p.id}>{EVIDENCE_LABELS[p.id]}</option>)}<option value="Indéterminé">Je n'ai pas de preuve suffisante</option></select>
-                    <label className="block font-bold">J'explique mon soupçon :</label>
-                    <textarea rows={3} maxLength={220} value={accusation.argument} onChange={e=>setAccusation(v=>({...v,argument:e.target.value}))} placeholder="Je soupçonne… parce que la pièce … indique que…" className="w-full bg-slate-950 border border-slate-600 rounded-lg p-3" />
-                    <button onClick={sendAccusation} className="w-full bg-amber-500 text-slate-950 font-bold rounded-lg p-3">Enregistrer mon soupçon</button>
+                <div className="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-3 text-sm">
+                  <h3 className="font-bold text-amber-300">🎤 Questions à poser ensemble</h3>
+                  {ACTS[stage].questions.map((q,i)=><p key={i} className="rounded-lg border border-slate-700 bg-slate-950 p-3"><strong className="text-amber-200">{i+1}.</strong> {q}</p>)}
+                </div>
+                {(PERSONAL_REVELATIONS[currentUser.id]||[]).filter(c=>c.stage===stage).map((c,i)=><div key={i} className="rounded-lg bg-indigo-950/40 border border-indigo-700 p-3 text-xs space-y-1"><strong className="text-indigo-200">🔐 Ton souvenir (à ne pas montrer)</strong><p>{c.text}</p></div>)}
+                {stage===1 && <div className="rounded-lg bg-slate-900 border border-slate-700 p-3 text-xs text-slate-200">Après l’énigme d’Andreas, demandez-lui ce qu’il a vu près de la table. Une personne peut mentir sur une friandise sans avoir volé le coffret.</div>}
+                {stage===3 && <div className="rounded-lg bg-slate-900 border border-indigo-800 p-3 text-xs text-indigo-100">Revenez sur vos premières accusations. Les nouveaux témoignages fragilisent-ils vos soupçons ?</div>}
+                {stage===2 && <div className="bg-slate-900 border border-amber-600/60 rounded-xl p-4 space-y-3 text-xs">
+                  <h3 className="font-cinzel font-bold text-amber-300">⚖️ Premier soupçon — {Object.keys(accusations).length}/5</h3>
+                  {currentUser.isMJ ? <p>Chaque joueur choisit un suspect et un indice. Faites expliquer les choix à voix haute. Le résultat sera partagé à l’acte suivant.</p> : myAccusation ? <p className="rounded-lg border border-emerald-700 bg-emerald-950/30 p-3">✅ Ton premier soupçon est enregistré. Tu pourras changer d’avis.</p> : <>
+                    <label className="block font-bold">Qui soupçonnes-tu ?</label>
+                    <select className="w-full bg-slate-950 border border-slate-600 rounded-lg p-3" value={accusation.suspect} onChange={e=>setAccusation(v=>({...v,suspect:e.target.value}))}><option value="">Choisir une personne</option>{SUSPECT_OPTIONS.map(x=><option value={x} key={x}>{x}</option>)}</select>
+                    <label className="block font-bold">Quel indice t’a donné cette idée ?</label>
+                    <select className="w-full bg-slate-950 border border-slate-600 rounded-lg p-3" value={accusation.indice} onChange={e=>setAccusation(v=>({...v,indice:e.target.value}))}><option value="">Choisir un indice</option>{accusationProofs.map(p=><option value={p.id} key={p.id}>{p.title}</option>)}<option value="Indéterminé">Je n’ai pas de preuve solide</option></select>
+                    <p className="text-amber-200">Dis à voix haute : « Je soupçonne … parce que … »</p>
+                    <button onClick={sendAccusation} className="w-full rounded-lg bg-amber-500 text-slate-950 font-bold p-3">🗳️ Enregistrer mon soupçon</button>
                     {accusationError && <p role="alert" className="text-rose-300">{accusationError}</p>}
-                  </> : <p>Les bulletins sont prêts à être confrontés.</p>}
+                  </>}
                 </div>}
-                {stage>=4 && (stage>4 || beat>=1) && <div className="rounded-xl bg-slate-900 border border-slate-700 p-4 space-y-2 text-xs">
-                  <h3 className="font-bold text-amber-300">🗳️ Soupçons déposés avant les nouveaux témoignages</h3>
-                  {Object.entries(accusations).map(([id,v])=><div key={id} className="border-b border-slate-800 pb-2"><strong>{PLAYERS[id]?.name||id}</strong> soupçonnait <strong>{v.suspect}</strong> — {EVIDENCE_LABELS[v.indice]||v.indice}<p className="text-slate-300">« {v.argument||'Justification non fournie'} »</p></div>)}
-                  <p className="text-slate-400">Une accusation est une hypothèse : de nouveaux éléments peuvent la modifier.</p>
+                {stage>=3 && <div className="rounded-xl bg-slate-900 border border-slate-700 p-4 space-y-2 text-xs">
+                  <h3 className="font-bold text-amber-300">🗳️ Premiers soupçons — avant les nouveaux témoins</h3>
+                  {Object.entries(accusations).length===0 ? <p>Les accusations ne sont pas encore enregistrées.</p> : Object.entries(accusations).map(([id,v])=><p key={id} className="border-b border-slate-800 pb-2"><strong>{PLAYERS[id]?.name||id}</strong> soupçonnait {v.suspect} — indice : {EVIDENCE_LABELS[v.indice]||'incertain'}</p>)}
+                  <p className="text-slate-400">Le mensonge d’un joueur n’est pas forcément une preuve de vol.</p>
                 </div>}
-                {currentUser.isMJ && <button onClick={()=>setActiveTab('mj')} className="w-full bg-rose-900 rounded-lg p-3 text-xs font-bold">👑 Débloquer la prochaine étape dans le panneau MJ</button>}
-                <button onClick={()=>setActiveTab('dossier')} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 font-semibold">🔎 Consulter les preuves déjà dévoilées</button>
+                {stage===4 && !currentUser.isMJ && <button onClick={()=>setActiveTab('vote')} className="w-full bg-amber-500 text-slate-950 rounded-lg p-3 text-sm font-bold">⚖️ Après la discussion, je donne mon verdict</button>}
+                {currentUser.isMJ && <button onClick={()=>setActiveTab('mj')} className="w-full bg-rose-900 rounded-lg p-3 text-xs font-bold">👑 Revenir au panneau Charlotte</button>}
+                <button onClick={()=>setActiveTab('dossier')} className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 text-xs font-semibold">🔎 Voir les preuves découvertes</button>
               </section>
             )}
 
@@ -1136,52 +1076,47 @@ function App() {
               <section className="space-y-3">
                 <div className="rounded-xl border border-amber-600/50 bg-amber-950/20 p-4 space-y-2">
                   <h2 className="font-cinzel font-bold text-amber-200 text-lg">🔍 Carnet d’enquête</h2>
-                  <p className="text-xs">Un indice établit un fait mais ne désigne pas forcément un coupable. À chaque découverte, demandez : « Que sait-on ? Que suppose-t-on ? »</p>
-                  <p className="text-xs text-amber-100"><strong>Mission principale :</strong> découvrir où est passé le coffret. La légende et la lettre sont peut-être des détours.</p>
+                  <p className="text-xs">La question : <strong>qui a déplacé le Trésor ?</strong> Les lettres et les archives sont peut-être des fausses pistes.</p>
+                  <p className="text-xs">Chaque carte indique ce qu’on sait, puis ce qui reste à démontrer.</p>
                 </div>
-                {['Alibis','Horaires','Système','Archives','Coffret'].map(cat=>{
+                {['Coffret','Suspects','Système','Archives'].map(cat=>{
                   const proofs=availableEvidence.filter(p=>p.category===cat);
-                  return <div key={cat} className="bg-slate-900 border border-slate-700 rounded-xl p-3 space-y-2 text-xs"><h3 className="font-bold text-amber-200">{cat} · {proofs.length} pièce(s)</h3>
-                    {proofs.map(p=><div key={p.id} className="bg-slate-950 border border-slate-800 p-3 rounded-lg space-y-2"><p className="font-bold text-cyan-200">{p.id} — {p.title}</p><p><strong className="text-emerald-200">Fait :</strong> {p.fact}</p><p className="text-slate-400"><strong>Limite :</strong> {p.limit}</p></div>)}
-                    {proofs.length===0 && <p className="text-slate-500">🔒 À découvrir pendant la suite de l’enquête.</p>}
+                  return proofs.length>0 && <div key={cat} className="bg-slate-900 border border-slate-700 rounded-xl p-3 space-y-2 text-xs"><h3 className="font-bold text-amber-200">{cat}</h3>
+                    {proofs.map(p=><div key={p.id} className="bg-slate-950 border border-slate-800 p-3 rounded-lg space-y-2"><p className="font-bold text-cyan-200">{p.title}</p><p><strong className="text-emerald-200">On sait :</strong> {p.fact}</p><p className="text-slate-400"><strong>On ne sait pas :</strong> {p.limit}</p></div>)}
                   </div>;
                 })}
-                {stage>=9 && <button onClick={()=>setActiveTab('vote')} className="w-full bg-amber-500 text-slate-950 rounded-lg py-3 font-bold">⚖️ Je suis prêt à voter</button>}
+                {stage===4 && <button onClick={()=>setActiveTab('vote')} className="w-full bg-amber-500 text-slate-950 rounded-lg py-3 font-bold">⚖️ Donner mon verdict</button>}
               </section>
             )}
 
             {activeTab === 'vote' && (
               <section className="space-y-3">
                 <div className="bg-slate-900 border border-amber-600/50 rounded-xl p-4 space-y-2">
-                  <h2 className="font-cinzel font-bold text-amber-200 text-lg">⚖️ Le verdict du conseil</h2>
-                  <p className="text-xs">Vous pouvez changer d’avis après vos premières accusations. Répondez sur l’affaire de 1897, la lettre et le coffret, puis <strong>choisissez une preuve</strong> et expliquez pourquoi.</p>
+                  <h2 className="font-cinzel font-bold text-amber-200 text-lg">⚖️ Dernier verdict</h2>
+                  <p className="text-xs">Une seule question : <strong>qui a déplacé le Trésor ?</strong> Choisis un indice et explique ton choix à voix haute. Il n’y a pas de réponse obligatoire.</p>
                 </div>
-                {currentUser.isMJ ? <div className="bg-slate-900 rounded-lg p-4 text-xs">👑 Charlotte consulte les cinq bulletins depuis le panneau MJ ; elle ne vote pas.</div>
-                 : (!margueriteUnlocked && (solvedLevels.length<5 || stage<9)) ? <div className="bg-slate-900 p-4 rounded-xl border border-slate-700 text-xs">🔒 Attends le lancement du tribunal par Charlotte et la fin des cinq énigmes.</div>
-                 : voteSubmitted ? <div className="bg-emerald-950/30 border border-emerald-700 rounded-xl p-4 text-xs space-y-2"><strong className="text-emerald-200">✅ Ton bulletin a été enregistré</strong>
-                    {VOTE_QUESTIONS.map(q=><p key={q.key}>{q.title} <strong>{voteLabel(q,sharedMode ? remoteVotes?.[q.key] : votes[q.key])}</strong></p>)}
-                    <p>Preuve : <strong>{sharedMode?remoteVotes?.preuve:votes.preuve}</strong></p>
-                    <p>Argument : {sharedMode?remoteVotes?.argument:votes.argument}</p>
-                 </div> : <div className="space-y-3">
-                   {VOTE_QUESTIONS.map((q,i)=><fieldset key={q.key} className="bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-2"><legend className="font-bold text-amber-300 text-sm">{i+1}. {q.title}</legend><p className="text-xs text-slate-400">{q.help}</p>
-                    {q.options.map(([val,label])=><button key={val} onClick={()=>setVotes({...votes,[q.key]:val})} aria-pressed={votes[q.key]===val} className={`w-full text-left rounded-lg border p-3 text-xs ${votes[q.key]===val?'bg-amber-500/20 border-amber-400 text-amber-100':'bg-slate-950 border-slate-700'}`}>{votes[q.key]===val?'◉':'○'} {label}</button>)}
-                   </fieldset>)}
-                   <div className="bg-slate-900 border border-amber-600/50 rounded-xl p-4 space-y-2 text-xs"><h3 className="font-bold text-amber-200">5. Sur quelle pièce repose ton verdict ?</h3>
-                    <select className="w-full p-3 rounded-lg bg-slate-950 border border-slate-700" value={votes.preuve} onChange={e=>setVotes({...votes,preuve:e.target.value})}><option value="">Choisir une preuve</option>{VOTE_PROOFS.map(([id,name])=><option key={id} value={id}>{name}</option>)}</select>
-                    <label className="font-semibold block" htmlFor="argument">Explique ton choix en une phrase (12 à 220 caractères)</label>
-                    <textarea id="argument" maxLength={220} rows={3} className="w-full rounded-lg bg-slate-950 p-3 border border-slate-700" placeholder="Je soupçonne… car la pièce… montre que…" value={votes.argument} onChange={e=>setVotes({...votes,argument:e.target.value})}></textarea>
-                    <button disabled={!voteComplete || voteBusy} onClick={submitVote} className="w-full rounded-lg bg-amber-500 disabled:bg-slate-700 disabled:text-slate-400 text-slate-950 font-bold p-3">{voteBusy?'Envoi…':'🗳️ Sceller mon verdict'}</button>
+                {currentUser.isMJ ? <div className="bg-slate-900 rounded-lg p-4 text-xs">👑 Tu peux lire les cinq verdicts dans le panneau MJ. Tu ne votes pas.</div>
+                : (!margueriteUnlocked && (solvedLevels.length<5 || stage<4)) ? <div className="bg-slate-900 rounded-xl border border-slate-700 p-4 text-xs">🔒 Le verdict s’ouvre après les cinq énigmes et la dernière confrontation.</div>
+                : voteSubmitted ? <div className="bg-emerald-950/30 border border-emerald-700 rounded-xl p-4 text-xs space-y-2"><strong className="text-emerald-200">✅ Ton verdict est enregistré</strong><p>Tu as choisi : <strong>{sharedMode?remoteVotes?.tresor:votes.tresor}</strong></p><p>Ton indice : {EVIDENCE_LABELS[sharedMode?remoteVotes?.preuve:votes.preuve]||'Preuves insuffisantes'}</p></div>
+                : <div className="bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-3 text-xs">
+                    <label className="font-bold text-amber-300 block">Qui a déplacé le coffret ?</label>
+                    <select value={votes.tresor} onChange={e=>setVotes({...votes,tresor:e.target.value})} className="w-full p-3 rounded-lg bg-slate-950 border border-slate-700"><option value="">Choisir une personne</option>{SUSPECT_OPTIONS.map(x=><option key={x} value={x}>{x==='Indéterminé'?'Impossible à savoir':x}</option>)}</select>
+                    <label className="font-bold text-amber-300 block">Quel indice est le plus convaincant ?</label>
+                    <select value={votes.preuve} onChange={e=>setVotes({...votes,preuve:e.target.value})} className="w-full p-3 rounded-lg bg-slate-950 border border-slate-700"><option value="">Choisir un indice</option>{availableEvidence.map(p=><option key={p.id} value={p.id}>{p.title}</option>)}<option value="Indéterminé">Les preuves ne suffisent pas</option></select>
+                    <label className="font-semibold block" htmlFor="argument">Un petit commentaire, si tu veux (facultatif)</label>
+                    <textarea id="argument" maxLength={220} rows={2} className="w-full rounded-lg bg-slate-950 p-3 border border-slate-700" placeholder="Je pense que…" value={votes.argument} onChange={e=>setVotes({...votes,argument:e.target.value})}></textarea>
+                    <button disabled={!voteComplete || voteBusy} onClick={submitVote} className="w-full rounded-lg bg-amber-500 disabled:bg-slate-700 disabled:text-slate-400 text-slate-950 font-bold p-3">{voteBusy?'Envoi…':'🗳️ Déposer mon verdict'}</button>
                     {voteError && <p className="text-rose-300">{voteError}</p>}
-                   </div>
-                 </div>}
+                  </div>}
               </section>
             )}
+
             {activeTab === 'reveal' && margueriteUnlocked && (
               <section className="space-y-4" aria-label="Dénouement">
                 <div className="rounded-2xl border-2 border-purple-500 bg-gradient-to-b from-purple-950/80 to-slate-900 p-5 space-y-2 text-center"><div className="text-4xl">🎭</div><h2 className="font-cinzel font-bold text-amber-200 text-xl">La vérité des Roubatvot</h2><p className="text-xs">Trois histoires, un seul Trésor.</p></div>
                 <div className="rounded-xl p-4 bg-slate-900 border border-amber-700 space-y-2 text-xs"><h3 className="font-bold text-amber-200">📜 La fausse piste de 1897</h3><p>Une légende accusait Émile d’avoir volé un médaillon. Les archives ne permettent pas de prouver qui l’a pris. Ce récit a détourné vos soupçons du mystère actuel.</p></div>
                 <div className="rounded-xl p-4 bg-slate-900 border border-cyan-700 space-y-2 text-xs"><h3 className="font-bold text-cyan-200">🖥️ Les quatre minutes</h3><p>Mathieu avait lancé à 20 h 27 un banal test de connexion. Il ignorait que celui-ci activait N0CT-7. Une temporisation de <strong>240 secondes</strong> a provoqué l’apparition de la lettre à 20 h 31. Le système ne pouvait pas emporter le coffret.</p></div>
-                <div className="rounded-xl p-4 bg-pink-950/20 border-2 border-pink-600 space-y-3 text-xs"><h3 className="font-cinzel text-pink-200 text-lg font-bold">🍒 Qui a emporté le Trésor ?</h3><p>James avait aperçu une petite silhouette vers les jouets, Andreas entendu un couvercle et le doudou offrait un dernier rapprochement. <strong>Enola a pris le coffret pour jouer</strong>, sans intention de le cacher à la famille.</p><p className="text-pink-100">Mais vous devez encore le retrouver ensemble !</p></div>
+                <div className="rounded-xl p-4 bg-pink-950/20 border-2 border-pink-600 space-y-3 text-xs"><h3 className="font-cinzel text-pink-200 text-lg font-bold">🍒 Qui a emporté le Trésor ?</h3><p>James avait aperçu une petite silhouette vers les jouets, Andreas avait entendu un bruit de couvercle et de petites traces ont été repérées près de la table. <strong>Enola a pris le coffret pour jouer</strong>, sans intention de le cacher à la famille.</p><p className="text-pink-100">Mais vous devez encore le retrouver ensemble !</p></div>
                 <div className="rounded-xl bg-emerald-950/30 border border-emerald-700 p-4 space-y-2 text-xs"><h3 className="font-bold text-emerald-200 text-sm">🎁 Ultime énigme collective</h3><p className="italic">« Là où les doudous se reposent, les trésors deviennent des jouets. »</p><p><strong>Règle :</strong> Charlotte autorise maintenant une seule recherche au coin des jouets, près des doudous. Aucune fouille du reste de la maison.</p></div>
                 <button onClick={()=>setActiveTab('dossier')} className="w-full rounded-lg border border-purple-700 bg-slate-800 py-3 text-xs font-bold">Revoir l’enquête</button>
               </section>
@@ -1189,80 +1124,42 @@ function App() {
 
             {activeTab === 'mj' && currentUser.isMJ && (
               <div className="space-y-3 animate-fade-in">
-                <h2 className="font-cinzel font-bold text-rose-400 text-sm">Panneau Charlotte (MJ)</h2>
+                <h2 className="font-cinzel font-bold text-rose-400 text-sm">Panneau Charlotte (MJ) · V4.2</h2>
                 <p className="text-xs text-slate-400">{sharedMode ? 'Commandes protégées par ton compte Google. Les preuves et votes sont synchronisés.' : 'Mode secours : le tableau reflète ce téléphone uniquement. Reçois les codes des joueurs dans « Écran commun ».'}</p>
                 <div className="rounded-xl border border-amber-700/60 bg-slate-900 p-4 space-y-3 text-xs">
-                  <h3 className="font-cinzel text-amber-200 text-sm font-bold">🎬 Conseil interactif · 10 scènes</h3>
-                  <p>Fais parler les joueurs, puis publie une étape à la fois. Les nouveaux témoignages et leurs preuves apparaissent simultanément sur tous les téléphones.</p>
-                  <div className="border border-slate-700 rounded-xl p-3 space-y-3">
-                    <p className="font-bold text-indigo-200">Scène {stage+1}/10 — {STAGES[stage].name}</p>
-                    <p className="text-slate-400">Étape {beat+1}/{SCENE_BEATS[stage].length} : <strong className="text-slate-100">{SCENE_BEATS[stage][beat].title}</strong></p>
-                    <p className="text-slate-200">{SCENE_BEATS[stage][beat].mj}</p>
-                    <button disabled={hostBusy || beat===SCENE_BEATS[stage].length-1} onClick={advanceBeat} className="w-full bg-indigo-700 disabled:bg-slate-700 disabled:text-slate-400 rounded-lg p-3 font-bold">{beat===SCENE_BEATS[stage].length-1?'✅ Toutes les étapes de la scène sont publiées':'📣 Publier le témoignage / l’étape suivante'}</button>
-                    {stage<9 && <>
-                      <button disabled={hostBusy || (!testMode && gateReasons.length>0)} onClick={()=>setStage(stage+1)} className="w-full bg-emerald-800 disabled:bg-slate-700 disabled:text-slate-400 rounded-lg p-3 font-bold">➡️ Terminer la scène et passer à « {STAGES[stage+1].name} »</button>
-                      {gateReasons.length>0 && <div className="border border-amber-800/60 bg-amber-950/20 rounded-lg p-3"><p className="font-bold text-amber-200">Conditions restantes :</p><ul className="list-disc list-inside">{gateReasons.map((reason,i)=><li key={i}>{reason}</li>)}</ul></div>}
-                    </>}
-                    {stage===9 && <p className="text-slate-300">Après les cinq bulletins, publie la dernière étape puis lance la révélation depuis les commandes finales.</p>}
-                    <details className="bg-slate-950 border border-rose-950 rounded-lg p-3"><summary className="cursor-pointer text-rose-300">🧪 Dépannage MJ — navigation libre (tests uniquement)</summary>
-                      <label className="flex gap-2 items-center pt-3"><input type="checkbox" checked={testMode} onChange={e=>setTestMode(e.target.checked)} /> Autoriser à ignorer les conditions de scène</label>
-                      {testMode && <div className="flex gap-2 pt-2"><button disabled={stage===0||hostBusy} onClick={()=>setStage(stage-1)} className="flex-1 bg-rose-900 rounded p-2">Phase précédente</button><button disabled={stage===9||hostBusy} onClick={()=>setStage(stage+1)} className="flex-1 bg-rose-900 rounded p-2">Sauter une phase</button></div>}
-                      <p className="text-slate-500 text-[11px] pt-2">Le mode test n’annule pas les règles d’écriture des joueurs. Pour une nouvelle manche propre, réinitialise la salle.</p>
-                    </details>
+                  <div className="flex items-center justify-between"><h3 className="font-cinzel text-amber-200 text-sm font-bold">🎬 Acte {stage+1}/5 — {ACTS[stage].name}</h3><span className="text-slate-400">{ACTS[stage].duration}</span></div>
+                  <div className="rounded-lg bg-slate-950 border border-slate-700 p-3 space-y-2">
+                    <strong className="text-amber-200">🎤 À dire / à faire maintenant</strong>
+                    <ol className="text-sm leading-relaxed list-decimal list-inside space-y-2">{MJ_THREE_ACTIONS[stage].map((step,i)=><li key={i}>{step}</li>)}</ol>
                   </div>
-                  <button onClick={()=>setActiveTab('interro')} className="bg-emerald-800 border border-emerald-700 rounded-lg w-full p-3 font-bold">🗣️ Afficher la scène commune</button>
-
-                  <details className="bg-slate-950 rounded-lg border border-slate-700 p-3"><summary className="font-bold text-rose-200 cursor-pointer">🔒 Scénario secret MJ (spoilers)</summary><div className="space-y-2 pt-2 text-slate-200"><p><strong>20 h 27 :</strong> Mathieu lance TEST_CONNEXION sans savoir que N0CT-7 affiche la lettre 240 secondes après.</p><p><strong>20 h 31 :</strong> James voit encore le coffret sur la table.</p><p><strong>20 h 33 :</strong> Nino et Matys sont à la cuisine, Andreas les voit et entend un bruit côté jouets. James aperçoit une petite silhouette.</p><p><strong>Vérité :</strong> Enola a emporté le coffret innocemment. Ne révèle rien avant la scène finale.</p></div></details>
+                  <div className="rounded-lg bg-slate-950 border border-rose-900/50 p-3 space-y-1"><strong className="text-rose-300">🔒 Ce que toi seule sais</strong><p>{ACTS[stage].spoiler}</p></div>
+                  <p className="text-slate-400">Avancement : {solvedLevels.length}/5 énigmes · {Object.keys(accusations).length}/5 soupçons · {Object.keys(remoteVotes||{}).length}/5 verdicts</p>
+                  {stage<4 ? <button disabled={hostBusy || (!testMode && gateReasons.length>0)} onClick={()=>setStage(stage+1)} className="w-full bg-emerald-700 disabled:bg-slate-700 disabled:text-slate-400 rounded-lg p-4 text-sm font-bold">➡️ {hostBusy?'Enregistrement…':`Ouvrir l’acte ${stage+2} · ${ACTS[stage+1].name}`}</button>
+                    : <button disabled={hostBusy || margueriteUnlocked || (!testMode && gateReasons.length>0)} onClick={()=>{if(!testMode && gateReasons.length){setFirebaseError(gateReasons[0]);return;}setMargueriteUnlocked(true);}} className="w-full bg-purple-700 disabled:bg-slate-700 disabled:text-slate-400 rounded-lg p-4 text-sm font-bold">{margueriteUnlocked?'🎭 Révélation déjà diffusée':'🎭 Révéler la vérité à tous'}</button>}
+                  {gateReasons.length>0 && !margueriteUnlocked && <p className="text-amber-200 bg-amber-950/30 border border-amber-700/40 rounded-lg p-3">⏳ {gateReasons[0]}</p>}
+                  <button onClick={()=>setActiveTab('interro')} className="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 font-semibold">🗣️ Voir ce que voient les joueurs</button>
+                  <details className="border border-slate-700 rounded-lg p-3"><summary className="cursor-pointer text-slate-300">🧪 Options de secours (à éviter pendant la partie)</summary>
+                    <div className="space-y-2 mt-3"><label className="flex gap-2 items-center"><input type="checkbox" checked={testMode} onChange={e=>setTestMode(e.target.checked)} /> Mode test : autoriser un saut d’acte</label>
+                    {testMode && stage<4 && <p className="text-amber-200">Le bouton principal ignore alors les conditions de progression. Utilise une salle de test uniquement.</p>}
+                    <button onClick={()=>setIsTimerActive(!isTimerActive)} className="w-full bg-slate-800 rounded-lg p-2">{isTimerActive?'⏸ Pause chrono':'▶ Lancer chrono'}</button>
+                    <button onClick={()=>sharedMode?window.RoubatvotFirebase.hostFlag(roomSession.code,'hintAll',!remoteProgress?.hintAll).catch(e=>setFirebaseError(e.message)):setMjForceHints(!mjForceHints)} className="w-full bg-slate-800 rounded-lg p-2">💡 {(sharedMode?remoteProgress?.hintAll:mjForceHints)?'Masquer':'Afficher'} tous les indices</button>
+                    {PUZZLES.map(p=><div key={p.id} className="flex justify-between items-center"><span>Énigme {p.id}</span><button disabled={solvedLevels.includes(p.id)} onClick={()=>handleMJUnlock(p.id)} className="rounded bg-amber-700 disabled:bg-slate-800 px-3 py-1">{solvedLevels.includes(p.id)?'Validée':'Forcer'}</button></div>)}
+                    <button onClick={()=>{if(confirm('Réinitialiser toute la partie et les votes ?')){if(sharedMode)window.RoubatvotFirebase.resetRoom(roomSession.code).catch(e=>setFirebaseError(e.message));else setGame({...defaultProgress,votes:{...EMPTY_VOTE},puzzleStarts:{},hintsAsked:{}});}}} className="w-full border border-rose-700 bg-rose-950 rounded-lg p-2 text-rose-200">↺ Nouvelle manche / réinitialiser</button>
+                    </div>
+                  </details>
                 </div>
+
                 {sharedMode && <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl space-y-2 text-xs">
                   <p className="font-bold text-amber-400">Profils attribués à la salle</p>
                   {Object.keys(PLAYERS).map(id=><p key={id} className="flex justify-between"><span>{PLAYERS[id].avatar} {PLAYERS[id].name}</span><span>{roomPlayers[id]?'Profil réservé':'En attente'}</span></p>)}
                   <p className="font-bold text-indigo-300 pt-2">Premières accusations : {Object.keys(accusations).length}/5</p>
                   {Object.entries(accusations).map(([id,a])=><p key={id}>{PLAYERS[id]?.name} → {a.suspect} ({a.indice})</p>)}
                   <p className="font-bold text-amber-400 pt-2">Votes enregistrés : {Object.keys(remoteVotes || {}).length} / 5</p>
-                  {Object.entries(remoteVotes || {}).map(([id,v])=>(
-                    <div key={id} className="bg-slate-950 border border-slate-700 rounded-lg p-2 space-y-1">
-                      <p className="font-bold text-amber-200">{PLAYERS[id]?.name || id}</p>
-                      {v.historique !== undefined ? <>{VOTE_QUESTIONS.map(q=><p key={q.key}>{q.title} <strong>{voteLabel(q,v[q.key])}</strong></p>)}<p>Preuve : {v.preuve||'—'}</p><p>Argument : {v.argument||'ancien bulletin'}</p></> : <p className="text-amber-200">Bulletin de l’ancienne version (nouvelle manche conseillée).</p>}
-                    </div>
-                  ))}
+                  {Object.entries(remoteVotes || {}).map(([id,v])=><p key={id} className="text-slate-300">{PLAYERS[id]?.name||id} : {v.tresor||'—'} · {EVIDENCE_LABELS[v.preuve]||'indice non précisé'}</p>)}
+
                 </div>}
-                <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl space-y-2 text-xs">
-                  <button onClick={() => setIsTimerActive(!isTimerActive)} className="w-full bg-slate-800 text-amber-400 py-2 rounded font-semibold">
-                    {isTimerActive ? '⏸ Pause Chrono' : '▶ Lancer Chrono'}
-                  </button>
-                  <button onClick={() => sharedMode ? window.RoubatvotFirebase.hostFlag(roomSession.code,'hintAll',!remoteProgress?.hintAll).catch(e=>setFirebaseError(e.message)) : setMjForceHints(!mjForceHints)} className="w-full bg-amber-900/60 text-amber-200 py-2 rounded font-semibold">
-                    {(sharedMode ? remoteProgress?.hintAll : mjForceHints) ? 'Verrouiller Indices' : '💡 Forcer Indices pour Tous'}
-                  </button>
-                  <div className="rounded-lg border border-purple-800/70 bg-purple-950/25 p-3 space-y-2">
-                    <p className="font-semibold text-purple-200">🎭 Révélation finale sur tous les téléphones</p>
-                    <p className="text-[11px] text-slate-300">À lancer de préférence après les cinq énigmes et les cinq votes. L'écran final s'ouvre automatiquement chez les joueurs, et reste consultable ensuite.</p>
-                    {sharedMode && <p className="text-[11px] text-slate-400">Énigmes : {solvedLevels.length}/5 · Votes : {Object.keys(remoteVotes || {}).length}/5</p>}
-                    <button onClick={() => {
-                      if (!margueriteUnlocked && !testMode && (solvedLevels.length < 5 || stage < 9 || beat < SCENE_BEATS[9].length-1 || (sharedMode && Object.keys(remoteVotes || {}).length < 5))) {
-                        setFirebaseError('Révélation bloquée : termine les scènes et collecte les cinq votes.'); return;
-                      }
-                      setMargueriteUnlocked(!margueriteUnlocked);
-                    }} disabled={!testMode && !margueriteUnlocked && (stage!==9 || beat<1 || solvedLevels.length<5 || (sharedMode && Object.keys(remoteVotes||{}).length<5))} className="w-full bg-rose-900/70 disabled:bg-slate-700 disabled:text-slate-400 text-rose-100 py-3 rounded-lg font-bold">
-                      {margueriteUnlocked ? 'Masquer la révélation pour tous' : '🎬 Déclencher la révélation finale'}
-                    </button>
-                  </div>
-                  <div className="pt-2 border-t border-slate-800 font-bold text-slate-300">{sharedMode ? 'Déblocage forcé pour tous :' : 'Déblocage forcé (sur cet appareil) :'}</div>
-                  {PUZZLES.map(p => (
-                    <div key={p.id} className="flex justify-between items-center bg-slate-950 p-2 rounded">
-                      <span>Épreuve {p.id}</span>
-                      <button disabled={solvedLevels.includes(p.id)} onClick={()=>handleMJUnlock(p.id)} className="bg-amber-500 disabled:bg-slate-800 text-slate-950 text-[10px] px-2 py-1 rounded font-bold">
-                        {solvedLevels.includes(p.id) ? 'Validé' : 'Forcer'}
-                      </button>
-                    </div>
-                  ))}
-                  <button className="w-full bg-rose-950 border border-rose-700 text-rose-200 rounded py-2" onClick={()=>{
-                    if(confirm(sharedMode ? 'Réinitialiser la partie POUR TOUS les joueurs ? Cette action efface les votes et les preuves partagés.' : 'Réinitialiser le jeu sur CE téléphone ? Cette action efface aussi les votes et preuves locaux.')) {
-                      if (sharedMode) {window.RoubatvotFirebase.resetRoom(roomSession.code).catch(e=>setFirebaseError(e.message));} else setGame({...defaultProgress, votes: {...defaultProgress.votes}, puzzleStarts:{}, hintsAsked:{}});
-                      setPuzzleInput(''); setRelayInput(''); setRelayMessage(''); setMjForceHints(false); setPuzzleError('');
-                    }
-                  }}>↺ {sharedMode ? 'Réinitialiser la salle entière' : 'Réinitialiser sur cet appareil'}</button>
-                </div>
+
+
               </div>
             )}
           </>
