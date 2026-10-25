@@ -263,6 +263,34 @@ const STAGES = [
  {name:'Deux confrontations décisives',step:'Matys + Mathieu expliquent les 240 secondes ; James + Andreas confrontent leurs observations sur les jouets.',prompt:'Matys / Mathieu : quel lien entre test et affichage ? James / Andreas : qu’avez-vous vu ou entendu ?',need:5},
  {name:'Le tribunal',step:'Les cinq joueurs votent en associant leur accusation à une preuve. Puis Charlotte déclenche la révélation.',prompt:'Une accusation n’est solide que si plusieurs éléments convergent. Le doute reste une réponse valable.',need:5}
 ];
+// Conseils contextuels : calculés à partir des validations Firebase (ou du mode secours).
+// Ne changent pas les phases du Conseil, qui restent sous le contrôle de Charlotte.
+const NEXT_STEP_BY_PUZZLE = [
+  {title:'James ouvre l’enquête', action:'James résout les fils du bureau. Tous écoutent ensuite ce qu’il a trouvé.', question:'Que découvre-t-on sur le système N0CT-7 ?'},
+  {title:'James a terminé · À Nino !', action:'James raconte sa découverte, puis Nino peut déchiffrer le message. Interrogez James sur la carte.', question:'James a-t-il simplement découvert la carte, ou l’a-t-il utilisée ?'},
+  {title:'Nino a terminé · À Andreas !', action:'Nino explique NODE-7 à voix haute. Andreas peut maintenant reconstituer les horaires.', question:'Un message codé et un emballage de friandise prouvent-ils un vol ?'},
+  {title:'Andreas a terminé · À Matys !', action:'Comparez les horaires et les témoignages. Charlotte peut organiser les premières accusations avant de poursuivre. Matys peut résoudre son énigme.', question:'À quelle heure le coffret a-t-il été vu pour la dernière fois ?'},
+  {title:'Matys a terminé · À Mathieu !', action:'Matys raconte ce qu’il a lu dans le registre. Mathieu peut maintenant examiner les journaux système.', question:'L’affaire de 1897 apporte-t-elle une preuve sur la disparition de ce soir ?'},
+  {title:'Les cinq énigmes sont résolues !', action:'Charlotte organise les confrontations, fait consulter les preuves débloquées, puis ouvre le tribunal final.', question:'Quelles preuves établissent les faits, et quelles accusations restent des suppositions ?'}
+];
+function getLiveAdvice(solvedLevels, stage, reveal, accusationCount, myAccusation, isMJ, voteSubmitted) {
+  const count = PUZZLES.filter(p => solvedLevels.includes(p.id)).length;
+  const base = NEXT_STEP_BY_PUZZLE[count];
+  if (reveal) return {title:'Le dénouement est disponible', action:'Ouvrez la révélation puis suivez ensemble le dernier indice vers le Trésor.', question:'Quelles preuves vous avaient mis sur la bonne piste ?', tab:'reveal'};
+  if (stage === 9 && count === 5) {
+    return {title:'Le tribunal final est ouvert', action:isMJ?'Laisse les cinq enquêteurs voter et justifier leur choix avant de déclencher la révélation.':voteSubmitted?'Ton verdict est enregistré. Attends les autres enquêteurs et la révélation de Charlotte.':'Vote en choisissant un suspect, une preuve et un argument. Tu as le droit de répondre « preuves insuffisantes ».', question:'Une supposition n’est pas forcément une preuve.',tab:isMJ?'mj':'vote'};
+  }
+  if (stage === 4 && count >= 3) {
+    return {title:'Premières accusations : à vous de jouer', action:isMJ?`Animez les accusations provisoires (${accusationCount}/5). N’avancez qu’après le débat.`:myAccusation?'Tu as déposé ton soupçon. Écoute les autres : une nouvelle preuve pourrait changer ton avis.':'Désigne un suspect et l’indice qui motive ton soupçon dans 🗣️ Conseil. Ce vote n’est pas définitif.',question:'Qui semble suspect et sur quel fait précis ? ',tab:'interro'};
+  }
+  if (stage === 5 && count >= 3) {
+    return {title:'Retournement : vérifiez l’alibi de Nino',action:'Écoutez Matys, puis demandez à Andreas de confirmer ce qu’il a observé. Distinguez un mensonge d’une preuve de vol.',question:'Peut-on être suspect parce qu’on a caché une friandise ?',tab:'interro'};
+  }
+  if (stage === 8 && count === 5) {
+    return {title:'Deux confrontations décisives',action:'Matys et Mathieu comparent le test et les quatre minutes. James et Andreas rapprochent leurs observations sur le coffret.',question:'La lettre et la disparition physique ont-elles nécessairement la même cause ?',tab:'interro'};
+  }
+  return {...base,tab:'interro'};
+}
 const EVIDENCE_V4 = [
  {id:'S-00',stage:0,need:0,category:'Coffret',title:'Constat initial',fact:'Le coffret manque lorsque la famille constate la disparition à 20 h 35.',limit:'Cela ne prouve pas un vol ni son heure exacte.'},
  {id:'J-01',stage:1,need:1,category:'Système',title:'Carte du bureau',fact:'James retrouve une carte portant N0CT-7 et 3 → 1 → 2.',limit:'Trouver la carte ne signifie pas avoir déclenché le système.'},
@@ -390,6 +418,7 @@ function App() {
   const margueriteUnlocked = sharedMode ? !!remoteProgress?.confession : game.margueriteUnlocked;
   const votes = {...EMPTY_VOTE, ...(game.votes || {})};
   const voteSubmitted = sharedMode ? !!remoteVotes?.submittedAt : game.voteSubmitted;
+  const liveAdvice = getLiveAdvice(solvedLevels,stage,margueriteUnlocked,Object.keys(accusations).length,myAccusation,!!currentUser?.isMJ,voteSubmitted);
   const voteComplete = VOTE_QUESTIONS.every(q => q.options.some(([key]) => key === votes[q.key])) && VOTE_PROOFS.some(([k])=>k===votes.preuve) && votes.argument.trim().length>=12 && votes.argument.trim().length<=220;
   const setIsTimerActive = val => { if (sharedMode) { window.RoubatvotFirebase.hostClock(roomSession.code, val, activeClock).catch(e=>setFirebaseError(e.message)); return; } setGame(g => ({...g,isTimerActive: typeof val === 'function' ? val(g.isTimerActive):val})); };
   const setMargueriteUnlocked = val => { if (sharedMode) {window.RoubatvotFirebase.hostFlag(roomSession.code,'confession',val).catch(e=>setFirebaseError(e.message)); return;} setGame(g=>({...g,margueriteUnlocked: typeof val === 'function' ? val(g.margueriteUnlocked):val})); };
@@ -721,9 +750,12 @@ function App() {
         ) : (
           <>
             <div className="rounded-xl border border-indigo-600/50 bg-indigo-950/30 p-3 text-xs space-y-2" role="status" aria-live="polite">
-              <div className="flex items-center justify-between gap-2"><strong className="text-indigo-200">🎭 Phase {stage+1}/10 · {STAGES[stage]?.name || 'Conseil'}</strong><span className="text-slate-400">{solvedLevels.length}/5 énigmes</span></div>
-              <p className="text-slate-200">{STAGES[stage]?.step}</p>
-              <button className="w-full rounded-lg bg-indigo-800/80 py-2 font-semibold text-indigo-100" onClick={()=>setActiveTab('interro')}>🗣️ Voir ce qu’il faut faire maintenant</button>
+              <div className="flex items-center justify-between gap-2"><strong className="text-indigo-200">🧭 Prochaine action · {liveAdvice.title}</strong><span className="text-slate-400 whitespace-nowrap">{solvedLevels.length}/5 énigmes</span></div>
+              <p className="text-slate-100">{liveAdvice.action}</p>
+              <p className="text-indigo-200/90"><strong>À discuter :</strong> {liveAdvice.question}</p>
+              <p className="text-slate-400 border-t border-indigo-700/40 pt-2">🎭 Scène en cours : {STAGES[stage]?.name || 'Conseil'} (phase {stage+1}/10, pilotée par Charlotte).</p>
+              {currentUser.isMJ && stage < 9 && STAGES[stage+1]?.need <= solvedLevels.length && <p className="text-amber-300">👑 La scène suivante « {STAGES[stage+1].name} » est accessible dans le panneau MJ. Fais avancer le Conseil après les échanges.</p>}
+              <button className="w-full rounded-lg bg-indigo-800/80 py-2 font-semibold text-indigo-100" onClick={()=>setActiveTab(liveAdvice.tab)}> {liveAdvice.tab==='vote'?'⚖️ Ouvrir mon vote':liveAdvice.tab==='reveal'?'🎭 Voir le dénouement':liveAdvice.tab==='mj'?'👑 Piloter la partie':'🗣️ Ouvrir le Conseil'} </button>
             </div>
             {/* BRIEFING ET CHAPITRES — mêmes informations publiques chez tous les joueurs */}
             {activeTab === 'histoire' && (
@@ -975,8 +1007,13 @@ function App() {
                 <div className="rounded-2xl border border-indigo-600/60 bg-indigo-950/30 p-4 space-y-2">
                   <p className="text-xs tracking-widest uppercase text-indigo-300">Le conseil des suspects</p>
                   <h2 className="font-cinzel text-lg font-bold">{STAGES[stage].name}</h2>
-                  <p className="text-sm">{STAGES[stage].step}</p>
+                  <p className="text-sm">{stage===0 && solvedLevels.length>0 ? `Les énigmes avancent (${solvedLevels.length}/5), mais le Conseil est encore sur l’introduction. Charlotte doit passer à la phase suivante pour ouvrir les interrogatoires.` : STAGES[stage].step}</p>
                   <p className="rounded-lg p-3 bg-slate-950 text-xs">🗣️ <strong>Charlotte lit :</strong> {STAGES[stage].prompt}</p>
+                  <div className="rounded-lg border border-emerald-800/60 bg-emerald-950/20 p-3 space-y-1">
+                    <p className="font-bold text-emerald-200">🧭 Selon les énigmes résolues : {liveAdvice.title}</p>
+                    <p>{liveAdvice.action}</p>
+                    <p className="text-slate-300"><strong>Question au groupe :</strong> {liveAdvice.question}</p>
+                  </div>
                 </div>
                 {INTERROGATIONS.filter(q=>q.stage===stage).map((q,i)=><div key={i} className="bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-2 text-xs">
                   <p className="font-bold text-amber-300">🎤 Question pour {q.target}</p>
@@ -984,7 +1021,7 @@ function App() {
                   <p className="text-slate-400">La personne interrogée répond d’après son profil. Si elle est contredite par une preuve, elle doit dire la vérité.</p>
                   {currentUser.name===q.target || currentUser.isMJ ? <p className="text-indigo-200 rounded-lg bg-indigo-950/30 border border-indigo-900 p-2">Consigne de réponse : {q.rule}</p> : null}
                 </div>)}
-                {stage===0 && <div className="bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs">Présentez-vous chacun en une phrase. James démarre ensuite son énigme. Ne fouillez pas les pièces.</div>}
+                {stage===0 && <div className="bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs">{solvedLevels.length===0?'Présentez-vous chacun en une phrase. James démarre ensuite son énigme. Ne fouillez pas les pièces.':`✅ ${solvedLevels.length}/5 énigmes résolues. Charlotte doit cliquer sur « Phase suivante » dans son panneau MJ pour ouvrir les interrogatoires. Ne fouillez pas les pièces.`}</div>}
                 {stage===4 && <div className="bg-slate-900 border border-amber-600/60 rounded-xl p-4 space-y-3 text-xs">
                   <h3 className="font-cinzel font-bold text-amber-300">⚖️ Première accusation (provisoire)</h3>
                   <p>Qui soupçonnes-tu maintenant ? Choisis un indice qui motive ton soupçon. Tu pourras changer d'avis au verdict final.</p>
@@ -1075,7 +1112,7 @@ function App() {
                   <p>Tout le monde reste autour de la table. Lis les cartes dans « 🗣️ Conseil ». Après chaque énigme, laisse discuter 1 à 2 minutes avant d’avancer.</p>
                   <p className="rounded-lg bg-rose-950/25 border border-rose-800/50 p-2"><strong>Charlotte, personnage :</strong> « Je ne suis pas allée près de la table ». Dès que James la contredit, révèle avoir déplacé une décoration à 20 h 29. Ne donne pas d’autre indice.</p>
                   <div className="border border-slate-700 rounded-lg p-3 space-y-2">
-                    <p className="font-bold text-indigo-200">Phase {stage+1}/10 : {STAGES[stage].name}</p><p className="text-slate-200">{STAGES[stage].step}</p>
+                    <p className="font-bold text-indigo-200">Phase {stage+1}/10 : {STAGES[stage].name}</p><p className="text-slate-200">{stage===0 && solvedLevels.length>0 ? `L’enquête progresse (${solvedLevels.length}/5). Passe à « Le premier témoin » pour commencer les interrogatoires ; les énigmes peuvent continuer en parallèle.` : STAGES[stage].step}</p>
                     <div className="flex gap-2"><button disabled={stage===0} onClick={()=>setStage(stage-1)} className="flex-1 rounded-lg bg-slate-800 disabled:opacity-40 py-3">← Revenir</button><button disabled={stage===9 || (!!STAGES[stage+1]?.need && solvedLevels.length<STAGES[stage+1].need)} onClick={()=>setStage(stage+1)} className="flex-1 rounded-lg bg-indigo-700 disabled:opacity-40 py-3 font-bold">Phase suivante →</button></div>
                     {stage<9 && STAGES[stage+1]?.need>solvedLevels.length && <p className="text-amber-300">La phase suivante nécessite {STAGES[stage+1].need} énigme(s) résolue(s).</p>}
                   </div>
