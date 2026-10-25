@@ -166,8 +166,10 @@ async function hostClock(code, running, currentClock) {
 }
 async function castVote(code, playerId, vote) {
   await set(pathFor(code,`votes/${playerId}`), {
-    coupable:vote.coupable,
-    motif:vote.motif,
+    historique:vote.historique,
+    protocole:vote.protocole,
+    intention:vote.intention,
+    tresor:vote.tresor,
     submittedAt:serverTimestamp()
   });
 }
@@ -240,7 +242,7 @@ const PLAYERS = {
   },
   mathieu: {
     id: 'mathieu', name: 'Mathieu', role: 'Grand Conteur', pseudonym: 'Grand Conteur', level: 5, avatar: '🧙‍♂️', color: 'from-red-600 to-rose-500',
-    profile: "Analyste technique et déclencheur involontaire du protocole à 20h27.",
+    profile: "Enquêteur technique chargé de comprendre pourquoi une lettre a surgi sur l’écran. Tu ignores encore ce qui s’est réellement produit.",
     failles: ["Fait de longs monologues.", "Prend des notes illisibles."],
     alibi: "Analysait le manuscrit ancestral.",
     cluesAboutOthers: [
@@ -253,15 +255,38 @@ const PLAYERS = {
 // Les codes-relais ne sont montrés qu'une fois l'épreuve correspondante validée.
 // Sans serveur, chaque téléphone reste autonome : le code oral transmet la progression.
 const PUZZLES = [
-  { id:1, title:"Épreuve 1 : Les fils du bureau", assignedTo:"james", relayCode:"SEUIL-41", hint3min:"Regarde uniquement les pieds qui touchent le sol sur le dessin de la chaise.", hint5min:"Compte chaque pied une seule fois, puis choisis le fil portant le même numéro.", rewardEvidence:"Preuve #1 (J-01) : Le fil du bureau est neutralisé. Carte d'accès N0CT-7 découverte." },
-  { id:2, title:"Épreuve 2 : Décodeur César", assignedTo:"nino", relayCode:"TRACE-62", hint3min:"Le carnet indique : A devient B. Le texte intercepté a donc été avancé d'une lettre.", hint5min:"Pour retrouver le vrai message, recule chaque lettre d'une place. Les chiffres ne changent pas.", rewardEvidence:"Preuve #2 (N-01) : NODE-7 est le nom du nœud de contrôle mentionné dans le message intercepté." },
-  { id:3, title:"Épreuve 3 : Cadenas temporel", assignedTo:"andreas", relayCode:"HEURE-27", hint3min:"L'assemblage précède l'apparition de la lettre. Tu dois soustraire une durée, pas l'ajouter.", hint5min:"La lettre apparaît à 20 h 31. Quatre minutes avant, c'est 20 h 27. Entre les quatre chiffres sur les molettes.", rewardEvidence:"Preuve #3 (A-01) : Session N0CT-7 horodatée à 20 h 27, quatre minutes avant l'apparition de la lettre." },
-  { id:4, title:"Épreuve 4 : Le registre d'Émile", assignedTo:"matys", relayCode:"ARCHIVE-89", hint3min:"Cinq vers, cinq lettres : cherche une structure répétée plutôt qu'un mot écrit tel quel.", hint5min:"Lis la première lettre de chaque ligne de haut en bas, puis confronte le sens obtenu à la fausse accusation.", rewardEvidence:"Preuve #4 (M-01) : Le registre d'Émile livre le mot AMOUR et distingue héritage affectif et accusation sans preuve." },
-  { id:5, title:"Épreuve 5 : Diagnostic des logs", assignedTo:"mathieu", relayCode:"VERITE-31", hint3min:"Deux événements séparés de quatre minutes ne démontrent pas à eux seuls qui en est responsable.", hint5min:"On sait que la session précède la lettre de quatre minutes. Il manque un identifiant de corrélation pour prouver qu'elle a causé l'affichage.", rewardEvidence:"Preuve #5 (T-01) : Écart de quatre minutes établi ; origine causale de la lettre non prouvée par les seuls journaux." }
+  { id:1, title:"Épreuve 1 : Les fils du bureau", assignedTo:"james", missionBrief:"La lettre renvoie au vieux bureau : une carte cachée pourrait ouvrir les archives de la famille.", relayCode:"SEUIL-41", hint3min:"Regarde uniquement les pieds qui touchent le sol sur le dessin de la chaise.", hint5min:"Compte chaque pied une seule fois, puis choisis le fil portant le même numéro.", rewardEvidence:"Preuve #1 (J-01) : Le fil du bureau est neutralisé. Carte d'accès N0CT-7 découverte." },
+  { id:2, title:"Épreuve 2 : Décodeur César", assignedTo:"nino", missionBrief:"La carte de James donne accès à un message codé. Il faut identifier la machine qui a affiché la lettre.", relayCode:"TRACE-62", hint3min:"Le carnet indique : A devient B. Le texte intercepté a donc été avancé d'une lettre.", hint5min:"Pour retrouver le vrai message, recule chaque lettre d'une place. Les chiffres ne changent pas.", rewardEvidence:"Preuve #2 (N-01) : NODE-7 est le nom du nœud de contrôle mentionné dans le message intercepté." },
+  { id:3, title:"Épreuve 3 : Cadenas temporel", assignedTo:"andreas", missionBrief:"Le mécanisme conserve deux horaires. Établis la chronologie avant d’accuser quelqu’un.", relayCode:"HEURE-27", hint3min:"L'assemblage précède l'apparition de la lettre. Tu dois soustraire une durée, pas l'ajouter.", hint5min:"La lettre apparaît à 20 h 31. Quatre minutes avant, c'est 20 h 27. Entre les quatre chiffres sur les molettes.", rewardEvidence:"Preuve #3 (A-01) : Session N0CT-7 horodatée à 20 h 27, quatre minutes avant l'apparition de la lettre." },
+  { id:4, title:"Épreuve 4 : Le registre d'Émile", assignedTo:"matys", missionBrief:"La légende accuse Émile d’un vol en 1897. Son registre pourrait raconter autre chose.", relayCode:"ARCHIVE-89", hint3min:"Cinq vers, cinq lettres : cherche une structure répétée plutôt qu'un mot écrit tel quel.", hint5min:"Lis la première lettre de chaque ligne de haut en bas, puis confronte le sens obtenu à la fausse accusation.", rewardEvidence:"Preuve #4 (M-01) : Le registre d'Émile livre le mot AMOUR et distingue héritage affectif et accusation sans preuve." },
+  { id:5, title:"Épreuve 5 : Diagnostic des logs", assignedTo:"mathieu", missionBrief:"La famille soupçonne un sabotage. Distingue ce que prouvent réellement les journaux de ce que chacun imagine.", relayCode:"VERITE-31", hint3min:"Deux événements séparés de quatre minutes ne démontrent pas à eux seuls qui en est responsable.", hint5min:"On sait que la session précède la lettre de quatre minutes. Il manque un identifiant de corrélation pour prouver qu'elle a causé l'affichage.", rewardEvidence:"Preuve #5 (T-01) : Écart de quatre minutes établi ; origine causale de la lettre non prouvée par les seuls journaux." }
 ];
 
+// Fil rouge de l'enquête. Ces chapitres ne révèlent jamais le verdict avant le vote.
+const STORY_STEPS = [
+  {after:0, icon:'✉️', title:'Le soir où tout a commencé', text:'Ce soir d’Halloween, le Trésor de la Chouquette attendait la famille sur la table. À 20 h 31, une lettre étrange apparaît sur un écran. Dans la confusion, le coffret n’est plus à sa place. Un souvenir du Bâtiment C, daté de 1897, ressurgit.'},
+  {after:1, icon:'💳', title:'Une carte dans le bureau', text:'James découvre la carte N0CT-7 et l’ordre 3 → 1 → 2. Ce dispositif est-il un piège, un outil ou une simple clé d’accès ?'},
+  {after:2, icon:'🔐', title:'Un nœud caché', text:'Nino identifie NODE-7. Le message n’est pas un simple tour de magie : il a emprunté un système technique.'},
+  {after:3, icon:'🕰️', title:'Quatre minutes de décalage', text:'Andreas place une session à 20 h 27 et la lettre à 20 h 31. Une chronologie prouve l’ordre des événements, pas l’identité de son auteur.'},
+  {after:4, icon:'📜', title:'La légende d’Émile vacille', text:'Le registre de 1897 parle d’amour et d’une accusation sans preuve. Matys doute désormais de la version transmise par la famille.'},
+  {after:5, icon:'🖥️', title:'Des faits, pas encore un verdict', text:'Le diagnostic de Mathieu confirme les horaires, mais pas une intention malveillante. Il faut croiser la carte, le registre, les témoignages et les traces dans la pièce avant de voter.'}
+];
+const SCENE_TRACES = [
+  {after:0, id:'S-00', title:'Constat de départ', text:'Le coffret était sur la table avant l’agitation provoquée par la lettre. Personne n’a vu précisément le moment où il a bougé.'},
+  {after:3, id:'S-01', title:'Traces près de la table', text:'Une petite trace chocolatée et une très petite empreinte apparaissent près de l’endroit où reposait le Trésor. Leur auteur n’est pas identifié.'},
+  {after:4, id:'S-02', title:'Note d’archive', text:'Matys possède une note de l’ancien dossier technique : « N0CT-7 / séquence 3 → 1 → 2 / mode d’essai ». Elle prend un sens nouveau lorsqu’on la rapproche de la carte de James.'}
+];
+const VOTE_QUESTIONS = [
+  {key:'historique', title:'1897 — Qui a réellement pris le médaillon ?', help:'La légende accuse Émile. Les documents vous permettent-ils de le croire ?', options:[['Émile','Émile, comme le raconte la légende'],['Marguerite','Marguerite'],['Augustin','Augustin'],['Indéterminé','Impossible à déterminer']]},
+  {key:'protocole', title:'Ce soir — Qui a manipulé le protocole ?', help:'Il s’agit du dispositif N0CT-7, pas de la personne qui a déplacé le Trésor.', options:[['Mathieu','Mathieu'],['Nino','Nino'],['Andreas','Andreas'],['Indéterminé','Impossible à déterminer']]},
+  {key:'intention', title:'La manipulation du protocole était-elle voulue ?', help:'Une action technique peut provoquer un événement sans intention de nuire.', options:[['Volontaire','Oui, c’était volontaire'],['Accidentelle','Non, c’était accidentel'],['Indéterminée','Nous n’avons pas assez de preuves']]},
+  {key:'tresor', title:'Qui a déplacé le Trésor de la Chouquette ?', help:'Ne confonds pas le médaillon de 1897, la lettre numérique et le coffret d’Halloween.', options:[['Enola','Enola'],['James','James'],['Nino','Nino'],['Indéterminé','Impossible à déterminer']]}
+];
+const EMPTY_VOTE = {historique:'',protocole:'',intention:'',tresor:''};
+const FINAL_VERDICT = {historique:'Marguerite',protocole:'Mathieu',intention:'Accidentelle',tresor:'Enola'};
+function voteLabel(question, value) { return question.options.find(([k]) => k === value)?.[1] || value || '—'; }
 const STORE_KEY = 'roubatvot_refonte_v3';
-const defaultProgress = { solvedLevels: [], margueriteUnlocked: false, votes: { coupable: '', motif: '', heure: '' }, voteSubmitted: false, timerSeconds: 0, isTimerActive: false, puzzleStarts: {}, hintsAsked: {} };
+const defaultProgress = { solvedLevels: [], margueriteUnlocked: false, votes: {...EMPTY_VOTE}, voteSubmitted: false, timerSeconds: 0, isTimerActive: false, puzzleStarts: {}, hintsAsked: {} };
 function readGame() {
   try {
     const val = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
@@ -273,7 +298,7 @@ function normalizeCode(s) { return String(s || '').trim().toUpperCase().replace(
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('perso');
+  const [activeTab, setActiveTab] = useState('histoire');
   const [game, setGame] = useState(readGame);
   const [now, setNow] = useState(Date.now());
   const [selectedWire, setSelectedWire] = useState(null);
@@ -288,6 +313,8 @@ function App() {
   const [relayInput, setRelayInput] = useState('');
   const [relayMessage, setRelayMessage] = useState('');
   const [mjForceHints, setMjForceHints] = useState(false);
+  const [voteBusy, setVoteBusy] = useState(false);
+  const [voteError, setVoteError] = useState('');
 
   // Salle Firebase : les énigmes restent inchangées ; seul l'état collectif est partagé.
   const [firebaseMode, setFirebaseMode] = useState('loading'); // loading, setup, ready, error
@@ -317,12 +344,24 @@ function App() {
   const timerSeconds = sharedMode ? Math.floor((Number(activeClock?.elapsedMs || 0) + (activeClock?.running && Number(activeClock.startedAt) > 0 ? Math.max(0, now+clockOffset-Number(activeClock.startedAt)) : 0))/1000) : game.timerSeconds;
   const isTimerActive = sharedMode ? !!activeClock?.running : game.isTimerActive;
   const margueriteUnlocked = sharedMode ? !!remoteProgress?.confession : game.margueriteUnlocked;
-  const votes = game.votes;
+  const votes = {...EMPTY_VOTE, ...(game.votes || {})};
   const voteSubmitted = sharedMode ? !!remoteVotes?.submittedAt : game.voteSubmitted;
+  const voteComplete = VOTE_QUESTIONS.every(q => q.options.some(([key]) => key === votes[q.key]));
   const setIsTimerActive = val => { if (sharedMode) { window.RoubatvotFirebase.hostClock(roomSession.code, val, activeClock).catch(e=>setFirebaseError(e.message)); return; } setGame(g => ({...g,isTimerActive: typeof val === 'function' ? val(g.isTimerActive):val})); };
   const setMargueriteUnlocked = val => { if (sharedMode) {window.RoubatvotFirebase.hostFlag(roomSession.code,'confession',val).catch(e=>setFirebaseError(e.message)); return;} setGame(g=>({...g,margueriteUnlocked: typeof val === 'function' ? val(g.margueriteUnlocked):val})); };
   const setVotes = val => setGame(g => ({...g, votes: typeof val === 'function' ? val(g.votes) : val}));
-  const setVoteSubmitted = val => { if (sharedMode) { window.RoubatvotFirebase.castVote(roomSession.code,roomSession.playerId,votes).catch(e=>setFirebaseError('Vote non enregistré : '+e.message)); return; } setGame(g=>({...g,voteSubmitted:val})); };
+  const submitVote = async () => {
+    if (!voteComplete || voteSubmitted || voteBusy || currentUser?.isMJ) return;
+    if (!margueriteUnlocked && solvedLevels.length < PUZZLES.length) {setVoteError('Terminez les cinq épreuves avant le tribunal.'); return;}
+    setVoteError(''); setVoteBusy(true);
+    try {
+      if (sharedMode) {
+        await window.RoubatvotFirebase.castVote(roomSession.code,roomSession.playerId,votes);
+        // La confirmation vient de l'écoute Firebase : remoteVotes.submittedAt.
+      } else setGame(g => ({...g,voteSubmitted:true}));
+    } catch(e) { setVoteError('Vote refusé par Firebase : '+e.message); }
+    finally {setVoteBusy(false);}
+  };
 
   // L'indicateur « confession » est déjà partagé par Firebase et protégé par les règles MJ.
   // Quand Charlotte le passe à true, chaque appareil ouvre la scène une seule fois.
@@ -372,11 +411,11 @@ function App() {
     let previousSession = null;
     try {previousSession = JSON.parse(localStorage.getItem('roubatvot_room_session') || 'null');} catch (_) {}
     if (previousSession?.code !== session.code) {
-      setGame(g=>({...g,puzzleStarts:{},hintsAsked:{},votes:{coupable:'',motif:'',heure:''},voteSubmitted:false}));
+      setGame(g=>({...g,puzzleStarts:{},hintsAsked:{},votes:{...EMPTY_VOTE},voteSubmitted:false}));
     }
     setRoomSession(session);
     setCurrentUser(PLAYERS[session.playerId]);
-    setActiveTab('perso');
+    setActiveTab('histoire');
     setRoomError('');
     setRemoteProgress(null);
     setRemoteVotes(null);
@@ -430,7 +469,7 @@ function App() {
   useEffect(() => {
     if (!sharedMode || !remoteProgress?.round) return;
     if (lastRound.current !== null && lastRound.current !== remoteProgress.round) {
-      setGame(g => ({...g,puzzleStarts:{},hintsAsked:{},votes:{coupable:'',motif:'',heure:''},voteSubmitted:false}));
+      setGame(g => ({...g,puzzleStarts:{},hintsAsked:{},votes:{...EMPTY_VOTE},voteSubmitted:false}));
       setSelectedWire(null);setChairOpened(false);setDigits([1,9,0,0]);
       setCipherDirection('');setMatysReading('');setMathieuChronology('');setMathieuDiagnosis('');
       setPuzzleInput('');setPuzzleError('');
@@ -460,7 +499,7 @@ function App() {
   const handleSelectUser = key => {
     safeSave('roubatvot_user', key);
     setCurrentUser(PLAYERS[key]);
-    setActiveTab('perso');
+    setActiveTab('histoire');
     setPuzzleInput(''); setPuzzleError(''); setRelayMessage('');
   };
   const handleLogout = () => {
@@ -543,6 +582,7 @@ function App() {
 
         {currentUser && (
           <nav className="flex gap-1 overflow-x-auto mt-2 pt-1 border-t border-slate-800 text-[11px]">
+            <button onClick={() => setActiveTab('histoire')} className={`px-2.5 py-1.5 rounded whitespace-nowrap ${activeTab === 'histoire' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300'}`}>📖 Histoire</button>
             <button onClick={() => setActiveTab('perso')} className={`px-2.5 py-1.5 rounded whitespace-nowrap ${activeTab === 'perso' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300'}`}>Mon Profil</button>
             <button onClick={() => setActiveTab('my_puzzle')} className={`px-2.5 py-1.5 rounded whitespace-nowrap ${activeTab === 'my_puzzle' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300'}`}>Mon Énigme</button>
             <button onClick={() => setActiveTab('common')} className={`px-2.5 py-1.5 rounded whitespace-nowrap ${activeTab === 'common' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300'}`}>Écran Commun</button>
@@ -626,6 +666,43 @@ function App() {
           </div>
         ) : (
           <>
+            {/* BRIEFING ET CHAPITRES — mêmes informations publiques chez tous les joueurs */}
+            {activeTab === 'histoire' && (
+              <section aria-label="Histoire et objectif de l’enquête" className="space-y-4">
+                <div className="bg-gradient-to-b from-amber-950/50 to-slate-900 rounded-2xl border border-amber-500/50 p-5 space-y-3">
+                  <p className="uppercase tracking-widest text-[10px] font-bold text-amber-300">Halloween · Dossier Roubatvot</p>
+                  <h2 className="font-cinzel text-xl text-amber-300 font-bold">Le Trésor de la Chouquette a disparu</h2>
+                  <p className="text-sm leading-relaxed text-slate-100">Toute la famille était réunie pour ouvrir le Trésor de la Chouquette. Mais à <strong>20 h 31</strong>, une lettre mystérieuse a surgi sur l’écran. Pendant que chacun cherchait une explication, <strong>le coffret a disparu de la table</strong>.</p>
+                  <p className="text-xs text-slate-300">La lettre évoque un médaillon disparu au Bâtiment C, en 1897. Depuis plus d’un siècle, la famille raconte qu’Émile en fut le voleur. Mais cette légende est-elle vraie ?</p>
+                </div>
+                <div className="bg-slate-900 rounded-xl border border-purple-700/60 p-4 space-y-2 text-xs">
+                  <p className="font-bold text-purple-200">✉️ Lettre apparue à 20 h 31</p>
+                  <p className="italic text-slate-200 leading-relaxed">« Le Trésor ne se retrouve pas en désignant le premier coupable. Remontez au secret de 1897, comprenez ce qui a éveillé l’écran, puis cherchez ce qui s’est réellement passé dans cette maison. Cinq preuves. Trois mystères. Un seul dénouement. »</p>
+                </div>
+                <div className="grid gap-2 text-xs">
+                  <div className="bg-slate-900 border border-slate-700 rounded-lg p-3"><strong className="text-amber-300">1 · Le passé :</strong> qui a pris le médaillon en 1897 et pourquoi Émile est-il accusé ?</div>
+                  <div className="bg-slate-900 border border-slate-700 rounded-lg p-3"><strong className="text-cyan-300">2 · La technologie :</strong> que s’est-il produit entre la session de 20 h 27 et la lettre de 20 h 31 ?</div>
+                  <div className="bg-slate-900 border border-slate-700 rounded-lg p-3"><strong className="text-pink-300">3 · Le présent :</strong> qui a déplacé le Trésor de la Chouquette pendant l’agitation ?</div>
+                </div>
+                <div className="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-3">
+                  <h3 className="font-cinzel text-amber-300 font-bold text-sm">📖 Journal de l’enquête</h3>
+                  <p className="text-[11px] text-slate-400">Les chapitres s’ouvrent au fur et à mesure. Aucun verdict ne sera dévoilé avant le vote.</p>
+                  {STORY_STEPS.filter(step => solvedLevels.length >= step.after).map((step,idx) => (
+                    <div key={step.after} className="border-l-2 border-amber-500/60 pl-3 space-y-1">
+                      <p className="text-xs font-semibold text-amber-200">{step.icon} Chapitre {idx+1} — {step.title}</p>
+                      <p className="text-xs text-slate-300 leading-relaxed">{step.text}</p>
+                    </div>
+                  ))}
+                  {solvedLevels.length < 5 && <p className="text-xs text-slate-400">🔒 {5-solvedLevels.length} chapitre(s) restent à découvrir.</p>}
+                </div>
+                <div className="rounded-xl bg-slate-900 border border-amber-800/50 p-4 space-y-2 text-xs">
+                  <h3 className="text-amber-300 font-bold">🎯 Comment jouer ?</h3>
+                  <p>Chaque enquêteur a un rôle secret et une épreuve. Parlez-vous, comparez les alibis et les indices, puis rendez-vous au <strong>Tribunal</strong> une fois les cinq épreuves terminées. Charlotte lira ensuite le dénouement.</p>
+                </div>
+                <button type="button" className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg py-3 font-bold text-sm" onClick={() => setActiveTab(currentUser.isMJ ? 'mj' : 'perso')}>{currentUser.isMJ ? '👑 Préparer la partie MJ' : 'Découvrir mon rôle secret'}</button>
+              </section>
+            )}
+
             {/* ONGLET 1 : MON ESPACE PERSO */}
             {activeTab === 'perso' && (
               <div className="space-y-4 animate-fade-in">
@@ -710,6 +787,7 @@ function App() {
                             {isSolved ? 'Résolue ✅' : 'En cours 🧩'}
                           </span>
                         </div>
+                        <p className="text-xs rounded-lg border border-slate-700 bg-slate-950/70 p-3 text-slate-300 leading-relaxed">🎯 <strong>Pourquoi cette étape ?</strong> {myPuzzle.missionBrief}</p>
                         {isSolved ? (
                           <div className="bg-emerald-950/40 border-2 border-emerald-500/60 p-4 rounded-xl text-center space-y-3">
                             <div className="text-3xl">🎉</div>
@@ -878,6 +956,13 @@ function App() {
             {activeTab === 'dossier' && (
               <div className="space-y-3 animate-fade-in">
                 <h2 className="font-cinzel font-bold text-amber-400 text-sm">Dossier des Preuves</h2>
+                <p className="text-xs text-slate-400">Les preuves documentent des faits. Les accusations restent des hypothèses jusqu’au dénouement. Discutez-en ensemble avant de voter.</p>
+                <div className="rounded-lg bg-slate-900 border border-slate-700 p-3 text-xs space-y-2">
+                  <p className="text-amber-300 font-bold">🧭 Les trois dossiers</p>
+                  <p>📜 <strong>1897 :</strong> le médaillon et l’accusation d’Émile.</p>
+                  <p>🖥️ <strong>Ce soir :</strong> N0CT-7, NODE-7 et la lettre.</p>
+                  <p>🍬 <strong>Dans la maison :</strong> le coffret disparu.</p>
+                </div>
                 <div className="space-y-2">
                   {evidenceList.map((ev, i) => (
                     <div key={i} className="bg-slate-900 border border-amber-900/30 p-2.5 rounded-lg text-xs flex items-start space-x-2">
@@ -885,7 +970,13 @@ function App() {
                       <span className="text-slate-200">{ev}</span>
                     </div>
                   ))}
-                  {evidenceList.length === 0 && <p className="text-xs text-slate-500 italic text-center py-4">Aucune preuve pour l'instant.</p>}
+                  {evidenceList.length === 0 && <p className="text-xs text-slate-500 italic text-center py-4">Aucune preuve d’épreuve pour l’instant.</p>}
+                  {SCENE_TRACES.filter(trace => solvedLevels.length >= trace.after).map(trace => (
+                    <div key={trace.id} className="bg-slate-900 border border-pink-800/30 p-3 rounded-lg text-xs space-y-1">
+                      <p className="text-pink-300 font-semibold">🧩 {trace.id} — {trace.title}</p>
+                      <p className="text-slate-300">{trace.text}</p>
+                    </div>
+                  ))}
 
                   {margueriteUnlocked && (
                     <div className="bg-purple-950/40 border border-purple-500/50 p-3 rounded-lg text-xs space-y-1">
@@ -897,77 +988,94 @@ function App() {
               </div>
             )}
 
-            {/* ONGLET 5 : VOTE FINAL */}
+            {/* ONGLET 5 : TRIBUNAL - 4 questions / 3 mystères ; un vote par joueur */}
             {activeTab === 'vote' && (
-              <div className="space-y-3 animate-fade-in">
-                <h2 className="font-cinzel font-bold text-amber-400 text-sm">Tribunal Final</h2>
-                {!voteSubmitted ? (
-                  <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl space-y-3 text-xs">
-                    <div>
-                      <label className="block text-slate-300 font-semibold mb-1">1. Qui a volé le médaillon en 1897 ?</label>
-                      <select value={votes.coupable} onChange={e=>setVotes({...votes, coupable: e.target.value})} className="w-full bg-slate-950 border border-slate-700 p-2 rounded text-slate-200">
-                        <option value="">-- Sélectionnez --</option>
-                        <option value="Marguerite">Marguerite</option>
-                        <option value="Émile">Émile</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-slate-300 font-semibold mb-1">2. Qui a déclenché le protocole à 20h27 ?</label>
-                      <select value={votes.motif} onChange={e=>setVotes({...votes, motif: e.target.value})} className="w-full bg-slate-950 border border-slate-700 p-2 rounded text-slate-200">
-                        <option value="">-- Sélectionnez --</option>
-                        <option value="Mathieu">Mathieu</option>
-                        <option value="Nino">Nino</option>
-                        <option value="Indéterminé">Impossible à établir avec les seuls journaux</option>
-                      </select>
-                    </div>
-                    <button disabled={!votes.coupable || !votes.motif} onClick={()=>setVoteSubmitted(true)} className="w-full bg-amber-500 disabled:opacity-50 text-slate-950 font-bold py-2 rounded text-xs">
-                      Sceller mon Vote
-                    </button>
+              <section aria-label="Tribunal des Roubatvot" className="space-y-3">
+                <div className="bg-slate-900 border border-amber-500/40 rounded-xl p-4 space-y-2">
+                  <p className="uppercase tracking-widest text-[10px] text-amber-300">Tribunal · Phase finale</p>
+                  <h2 className="font-cinzel font-bold text-amber-300 text-lg">Votre verdict, pas un simple suspect</h2>
+                  <p className="text-xs text-slate-300">L’enquête comporte <strong>trois affaires liées</strong>. Vote pour tes hypothèses sur le vol historique, le protocole et le coffret d’Halloween. Le choix « Impossible à déterminer » est toujours acceptable : ne confonds pas soupçon et preuve.</p>
+                </div>
+                {currentUser.isMJ ? (
+                  <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl text-xs text-slate-300 space-y-2">
+                    <p>👑 Charlotte ne vote pas. Tu peux consulter les bulletins dans <strong>MJ</strong> et lancer la révélation après les enquêteurs.</p>
+                    <button className="bg-rose-900 text-rose-100 rounded-lg p-3 w-full font-bold" onClick={()=>setActiveTab('mj')}>Ouvrir les commandes MJ</button>
+                  </div>
+                ) : solvedLevels.length < PUZZLES.length && !margueriteUnlocked ? (
+                  <div className="rounded-xl bg-slate-900 border border-slate-700 p-4 space-y-3 text-xs text-slate-300">
+                    <p className="text-amber-300 font-semibold">🔒 Débat final encore verrouillé</p>
+                    <p>Il reste {PUZZLES.length-solvedLevels.length} épreuve(s) à résoudre. Le tribunal commencera quand les cinq preuves seront réunies.</p>
+                    <button className="w-full bg-slate-800 rounded-lg p-3 font-semibold" onClick={()=>setActiveTab('common')}>Voir les étapes restantes</button>
+                  </div>
+                ) : voteSubmitted ? (
+                  <div className="rounded-xl border border-emerald-700 bg-emerald-950/30 p-4 space-y-3 text-xs">
+                    <p className="text-emerald-300 font-bold">✅ Verdict scellé et enregistré</p>
+                    <p className="text-slate-300">Tu ne peux voter qu’une fois par manche. Les réponses seront confrontées à la vérité après la révélation de Charlotte.</p>
+                    {(sharedMode && remoteVotes?.historique === undefined) ? <p className="text-amber-200">Ce bulletin vient de l’ancienne version ({remoteVotes?.coupable} · {remoteVotes?.motif}). Pour tester le nouveau tribunal, demande à Charlotte de lancer une nouvelle manche.</p> : VOTE_QUESTIONS.map(q=><p key={q.key} className="text-slate-200"><strong>{q.title}</strong> {voteLabel(q,sharedMode ? remoteVotes?.[q.key] : votes[q.key])}</p>)}
+                    {margueriteUnlocked && <button className="bg-purple-900 rounded-lg py-2.5 w-full font-bold" onClick={()=>setActiveTab('reveal')}>Voir le dénouement</button>}
                   </div>
                 ) : (
-                  <div className="bg-emerald-950/30 border border-emerald-800 p-4 rounded-xl text-center text-xs text-emerald-400">
-                    ✅ Vote scellé avec succès ! Attends la proclamation.
+                  <div className="space-y-3">
+                    {VOTE_QUESTIONS.map((q,i) => (
+                      <fieldset key={q.key} className="bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-2">
+                        <legend className="sr-only">{q.title}</legend>
+                        <p className="font-cinzel font-bold text-amber-300 text-sm">{i+1}. {q.title}</p>
+                        <p className="text-xs text-slate-400">{q.help}</p>
+                        {q.options.map(([value,label]) => (
+                          <button key={value} type="button" aria-pressed={votes[q.key]===value} onClick={()=>setVotes({...votes,[q.key]:value})} className={`w-full text-left rounded-lg border p-3 text-xs transition ${votes[q.key]===value ? 'bg-amber-500/20 border-amber-400 text-amber-100 font-bold' : 'bg-slate-950 border-slate-700 text-slate-200'}`}>
+                            <span aria-hidden="true">{votes[q.key]===value ? '◉' : '○'} </span>{label}
+                          </button>
+                        ))}
+                      </fieldset>
+                    ))}
+                    <div className="bg-slate-900 border border-amber-800/40 p-3 rounded-xl space-y-2">
+                      <p className="text-xs text-slate-300">Réponses renseignées : <strong>{VOTE_QUESTIONS.filter(q=>!!votes[q.key]).length}/4</strong>. Une fois enregistré, le bulletin est définitif.</p>
+                      <button disabled={!voteComplete || voteBusy} onClick={submitVote} className="w-full bg-amber-500 disabled:bg-slate-700 disabled:text-slate-400 text-slate-950 font-bold py-3 rounded-lg text-sm">{voteBusy?'Enregistrement…':'🗳️ Sceller mes quatre réponses'}</button>
+                      {voteError && <p role="alert" className="text-rose-300 text-xs">{voteError}</p>}
+                    </div>
                   </div>
                 )}
-              </div>
+              </section>
             )}
 
-            {/* SCÈNE FINALE : affichée automatiquement dès que Charlotte libère H-02.
-                Elle reste accessible via l'onglet Révélation après fermeture. */}
+            {/* DÉNOUEMENT : trois réponses distinctes et lien vers les votes, diffusé via confession */}
             {activeTab === 'reveal' && margueriteUnlocked && (
-              <section aria-label="Révélation finale de la Murder Party" aria-live="polite" className="space-y-4 animate-fade-in">
-                <div className="rounded-2xl border-2 border-purple-500/70 bg-gradient-to-b from-purple-950/80 to-slate-900 p-5 text-center space-y-3 shadow-xl">
-                  <div className="text-5xl" aria-hidden="true">🕯️</div>
-                  <p className="uppercase tracking-[0.22em] text-[10px] font-bold text-purple-300">Dossier déclassifié · H-02</p>
+              <section aria-label="Révélation finale de la Murder Party" aria-live="polite" className="space-y-4">
+                <div className="rounded-2xl border-2 border-purple-500/70 bg-gradient-to-b from-purple-950/80 to-slate-900 p-5 text-center space-y-2">
+                  <div className="text-5xl">🕯️</div>
+                  <p className="uppercase tracking-widest text-[10px] font-bold text-purple-300">Dossier H-02 · Déclassification autorisée</p>
                   <h2 className="font-cinzel text-xl font-bold text-amber-300">La vérité des Roubatvot</h2>
-                  <p className="text-xs text-slate-200 leading-relaxed">Le dernier sceau vient de céder. Les indices racontaient deux histoires différentes, séparées par plus d'un siècle.</p>
+                  <p className="text-xs text-slate-200">Vous cherchiez un seul responsable. Pourtant trois histoires s’étaient superposées.</p>
                 </div>
-
-                <div className="rounded-xl border border-amber-700/50 bg-slate-900 p-4 space-y-2 text-xs leading-relaxed">
-                  <h3 className="font-cinzel font-bold text-amber-300 text-sm">📜 1897 — Le secret de Marguerite</h3>
-                  <p className="italic text-slate-200">« J'ai pris l'Œil des Roubatvot avant que mon oncle ne découvre sa disparition... »</p>
-                  <p className="text-slate-300">Cette confession éclaire la disparition historique du médaillon. Le registre d'Émile rappelle aussi que l'héritage familial ne se résume pas à un objet.</p>
+                <div className="rounded-xl border border-amber-700/60 bg-slate-900 p-4 space-y-2 text-xs leading-relaxed">
+                  <h3 className="font-cinzel font-bold text-amber-300 text-sm">📜 Acte I · La trahison de 1897</h3>
+                  <p>Augustin avait caché l’Œil des Roubatvot, un médaillon de famille. <strong>Marguerite l’a retrouvé et pris.</strong> Pour détourner les soupçons, elle a accusé Émile. La famille a transmis cette fausse histoire comme une malédiction.</p>
+                  <p className="italic text-amber-100">« J’ai pris l’Œil des Roubatvot. Émile n’y était pour rien. » — aveu de Marguerite, pièce H-02.</p>
+                  <p>Le mot <strong>AMOUR</strong> dans le registre d’Émile rappelait que l’héritage familial ne se juge pas sur une accusation sans preuve.</p>
                 </div>
-
-                <div className="rounded-xl border border-cyan-800/60 bg-slate-900 p-4 space-y-2 text-xs leading-relaxed">
-                  <h3 className="font-cinzel font-bold text-cyan-300 text-sm">🕒 Ce soir — Le piège des horaires</h3>
-                  <p className="text-slate-200"><strong>20 h 27 :</strong> session N0CT-7. <strong>20 h 31 :</strong> apparition de la lettre.</p>
-                  <p className="text-slate-300">L'écart de quatre minutes est établi. Mais il ne prouve pas, à lui seul, qui a provoqué l'apparition de la lettre. Accuser quelqu'un à partir d'un simple rapprochement aurait été une erreur.</p>
+                <div className="rounded-xl border border-cyan-700/60 bg-slate-900 p-4 space-y-2 text-xs leading-relaxed">
+                  <h3 className="font-cinzel font-bold text-cyan-300 text-sm">🖥️ Acte II · Le protocole réveillé</h3>
+                  <p>La carte découverte par James portait <strong>N0CT-7</strong> et la séquence <strong>3 → 1 → 2</strong>. Nino a identifié NODE-7. Andreas a établi les horaires.</p>
+                  <p><strong>À 20 h 27, Mathieu a activé le protocole sans le vouloir</strong> en manipulant le module. À <strong>20 h 31</strong>, la lettre s’est affichée. Il n’avait pas prévu ce résultat.</p>
+                  <p className="text-slate-300">Attention : les horaires seuls ne suffisaient pas à l’accuser. C’est le croisement des objets, des témoignages et des éléments techniques qui permet de comprendre son intervention ; le diagnostic de Mathieu avait raison de distinguer chronologie et responsabilité.</p>
                 </div>
-
-                <div className="rounded-xl border-2 border-pink-500/60 bg-pink-950/30 p-5 text-center space-y-3">
-                  <div className="text-5xl" aria-hidden="true">🍒</div>
-                  <h3 className="font-cinzel text-lg text-pink-200 font-bold">Et pendant ce temps… Enola !</h3>
-                  <p className="text-sm text-slate-100 leading-relaxed">Tout le monde cherchait un coupable parmi les grands. Mais la surprise de ce soir était ailleurs : <strong>le Trésor de la Chouquette est au cœur de l'histoire d'Enola.</strong></p>
-                  <p className="text-xs text-pink-100">Ce n'est pas une accusation contre Enola : c'est le dernier clin d'œil de l'enquête. Charlotte peut maintenant dévoiler le trésor qu'elle a préparé pour la famille.</p>
+                <div className="rounded-xl border-2 border-pink-500/60 bg-pink-950/25 p-5 space-y-3 text-center">
+                  <div className="text-5xl">🍒</div>
+                  <h3 className="font-cinzel text-lg font-bold text-pink-200">Acte III · Le Trésor de la Chouquette</h3>
+                  <p className="text-sm text-slate-100 leading-relaxed">Le médaillon volé en 1897 n’était pas le coffret disparu ce soir. Le protocole informatique non plus n’avait pas emporté le Trésor. Pendant que tout le monde cherchait un suspect parmi les grands, <strong>Enola a déplacé le coffret pour jouer</strong>, sans imaginer l’enquête qu’elle allait déclencher.</p>
+                  <p className="text-xs text-pink-100">La petite empreinte et la trace chocolatée prenaient enfin leur sens. Il ne s’agissait ni d’un cambriolage ni d’une vengeance.</p>
                 </div>
-
-                <div className="rounded-lg bg-slate-900 border border-slate-700 p-3 space-y-2 text-xs text-slate-300">
-                  <p className="text-amber-300 font-semibold">🎬 À lire par Charlotte</p>
-                  <p className="italic">« Vous avez percé le secret de 1897, reconstitué la chronologie et évité de condamner sans preuve. Mais personne n'avait pensé à regarder du côté de notre plus petite enquêtrice… Enola ! Le Trésor de la Chouquette peut enfin être dévoilé ! »</p>
+                <div className="rounded-xl bg-slate-900 border border-slate-700 p-4 space-y-2 text-xs">
+                  <p className="font-semibold text-amber-300">🎬 Charlotte · Dernière scène à jouer</p>
+                  <p className="italic text-slate-200">« Vous avez retrouvé la vérité sur Émile, découvert ce qui a réveillé la lettre et suivi la piste du coffret. Mais vous aviez oublié notre plus petite exploratrice… Enola ! Le Trésor de la Chouquette peut revenir parmi nous ! »</p>
+                  <p className="text-slate-400">Charlotte sort le coffret préparé hors écran : le téléphone ne peut pas le retrouver physiquement.</p>
                 </div>
-                <button type="button" onClick={() => setActiveTab('dossier')} className="w-full rounded-lg border border-purple-700 bg-slate-800 py-3 text-xs font-semibold text-purple-100">Fermer la scène · Retour aux preuves</button>
-                <p className="text-center text-[11px] text-slate-400">La révélation reste disponible dans l'onglet « Révélation » tant que Charlotte ne la masque pas.</p>
+                <div className="bg-slate-900 border border-emerald-800/40 p-4 rounded-xl space-y-2 text-xs">
+                  <p className="text-emerald-300 font-bold">📋 Les quatre réponses du tribunal</p>
+                  {VOTE_QUESTIONS.map(q => <p key={q.key} className="text-slate-200"><strong>{q.title}</strong> <span className="text-emerald-300">{voteLabel(q,FINAL_VERDICT[q.key])}</span></p>)}
+                </div>
+                <button onClick={()=>setActiveTab('dossier')} className="w-full rounded-lg border border-purple-700 bg-slate-800 py-3 text-xs font-semibold text-purple-100">Fermer · Retour aux preuves</button>
+                <p className="text-center text-[11px] text-slate-400">Tu peux rouvrir cette scène depuis l’onglet Révélation.</p>
               </section>
             )}
 
@@ -975,12 +1083,22 @@ function App() {
             {activeTab === 'mj' && currentUser.isMJ && (
               <div className="space-y-3 animate-fade-in">
                 <h2 className="font-cinzel font-bold text-rose-400 text-sm">Panneau Charlotte (MJ)</h2>
-                <p className="text-xs text-slate-400">{sharedMode ? 'Commandes protégées par l’identité du créateur de la salle. Les actions et les preuves sont synchronisées.' : 'Mode secours : le tableau reflète ce téléphone uniquement. Reçois les codes des joueurs dans « Écran commun ».'}</p>
+                <p className="text-xs text-slate-400">{sharedMode ? 'Commandes protégées par ton compte Google. Les preuves et votes sont synchronisés.' : 'Mode secours : le tableau reflète ce téléphone uniquement. Reçois les codes des joueurs dans « Écran commun ».'}</p>
+                <div className="rounded-lg border border-amber-800/40 bg-slate-900 p-3 text-xs space-y-2">
+                  <p className="font-bold text-amber-300">🎬 Conduite de la soirée</p>
+                  <p>1. Lire l’introduction dans <strong>Histoire</strong> ; 2. laisser les cinq enquêteurs résoudre les épreuves ; 3. réunir leurs preuves et leurs témoignages ; 4. faire remplir les quatre réponses du <strong>Tribunal</strong> ; 5. révéler les trois actes et sortir le coffret.</p>
+                  <button className="bg-slate-800 p-2 rounded-lg w-full text-amber-200" onClick={()=>setActiveTab('histoire')}>Relire le discours d’ouverture</button>
+                </div>
                 {sharedMode && <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl space-y-2 text-xs">
                   <p className="font-bold text-amber-400">Participants connectés à la salle</p>
                   {Object.keys(PLAYERS).map(id=><p key={id} className="flex justify-between"><span>{PLAYERS[id].avatar} {PLAYERS[id].name}</span><span>{roomPlayers[id]?'Profil réservé':'En attente'}</span></p>)}
                   <p className="font-bold text-amber-400 pt-2">Votes enregistrés : {Object.keys(remoteVotes || {}).length} / 5</p>
-                  {Object.entries(remoteVotes || {}).map(([id,v])=><p key={id}>{PLAYERS[id]?.name || id} : {v.coupable} · {v.motif}</p>)}
+                  {Object.entries(remoteVotes || {}).map(([id,v])=>(
+                    <div key={id} className="bg-slate-950 border border-slate-700 rounded-lg p-2 space-y-1">
+                      <p className="font-bold text-amber-200">{PLAYERS[id]?.name || id}</p>
+                      {v.historique !== undefined ? VOTE_QUESTIONS.map(q=><p key={q.key}>{q.title} <strong>{voteLabel(q,v[q.key])}</strong></p>) : <p className="text-amber-200">Bulletin de l’ancienne version : {v.coupable} · {v.motif} (nouvelle manche conseillée)</p>}
+                    </div>
+                  ))}
                 </div>}
                 <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl space-y-2 text-xs">
                   <button onClick={() => setIsTimerActive(!isTimerActive)} className="w-full bg-slate-800 text-amber-400 py-2 rounded font-semibold">
