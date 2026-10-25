@@ -34,7 +34,7 @@
 <!-- Firebase modulaire : CDN, pas de npm. Insérer la configuration issue de la console Firebase. -->
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
-import { getAuth, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
+import { getAuth, onAuthStateChanged, signInAnonymously, signInWithPopup, GoogleAuthProvider, signOut } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
 import { getDatabase, ref, get, set, update, onValue, serverTimestamp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js';
 
 const firebaseConfig = {
@@ -68,7 +68,23 @@ async function boot() {
     if (!auth.currentUser) throw new Error('Authentification anonyme indisponible. Active-la dans Firebase Authentication.');
     return auth.currentUser.uid;
   })();
-  return bootPromise;
+  await bootPromise;
+  return auth.currentUser?.uid;
+}
+function currentHostAccount() {
+  const user = auth?.currentUser;
+  return user?.providerData?.some(p => p.providerId === 'google.com') ? {uid:user.uid,email:user.email,verified:user.emailVerified} : null;
+}
+async function signInHost() {
+  if (!auth) throw new Error('Firebase n’est pas prêt.');
+  const result = await signInWithPopup(auth,new GoogleAuthProvider());
+  if (!result.user.emailVerified) throw new Error('Le compte Google doit avoir une adresse e-mail vérifiée.');
+  return currentHostAccount();
+}
+async function switchToAnonymous() {
+  await boot();
+  await signOut(auth);
+  await signInAnonymously(auth);
 }
 function randomRoomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -77,6 +93,7 @@ function randomRoomCode() {
 }
 async function createRoom() {
   const uid = await boot();
+  if (!currentHostAccount()?.verified) throw new Error('Connecte-toi avec ton compte Google pour créer une salle MJ.');
   for (let i=0; i<6; i++) {
     const code = randomRoomCode();
     try {
@@ -108,7 +125,8 @@ async function joinRoom(roomCode, playerId) {
   const hostSnap = await get(pathFor(code,'hostUid'));
   if (!hostSnap.exists()) throw new Error('Salle introuvable. Vérifie les huit caractères.');
   const isHost = hostSnap.val() === uid;
-  if (playerId === 'charlotte' && !isHost) throw new Error('Seul l’appareil créateur peut rejoindre le rôle MJ.');
+  if (playerId === 'charlotte' && !currentHostAccount()?.verified) throw new Error('La connexion Google est obligatoire pour reprendre le rôle MJ.');
+  if (playerId === 'charlotte' && !isHost) throw new Error('Seul le compte Google créateur peut rejoindre le rôle MJ.');
   if (playerId !== 'charlotte' && isHost) throw new Error('Le téléphone MJ doit conserver son propre profil.');
   const playerRef = pathFor(code, `players/${playerId}`);
   const prior = await get(playerRef);
@@ -166,7 +184,7 @@ async function resetRoom(code) {
   await set(pathFor(code,'votes'),null);
 }
 window.RoubatvotFirebase = {configured, boot, createRoom, joinRoom, listenRoom, stopListening,
-  publishSolved, forceSolve, hostFlag, hostClock, castVote, resetRoom};
+  publishSolved, forceSolve, hostFlag, hostClock, castVote, resetRoom, currentHostAccount, signInHost, switchToAnonymous};
 window.dispatchEvent(new Event('roubatvot-firebase-ready'));
 </script>
 
@@ -285,6 +303,8 @@ function App() {
   const [joinPlayer, setJoinPlayer] = useState('james');
   const [lobbyBusy, setLobbyBusy] = useState(false);
   const [roomError, setRoomError] = useState('');
+  const mjEntry = new URLSearchParams(location.search).get('mj') === '1';
+  const [googleHost, setGoogleHost] = useState(null);
   const networkMode = !offlineOverride && firebaseMode === 'ready';
   const sharedMode = networkMode && !!roomSession;
   const activeClock = sharedMode ? (remoteProgress?.clock || {}) : null;
@@ -312,6 +332,7 @@ function App() {
         await api.boot();
         if (!alive) return;
         setFirebaseMode('ready');
+        setGoogleHost(api.currentHostAccount());
         try {
           const previous = JSON.parse(localStorage.getItem('roubatvot_room_session') || 'null');
           if (previous?.code && previous?.playerId) {
@@ -349,6 +370,17 @@ function App() {
       error: err => setFirebaseError('Synchronisation : '+err.message)
     });
   }
+  const loginHost = async () => {
+    setLobbyBusy(true); setRoomError('');
+    try { setGoogleHost(await window.RoubatvotFirebase.signInHost()); }
+    catch (e) { setRoomError('Connexion Google : '+e.message); }
+    finally {setLobbyBusy(false);}
+  };
+  const changeHostAccount = async () => {
+    setLobbyBusy(true); setRoomError('');
+    try { await window.RoubatvotFirebase.switchToAnonymous(); setGoogleHost(null); }
+    catch(e) {setRoomError(e.message);} finally{setLobbyBusy(false);}
+  };
   const createNewRoom = async () => {
     setLobbyBusy(true);setRoomError('');
     try {activateRoom(await window.RoubatvotFirebase.createRoom());}
@@ -515,8 +547,18 @@ function App() {
         ) : networkMode && !roomSession ? (
           <div className="bg-slate-900 border border-amber-700/40 rounded-xl p-5 space-y-4 text-sm">
             <h2 className="font-cinzel text-amber-400 font-bold text-lg">Rejoindre l'enquête</h2>
-            <p className="text-xs text-slate-300">Un seul téléphone crée la salle : celui de Charlotte. Les enquêteurs la rejoignent avec son code.</p>
-            <button disabled={lobbyBusy} onClick={createNewRoom} className="w-full bg-rose-700 disabled:opacity-50 text-white font-bold p-3 rounded-lg">👑 Charlotte : créer une nouvelle salle</button>
+            <p className="text-xs text-slate-300">Les enquêteurs rejoignent la partie avec le code transmis par Charlotte.</p>
+            {mjEntry && <div className="bg-rose-950/40 border border-rose-800/60 p-3 rounded-lg space-y-2">
+              <p className="text-rose-200 font-bold">👑 Accès privé de Charlotte</p>
+              {!googleHost ? <>
+                <p className="text-xs text-slate-300">Pour créer une salle, connecte-toi avec le compte Google autorisé dans les règles Firebase.</p>
+                <button disabled={lobbyBusy} onClick={loginHost} className="w-full bg-rose-700 disabled:opacity-50 text-white font-bold p-3 rounded-lg">Se connecter avec Google (MJ)</button>
+              </> : <>
+                <p className="text-xs text-slate-300">Compte Google : <strong>{googleHost.email}</strong></p>
+                <button disabled={lobbyBusy} onClick={createNewRoom} className="w-full bg-rose-700 disabled:opacity-50 text-white font-bold p-3 rounded-lg">👑 Créer une salle</button>
+                <button disabled={lobbyBusy} onClick={changeHostAccount} className="text-xs underline text-slate-400">Utiliser un autre compte Google</button>
+              </>}
+            </div>}
             <div className="border-t border-slate-700 pt-3 space-y-2">
               <label htmlFor="room-code" className="block text-xs">Code de salle (8 caractères)</label>
               <input id="room-code" maxLength={8} value={roomInput} onChange={e=>setRoomInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,''))} placeholder="ABCD2345" className="bg-slate-950 border border-slate-600 rounded-lg p-3 w-full font-mono uppercase" />
@@ -543,7 +585,7 @@ function App() {
             <h2 className="font-cinzel text-lg font-bold text-amber-400">Identification des Enquêteurs</h2>
             <p className="text-xs text-slate-300">Mode secours : choisis ton profil. Un code-relais donné à la fin de chaque épreuve permet au suivant de commencer.</p>
             <div className="grid grid-cols-1 gap-2 text-left">
-              {Object.values(PLAYERS).map(p => (
+              {Object.values(PLAYERS).filter(p => !p.isMJ || mjEntry).map(p => (
                 <button key={p.id} onClick={() => handleSelectUser(p.id)} className="bg-slate-800/80 hover:bg-slate-800 border border-slate-700 p-3 rounded-lg flex items-center space-x-3 transition">
                   <span className="text-2xl">{p.avatar}</span>
                   <div>
