@@ -46,6 +46,23 @@
 .mirror-trace blockquote{margin:8px 0 0;padding:8px 10px;border-left:2px solid #9fb4c8;color:#d4e0ed;font-size:14px}
 .mirror-foot{font-size:12px;color:#c4d0dd;border-top:1px solid #546076;padding-top:10px;margin-top:13px}
 @media(max-width:360px){.mirror-panel{padding:13px}}
+
+/* V4.9 — Source déclarée de la conviction, jamais déduite des notes privées */
+.conviction-choices{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:8px;margin:11px 0 17px}
+.conviction-choice{width:100%;min-height:52px;background:#1c2c42;border:1px solid #576b87;border-radius:12px;color:#f3f7fe;display:flex;align-items:center;gap:10px;text-align:left;padding:11px 13px;font:600 14px/1.4 system-ui,sans-serif;cursor:pointer}
+.conviction-choice[aria-pressed="true"]{background:#3a3647;border:2px solid #f4cb7e}
+.conviction-choice .source-icon{font-size:19px;flex:0 0 27px}
+.conviction-summary{font-size:13px;line-height:1.5;color:#ccdae7;background:#192b3a;border-left:3px solid #90cbc8;border-radius:7px;padding:10px 12px;margin:9px 0}
+.conviction-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:15px 0}
+.conviction-stat{padding:12px 10px;background:#28334a;border:1px solid #576786;border-radius:12px}
+.conviction-stat strong{font-size:23px;color:#f5d48e;display:block}
+.conviction-stat span{color:#d0dcf0;font-size:12px}
+.conviction-voice{background:#242d42;border-left:3px solid #81c6c8;padding:10px 12px;margin:8px 0;border-radius:7px}
+.conviction-voice strong{color:#f4d99f}
+.conviction-voice small{display:block;color:#bcd1e3;margin-top:4px}
+.collective-reflection{padding:12px 14px;background:#293041;border:1px solid #8a7764;border-radius:12px;margin:14px 0}
+.collective-reflection h3{margin:2px 0 7px;font:700 19px Georgia,serif;color:#f5cf86}
+@media(min-width:580px){.conviction-choices{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style></head><body><main><header><div>🕯️ LES ROUBATVOT</div><h1>Le Tribunal</h1><div class="muted">Un coffret a disparu. Les certitudes aussi.</div></header><div id="status"></div><div id="root"><div class="card">Connexion à Firebase…</div></div><footer>Halloween 2026 · Ingré · Questions et réponses orales · Carnets Cluedo privés sur Firebase.</footer></main>
 <script type="module">
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
@@ -60,17 +77,25 @@ let me=null,session=null,room=null,unsub=null,answerUnsub=null,noteUnsub=null,fi
 let verdictSnapshot=null;
 let serverOffset=0,autoBusy=false,autoLastAttempt=0,autoTimer=null,revealStampBusy=false;
 const DISCUSSION_MS=30000;
+const CONVICTION_SOURCES={
+ observation:{label:'Un fait que j’ai vu moi-même',short:'Observation personnelle',icon:'👀',question:'Qu’as-tu réellement observé : le coffret, un objet ou un geste ?'},
+ temoignage:{label:'Le récit d’un autre joueur',short:'Témoignage',icon:'🗣️',question:'Qu’avait vu ce témoin, avant toute interprétation ?'},
+ collectif:{label:'Des soupçons répétés dans le groupe',short:'Soupçons collectifs',icon:'👥',question:'La répétition ajoutait-elle une preuve indépendante ?'},
+ comportement:{label:'La réaction ou l’attitude d’une personne',short:'Comportement',icon:'🎭',question:'Une réaction étrange prouvait-elle un déplacement du coffret ?'},
+ intuition:{label:'Mon intuition',short:'Intuition',icon:'🧠',question:'Ton intuition était-elle distincte d’une preuve ?'}
+};
+const SOURCE_KEYS=Object.keys(CONVICTION_SOURCES);
 const VOTE_DELAY_MS=12000;
-const REVEAL_VOTES_MS=24000,REVEAL_TIMELINE_MS=21000,REVEAL_SILENCE_MS=7000;
-const REVEAL_FULL_MS=REVEAL_VOTES_MS+REVEAL_TIMELINE_MS+REVEAL_SILENCE_MS;
+const REVEAL_VOTES_MS=17000,REVEAL_COLLECTIVE_MS=19000,REVEAL_TIMELINE_MS=21000,REVEAL_SILENCE_MS=7000;
+const REVEAL_FULL_MS=REVEAL_VOTES_MS+REVEAL_COLLECTIVE_MS+REVEAL_TIMELINE_MS+REVEAL_SILENCE_MS;
 const serverNow=()=>Date.now()+serverOffset;
 let selectedNotebookPerson='james';
 let notebookView='dossiers';
-let tab='enquete',error='',pending=false,selectedAnswer=-1,chosenSuspect='',voteArgument='',joinCode=new URLSearchParams(location.search).get('room')||'',selectedPlayer='james';
+let tab='enquete',error='',pending=false,selectedAnswer=-1,chosenSuspect='',chosenSource='',voteArgument='',joinCode=new URLSearchParams(location.search).get('room')||'',selectedPlayer='james';
 const root=document.getElementById('root'),stat=document.getElementById('status');
 const h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const path=(code,trail='')=>ref(db,`rooms/${code}${trail?'/'+trail:''}`);
-const sessionKey='roubatvot_v48_session';
+const sessionKey='roubatvot_v49_session';
 const ctx=()=>({isHost:session?.role==='charlotte',role:session?.role,phase:Number(room?.progress?.step||0),answers:room?.answers||{},votes:room?.votes||{},members:room?.players||{}});
 const isComplete=n=>!!room?.answers?.[String(n)];
 const suspects=['james','nino','andreas','matys','mathieu','charlotte','norah','enola'];
@@ -364,7 +389,7 @@ function personalFlashs(step){
  });
 }
 let notes={},dirty=new Set(),notesReady=false,noteTimers=new Map(),noteInFlight=new Set(),noteFailures=new Map(),noteStatus='Connexion au carnet…';
-function noteKey(){return `roubatvot_v48_notes_${session.code}_${me.uid}_${session.role}`}
+function noteKey(){return `roubatvot_v49_notes_${session.code}_${me.uid}_${session.role}`}
 function cacheNotes(){try{localStorage.setItem(noteKey(),JSON.stringify({notes,dirty:[...dirty]}))}catch{}}
 function restoreNotes(){
  notes={};dirty=new Set();notesReady=false;noteFailures.clear();noteStatus='Connexion au carnet…';
@@ -461,14 +486,14 @@ function leaveRoom(renderNow=true){
  const wasHost=session.role==='charlotte';
  session=null;room=null;lastAnswerStep=null;selectedAnswer=-1;
  notes={};dirty=new Set();notesReady=false;noteStatus='Connexion au carnet…';
- tab='enquete';notebookView='dossiers';error='';chosenSuspect='';voteArgument='';
+ tab='enquete';notebookView='dossiers';error='';chosenSuspect='';chosenSource='';voteArgument='';
  localStorage.removeItem(sessionKey);
  // Ne supprime ni la salle ni les carnets enregistrés dans Firebase.
  history.replaceState(null,'',location.pathname+(wasHost?'?mj=1':''));
  if(renderNow)render();
 }
-async function createRoom(){if(!me||me.isAnonymous||!me.emailVerified)throw Error('Connecte ton compte Google MJ.');const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';for(let j=0;j<5;j++){const nums=crypto.getRandomValues(new Uint8Array(8));const code=[...nums].map(i=>chars[i%chars.length]).join('');try{await set(path(code),{edition:'4.8',hostUid:me.uid,createdAt:serverTimestamp(),players:{charlotte:{uid:me.uid}},progress:{step:0}});if(session)leaveRoom(false);await openRoom(code,'charlotte');return}catch(e){if(e.code!=='PERMISSION_DENIED')throw e;throw e}}}
-async function openRoom(code,role){code=String(code).trim().toUpperCase();if(!/^[A-HJ-NP-Z2-9]{8}$/.test(code))throw Error('Code de salle invalide (8 caractères).');const edition=await get(path(code,'edition'));if(edition.val()!=='4.8')throw Error('Cette salle appartient à une ancienne édition. Crée une nouvelle salle.');const host=(await get(path(code,'hostUid'))).val();if(role==='charlotte' && (host!==me.uid||me.isAnonymous))throw Error('Seule Charlotte peut reprendre le poste MJ.');if(role!=='charlotte' && host===me.uid)throw Error('Ouvre le personnage dans un navigateur privé, sans la session Google MJ.');const old=await get(path(code,`players/${role}`));if(old.exists()&&old.child('uid').val()!==me.uid)throw Error('Ce rôle est déjà réservé par un autre téléphone.');if(!old.exists())await set(path(code,`players/${role}`),{uid:me.uid});session={code,role};localStorage.setItem(sessionKey,JSON.stringify(session));selectedAnswer=-1;tab='enquete';startListening()}
+async function createRoom(){if(!me||me.isAnonymous||!me.emailVerified)throw Error('Connecte ton compte Google MJ.');const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';for(let j=0;j<5;j++){const nums=crypto.getRandomValues(new Uint8Array(8));const code=[...nums].map(i=>chars[i%chars.length]).join('');try{await set(path(code),{edition:'4.9',hostUid:me.uid,createdAt:serverTimestamp(),players:{charlotte:{uid:me.uid}},progress:{step:0}});if(session)leaveRoom(false);await openRoom(code,'charlotte');return}catch(e){if(e.code!=='PERMISSION_DENIED')throw e;throw e}}}
+async function openRoom(code,role){code=String(code).trim().toUpperCase();if(!/^[A-HJ-NP-Z2-9]{8}$/.test(code))throw Error('Code de salle invalide (8 caractères).');const edition=await get(path(code,'edition'));if(edition.val()!=='4.9')throw Error('Cette salle appartient à une ancienne édition. Crée une nouvelle salle.');const host=(await get(path(code,'hostUid'))).val();if(role==='charlotte' && (host!==me.uid||me.isAnonymous))throw Error('Seule Charlotte peut reprendre le poste MJ.');if(role!=='charlotte' && host===me.uid)throw Error('Ouvre le personnage dans un navigateur privé, sans la session Google MJ.');const old=await get(path(code,`players/${role}`));if(old.exists()&&old.child('uid').val()!==me.uid)throw Error('Ce rôle est déjà réservé par un autre téléphone.');if(!old.exists())await set(path(code,`players/${role}`),{uid:me.uid});session={code,role};localStorage.setItem(sessionKey,JSON.stringify(session));selectedAnswer=-1;tab='enquete';startListening()}
 function startListening(){
  if(unsub)unsub();
  if(answerUnsub){answerUnsub();answerUnsub=null;}
@@ -536,9 +561,10 @@ function revealMoment(){
  const time=revealElapsed();
  if(!room?.progress?.revealAt)return 0;
  if(time<REVEAL_VOTES_MS)return 1;
- if(time<REVEAL_VOTES_MS+REVEAL_TIMELINE_MS)return 2;
- if(time<REVEAL_FULL_MS)return 3;
- return 4;
+ if(time<REVEAL_VOTES_MS+REVEAL_COLLECTIVE_MS)return 2;
+ if(time<REVEAL_VOTES_MS+REVEAL_COLLECTIVE_MS+REVEAL_TIMELINE_MS)return 3;
+ if(time<REVEAL_FULL_MS)return 4;
+ return 5;
 }
 const FINAL_TIMELINE=[
  ['20 h 25','Nino prend une friandise près de la table.'],
@@ -546,22 +572,55 @@ const FINAL_TIMELINE=[
  ['20 h 29','Charlotte déplace une décoration.'],
  ['Après 20 h 31','James voit encore le Trésor sur la table. Le message d’Halloween a détourné l’attention.'],
  ['Vers 20 h 32','Norah écrit un brouillon pour Matys près des jouets.'],
- ['Vers 20 h 33','Matys et Nino sont à la cuisine ; une petite silhouette emporte un objet vers les jouets ; un couvercle se referme.']
+ ['Vers 20 h 33','Matys et Nino sont à la cuisine ; James décrit une petite silhouette avec un objet allant vers les jouets ; Andreas entend un bruit de couvercle.']
 ];
+// Calcul fondé UNIQUEMENT sur les six votes rendus publics. Les notes privées n'y entrent pas.
+function collectiveDiagnosis(votes){
+ const ballots=investigators.map(id=>({id,v: votes?.[id]||{}}));
+ const count=suspect=>ballots.filter(x=>x.v.suspect===suspect).length;
+ const sourceCount=source=>ballots.filter(x=>x.v.source===source).length;
+ const group=suspects.map(id=>({id,n:count(id)})).filter(x=>x.n>0).sort((a,b)=>b.n-a.n||suspects.indexOf(a.id)-suspects.indexOf(b.id));
+ const indeterminate=count('indetermine');
+ const sources=SOURCE_KEYS.map(id=>({id,n:sourceCount(id)}));
+ const selected=sources.reduce((sum,x)=>sum+x.n,0);
+ const largest=group.length?group[0].n:0;
+ return {ballots,group,indeterminate,sources,selected,largest,collectif:sourceCount('collectif')};
+}
+function sharedVerdicts(votes){
+ return investigators.map(id=>{
+  const ballot=votes?.[id]||{};
+  const suspect=ballot.suspect==='indetermine'?'❔ Preuves insuffisantes':(P[ballot.suspect]||'Verdict non disponible');
+  const source=CONVICTION_SOURCES[ballot.source];
+  return `<div class="conviction-voice"><strong>${h(P[id])} → ${h(suspect)}</strong><small>${source?`${h(source.icon)} ${h(source.short)}`:'Source de conviction non indiquée'}${ballot.argument?` · « ${h(ballot.argument)} »`:''}</small></div>`;
+ }).join('');
+}
+function sharedBeliefMirror(votes){
+ const d=collectiveDiagnosis(votes);
+ const major=d.group.filter(x=>x.n===d.largest);
+ const lead=d.largest>=2?(major.length===1
+  ?`${d.largest} enquêteurs ont désigné ${P[major[0].id]}. Ils partageaient une accusation, pas nécessairement les mêmes preuves.`
+  :`${major.map(x=>P[x.id]).join(' et ')} recueillent chacun ${d.largest} accusations. Il n’y a pas une seule théorie dominante.`)
+  :`Aucune personne ne rassemble plusieurs accusations : les conclusions du groupe divergent.`;
+ const collective=d.collectif===0
+  ?'Personne n’a déclaré que les soupçons répétés du groupe étaient sa raison principale. Cela ne permet pas de savoir si les discussions ont malgré tout influencé des choix.'
+  :`${d.collectif} enquêteur${d.collectif>1?'s':''} ${d.collectif>1?'déclarent':'déclare'} que les soupçons répétés du groupe ${d.collectif>1?'étaient':'étaient'} ${d.collectif>1?'leur raison principale':'sa raison principale'}. C’est leur déclaration, pas une preuve que quelqu’un les a trompés.`;
+ return `<div class="conviction-stats"><div class="conviction-stat"><strong>${d.collectif}/6</strong><span>Disent avoir surtout suivi les soupçons du groupe</span></div><div class="conviction-stat"><strong>${d.largest}/6</strong><span>Plus grand nombre de voix pour une même personne</span></div></div><p>${h(lead)}</p><p>${h(collective)}</p><div class="collective-reflection"><h3>Un soupçon répété devient-il une preuve ?</h3><p>Les six votes indiquent ce que chacun pense et dit avoir retenu. Ils ne racontent pas à eux seuls qui a convaincu qui. Une histoire peut se renforcer sans qu’un nouveau fait apparaisse.</p></div><p class="small muted">${d.selected}/6 sources de conviction renseignées. Les notes privées ne sont jamais utilisées dans ce tableau.</p>`;
+}
 function revealTheater(){
- const c=ctx(),phase=revealMoment(),elapsed=revealElapsed(),host=session.role==='charlotte';
+ const c=ctx(),phase=revealMoment(),elapsed=revealElapsed();
  if(phase===0)return `<div class="card reveal-stage"><h2>Le tribunal va rendre sa décision</h2><p>Les six verdicts sont arrivés. Le dernier chapitre se synchronise…</p></div>`;
  if(phase===1){
   const left=Math.ceil((REVEAL_VOTES_MS-elapsed)/1000);
-  return `<div class="card reveal-stage"><div class="quiet">Chapitre I · Les certitudes</div><h2>Le tribunal a parlé.</h2><p>Les six verdicts apparaissent maintenant sur chaque téléphone. Comparez les hypothèses.</p>${investigators.map(p=>`<div class="clockline"><strong>${P[p]} :</strong> ${h(P[c.votes[p]?.suspect]||'Indéterminé')} — ${h(c.votes[p]?.argument||'Aucun argument ajouté.')}</div>`).join('')}<p class="small muted">La chronologie apparaîtra automatiquement${left>0?' dans environ '+left+' s':''}.</p></div>`;
+  return `<div class="card reveal-stage"><div class="quiet">Chapitre I · Six certitudes</div><h2>Vous étiez là. Vous n’avez pas vu la même histoire.</h2><p>Écoutez les six verdicts. Chacun révèle son suspect et ce qui l’a principalement convaincu.</p>${sharedVerdicts(c.votes)}<p class="small muted">Les raisons de chacun sont ses propres déclarations. Le tableau collectif apparaît automatiquement${left>0?' dans '+left+' s':''}.</p></div>`;
  }
- if(phase===2){
-  const since=elapsed-REVEAL_VOTES_MS;
+ if(phase===2)return `<div class="card reveal-stage"><div class="quiet">Chapitre II · La contagion des soupçons</div><h2>Comment une hypothèse devient-elle une certitude ?</h2>${sharedBeliefMirror(c.votes)}</div>`;
+ if(phase===3){
+  const since=elapsed-REVEAL_VOTES_MS-REVEAL_COLLECTIVE_MS;
   const count=Math.min(FINAL_TIMELINE.length,Math.floor(since/3500)+1);
-  return `<div class="card reveal-stage"><div class="quiet">Chapitre II · Ce que les heures racontent</div><h2>Une chronologie ne prend parti pour personne.</h2>${FINAL_TIMELINE.slice(0,count).map(([time,fact])=>`<div class="clockline"><span class="time">${h(time)}</span><p>${h(fact)}</p></div>`).join('')}<p class="small muted">Les faits apparaissent progressivement. Aucune nouvelle commande n’est nécessaire.</p></div>`;
+  return `<div class="card reveal-stage"><div class="quiet">Chapitre III · Les faits n’ont pas voté</div><h2>Les heures racontent autre chose.</h2>${FINAL_TIMELINE.slice(0,count).map(([time,fact])=>`<div class="clockline"><span class="time">${h(time)}</span><p>${h(fact)}</p></div>`).join('')}<p class="small muted">La chronologie ne donne encore ni le nom de la silhouette ni la nature de l’objet.</p></div>`;
  }
- if(phase===3)return `<div class="card reveal-stage"><div class="quiet">Chapitre III · Le silence</div><h2>Il reste une question.</h2><p class="dramatic">Et si vous aviez passé la soirée à chercher une intention… là où il n’y avait qu’un geste ?</p><p class="muted small">Laissez chacun regarder les autres une dernière fois.</p></div>`;
- return `<div class="card reveal-stage"><div class="quiet">Chapitre IV · Le Trésor</div><h2>Le déplacement était réel. Le vol, non.</h2><p class="dramatic">Pendant que les grandes personnes comparaient leurs secrets, Enola a emporté le coffret vers ses jouets. Pour jouer. Tout simplement.</p><p>La lettre, le sac, le message de Norah, la friandise et les décorations n’étaient pas une conspiration. Vous cherchiez un menteur ; il fallait suivre le coffret.</p><p><strong>Aucun objet à chercher : le dénouement est entièrement dans le jeu.</strong></p>${host?`<details><summary>🗳️ Relire les verdicts après la révélation</summary>${investigators.map(p=>`<p>${P[p]} : ${h(P[c.votes[p]?.suspect]||'Indéterminé')} — ${h(c.votes[p]?.argument||'')}</p>`).join('')}</details>`:`<p>Ton verdict : ${h(P[c.votes[session.role]?.suspect]||'Indéterminé')}.</p>`}<button type="button" class="btn secondary" data-tab="carnet">🪞 Relire mon enquête dans mon Cluedo</button></div>`;
+ if(phase===4)return `<div class="card reveal-stage"><div class="quiet">Chapitre IV · Le silence</div><h2>La question que personne ne posait.</h2><p class="dramatic">Et si vous aviez confondu le nombre de personnes convaincues… avec la force des preuves ?</p></div>`;
+ return `<div class="card reveal-stage"><div class="quiet">Chapitre V · Le Trésor</div><h2>Le déplacement était réel. Le vol, non.</h2><p class="dramatic">Enola a emporté le coffret vers ses jouets. Pour jouer. Tout simplement.</p><p>Le sac de Mathieu, le message de Norah, la friandise de Nino et les souvenirs de James étaient réels. La conspiration, elle, s’est construite dans vos interprétations — si vous en avez imaginé une.</p><div class="collective-reflection"><h3>Le second retournement</h3>${sharedBeliefMirror(c.votes)}<p>Une accusation partagée n’était pas forcément une observation partagée. À vous de comparer les théories que vous avez réellement échangées.</p></div><p><strong>Aucun objet à chercher : tout le dénouement est numérique.</strong></p><details><summary>🗳️ Relire les six verdicts et leurs raisons</summary>${sharedVerdicts(c.votes)}</details><button type="button" class="btn secondary" data-tab="carnet">🪞 Relire mes certitudes dans mon Cluedo</button></div>`;
 }
 async function submitAnswer(qIndex,answer){const q=Q[qIndex];if(!Number.isInteger(answer)||answer<0||answer>2)throw Error("Choisis une réponse.");if(session.role!==q.target||ctx().phase!==qIndex)throw Error('Ce n’est pas ton tour de répondre.');if(!ctx().members[q.asker])throw Error('Attends que l’enquêteur rejoigne la salle.');await set(path(session.code,`answers/${q.id}`),{value:answer,by:me.uid,submittedAt:serverTimestamp()});selectedAnswer=-1}
 // Copie figée des huit fiches : la note actuelle reste libre après ce vote.
@@ -570,10 +629,11 @@ async function vote(){
  if(!investigators.includes(session.role)||ctx().phase!==18)throw Error('Vote indisponible.');
  if(![...Object.keys(P),'indetermine'].includes(chosenSuspect))throw Error('Choisis un suspect.');
  if(!notesReady)throw Error('Attends la connexion de ton carnet avant de voter.');
+ if(!SOURCE_KEYS.includes(chosenSource))throw Error('Indique ce qui t’a le plus convaincu.');
  // Firebase applique les deux écritures dans un seul update multi-emplacements :
  // aucun vote sans sa photographie privée des statuts, pastilles et notes.
  const currentSession=session;
- const ballot={suspect:chosenSuspect,argument:voteArgument.trim(),by:me.uid,submittedAt:serverTimestamp()};
+ const ballot={suspect:chosenSuspect,source:chosenSource,argument:voteArgument.trim(),by:me.uid,submittedAt:serverTimestamp()};
  const portrait={by:me.uid,savedAt:serverTimestamp(),notes:captureVoteNotebook()};
  await update(path(currentSession.code),{
   [`votes/${currentSession.role}`]:ballot,
@@ -592,9 +652,9 @@ function showStatus(){if(!session){stat.innerHTML='';return;}const c=ctx();stat.
 function loginUI(){const mj=new URLSearchParams(location.search).get('mj')==='1';return `<div class="card"><h2>Entrer dans l’enquête</h2>${mj?`<p>Accès réservé à Charlotte.</p>${me&&!me.isAnonymous?'<p class="ok">Compte Google MJ connecté.</p>':'<button class="btn" data-action="google">Se connecter avec Google</button>'}${me&&!me.isAnonymous?`<button class="btn secondary" data-action="create">Créer une salle</button>`:''}`:`<label>Code de salle<input id="code" maxlength="8" value="${h(joinCode)}" placeholder="ABCDEFGH"></label><p><strong>Choisis ton personnage</strong></p><div class="person-grid">${investigators.map(p=>`<button type="button" class="person-tile ${selectedPlayer===p?'selected':''}" data-person="${p}"><span class="emoji">${h(P[p].split(' ')[0])}</span><span class="name">${h(P[p].split(' ').slice(1).join(' '))}</span></button>`).join('')}</div><button class="btn" data-action="join">Rejoindre la salle</button><p class="small muted">Chaque joueur utilise son propre navigateur / téléphone, sans le compte Google MJ.</p><button class="btn secondary" data-action="host">Je suis Charlotte (MJ)</button>`}</div>`}
 function menu(){return `<div class="tabs" role="navigation" aria-label="Navigation de l’enquête">${[['enquete','🎭 Tribunal'],['carnet','📋 Mon Cluedo'],['affaire','🕰️ L’affaire']].map(([k,label])=>`<button class="${tab===k?'active':''}" data-tab="${k}" aria-current="${tab===k?'page':'false'}">${label}</button>`).join('')}</div><details class="settings"><summary>Paramètres de la salle</summary><button class="btn secondary" data-action="leave">Quitter cette salle</button>${session.role==='charlotte'?`<button class="btn secondary" data-action="new-room">Créer une nouvelle salle de test</button><details><summary>Dossier confidentiel de Charlotte</summary>${mjUI()}</details>`:''}</details>`}
 function chapterPrelude(step){
- if(step===0)return `<div class="card reveal-stage"><div class="quiet">Prologue · La même soirée, plusieurs vérités</div><p class="dramatic">À 20 h 35, le Trésor de la Chouquette n’est plus sur la table. Sept personnes racontent ce qu’elles ont vu. Pas forcément ce qu’elles ont compris.</p><p>Ne confondez pas un souvenir, un secret et une preuve. À chaque tour, écoutez la question puis la réponse prononcées à voix haute.</p></div>`;
- if(step===6)return `<div class="card reveal-stage"><div class="quiet">Manche II · Ce qui a été tu</div><p>Un mensonge découvert rend une personne suspecte. Il ne dit pas de quoi elle est coupable.</p></div>`;
- if(step===12)return `<div class="card reveal-stage"><div class="quiet">Manche III · La certitude est un piège</div><p>Le groupe croit tenir des responsables. Reste à savoir de quoi.</p></div>`;
+ if(step===0)return `<div class="card reveal-stage"><div class="quiet">Prologue · La même soirée, plusieurs vérités</div><p class="dramatic">À 20 h 35, le Trésor de la Chouquette n’est plus sur la table. Sept personnes racontent ce qu’elles ont vu. Pas forcément ce qu’elles ont compris.</p><p>Chacun pense avoir retenu quelque chose. Les autres en feront ce qu’ils voudront. Écoutez les questions et les réponses prononcées à voix haute.</p></div>`;
+ if(step===6)return `<div class="card reveal-stage"><div class="quiet">Manche II · Ce qui a été tu</div><p>Vous avez entendu des versions différentes. Certaines paroles sont devenues des soupçons. Qui les a prononcées en premier ?</p></div>`;
+ if(step===12)return `<div class="card reveal-stage"><div class="quiet">Manche III · La certitude est un piège</div><p>Vos versions circulent désormais dans la pièce. Lesquelles venez-vous de voir, et lesquelles avez-vous seulement entendues ?</p></div>`;
  return '';
 }
 function interrogation(){
@@ -602,7 +662,11 @@ function interrogation(){
  if(step>=19)return revealTheater();
  if(step===18){
   const mine=c.votes[session.role];
-  return `<div class="card"><div class="round">VERDICT FINAL · 18 CONFRONTATIONS</div><h2>Qui a déplacé le Trésor ?</h2><p>Choisis un personnage d’après tes notes. Tu peux aussi estimer que les preuves ne suffisent pas.</p>${session.role==='charlotte'?'<p class="muted">Tu es une suspecte : les six enquêteurs votent sans ton intervention. Le verdict est automatiquement révélé.</p>':mine?'<div class="ok">✅ Ton vote est enregistré. Les conclusions des autres restent privées pour l’instant.</div>':`<div class="suspect-vote-grid">${suspects.map(p=>`<button type="button" class="person-tile ${chosenSuspect===p?'selected':''}" data-vote-person="${p}"><span class="emoji">${h(P[p].split(' ')[0])}</span><span class="name">${h(P[p].split(' ').slice(1).join(' '))}</span></button>`).join('')}</div><button class="status-pill w100 ${chosenSuspect==='indetermine'?'active':''}" data-vote-person="indetermine">❔ Les preuves ne suffisent pas</button><label>Ma raison (facultative)<textarea id="voteReason" maxlength="220" placeholder="J’ai entendu que…">${h(voteArgument)}</textarea></label><button class="btn w100" data-action="vote" ${!chosenSuspect?'disabled':''}>Déposer mon verdict</button>`}</div>`;
+  const choiceCards=SOURCE_KEYS.map(key=>{
+   const entry=CONVICTION_SOURCES[key];
+   return `<button type="button" class="conviction-choice" data-vote-source="${key}" aria-pressed="${chosenSource===key}"><span class="source-icon">${h(entry.icon)}</span><span>${h(entry.label)}</span></button>`;
+  }).join('');
+  return `<div class="card"><div class="round">VERDICT FINAL · 18 CONFRONTATIONS</div><h2>Qui a déplacé le Trésor ?</h2><p>Choisis une personne ou indique que tu ne peux pas conclure. Tu devras ensuite dire ce qui t’a principalement convaincu.</p>${session.role==='charlotte'?'<p class="muted">Tu ne votes pas. Le Tribunal recueille automatiquement les six verdicts avant de confronter vos convictions.</p>':mine?'<div class="ok">✅ Ton verdict et ta raison principale sont enregistrés. Ils apparaîtront ensemble après les six votes.</div>':`<div class="suspect-vote-grid">${suspects.map(p=>`<button type="button" class="person-tile ${chosenSuspect===p?'selected':''}" data-vote-person="${p}" aria-pressed="${chosenSuspect===p}"><span class="emoji">${h(P[p].split(' ')[0])}</span><span class="name">${h(P[p].split(' ').slice(1).join(' '))}</span></button>`).join('')}</div><button class="status-pill w100 ${chosenSuspect==='indetermine'?'active':''}" data-vote-person="indetermine" aria-pressed="${chosenSuspect==='indetermine'}">❔ Les preuves ne suffisent pas</button><h3>Qu’est-ce qui t’a le plus convaincu ?</h3><p class="small muted">Un seul choix. Ce que tu déclares sera montré aux autres après les votes. Il n’y a pas de bonne réponse.</p><div class="conviction-choices" role="group" aria-label="Origine principale de ma conviction">${choiceCards}</div>${chosenSource?`<div class="conviction-summary">${h(CONVICTION_SOURCES[chosenSource].question)}</div>`:''}<label>Mon argument (facultatif, public après les votes)<textarea id="voteReason" maxlength="220" placeholder="Ce qui m’a fait penser cela…">${h(voteArgument)}</textarea></label><button class="btn w100" data-action="vote" ${!chosenSuspect||!chosenSource?'disabled':''}>Déposer mon verdict</button>`}</div>`;
  }
  const q=Q[step],answer=c.answers[q.id];
  const asker=session.role===q.asker,target=session.role===q.target;
@@ -667,7 +731,7 @@ function mirrorFacts(snapshot,ballot){
 function mirrorPanel(){
  const step=ctx().phase;
  if(step<19)return '';
- if(revealMoment()<4)return `<section class="card" aria-label="Après le verdict"><h3>🕯️ Les certitudes vont tomber</h3><p>Le bilan de ton enquête s’ouvrira une fois la dernière révélation affichée au Tribunal.</p><button class="btn secondary" data-tab="enquete">Retour au Tribunal</button></section>`;
+ if(revealMoment()<5)return `<section class="card" aria-label="Après le verdict"><h3>🕯️ Les certitudes vont tomber</h3><p>Le bilan de ton enquête s’ouvrira une fois la dernière révélation affichée au Tribunal.</p><button class="btn secondary" data-tab="enquete">Retour au Tribunal</button></section>`;
  if(session.role==='charlotte'){
   const classified=suspects.filter(id=>normalizeNote(notes[id]).status!=='inconnu');
   return `<section class="mirror-panel" aria-label="Bilan de Charlotte"><div class="round">CHAPITRE V · APRÈS LA VÉRITÉ</div><h3>👑 Ce que tu ne pouvais pas voir</h3><p>Tu connaissais l’organisation de la soirée, mais pas les déplacements de chacun. Le secret des autres ne constituait pas une preuve.</p><p>${classified.length?`Tu as actuellement classé ${classified.length} dossier${classified.length>1?'s':''} dans ton carnet.`:'Tu n’avais pas encore classé de suspect dans ton carnet.'} Charlotte ne participe pas aux six votes : il n’existe donc pas d’instantané de verdict à lui attribuer.</p><p class="mirror-foot">Tes notes actuelles restent privées et modifiables. Elles ne sont pas présentées comme tes convictions au moment du verdict.</p></section>`;
@@ -679,7 +743,9 @@ function mirrorPanel(){
  const choice=ballot.suspect==='indetermine'?'❔ Preuves insuffisantes':P[ballot.suspect]||'Choix inconnu';
  const question=MIRROR_VERDICT_QUESTIONS[ballot.suspect]||MIRROR_VERDICT_QUESTIONS.indetermine;
  const argument=typeof ballot.argument==='string'?ballot.argument.trim():'';
- return `<section class="mirror-panel" aria-label="Bilan rétrospectif privé"><div class="round">CHAPITRE V · APRÈS LA VÉRITÉ</div><h3>🪞 Ce que tu croyais savoir</h3><p class="mirror-subtitle">Voici tes choix tels qu’ils étaient enregistrés au moment de ton vote. Ce bilan questionne tes raisonnements ; il ne les juge pas.</p><div class="mirror-verdict"><span class="mini-tag">🗳️ Ton verdict enregistré</span><strong>${h(choice)}</strong>${argument?`<p>Ta justification : « ${h(argument)} »</p>`:'<p>Tu n’avais pas rédigé de justification.</p>'}<p>${h(question)}</p></div>${traces.length?`<h4>📋 Tes convictions au moment du vote</h4>${traces.map(t=>`<div class="mirror-trace"><div class="label">${h(P[t.id])} · ${h({suspect:'🔴 Suspect',ecarte:'🟢 Écarté',verifier:'🟠 À vérifier',inconnu:'❔ Inconnu'}[t.status])}</div><p>${h(t.text)}</p>${t.tags?`<p class="small">Tes pastilles : ${h(t.tags)}</p>`:''}${t.observation?`<blockquote>Ta note : « ${h(t.observation)} »</blockquote>`:''}</div>`).join('')}`:'<div class="mirror-trace"><strong>Tu n’avais classé aucun dossier.</strong><p>Ton absence de certitude faisait aussi partie de ton enquête.</p></div>'}<p class="mirror-foot">🔒 Bilan personnel. Cette photographie est figée : si tu modifies une fiche maintenant, le souvenir de ton vote ne change pas. Les faits de la soirée sont disponibles dans « L’affaire ».</p></section>`;
+ const disclosed=CONVICTION_SOURCES[ballot.source];
+ const sourceReflection=disclosed?`<p><strong>Tu avais choisi :</strong> ${h(disclosed.short)}. ${h(disclosed.question)}</p>`:'<p>La raison principale de ta conviction n’a pas été enregistrée.</p>';
+ return `<section class="mirror-panel" aria-label="Bilan rétrospectif privé"><div class="round">CHAPITRE V · APRÈS LA VÉRITÉ</div><h3>🪞 Ce que tu croyais savoir</h3><p class="mirror-subtitle">Voici tes choix tels qu’ils étaient enregistrés au moment de ton vote. Ce bilan questionne tes raisonnements ; il ne les juge pas.</p><div class="mirror-verdict"><span class="mini-tag">🗳️ Ton verdict enregistré</span><strong>${h(choice)}</strong>${argument?`<p>Ta justification : « ${h(argument)} »</p>`:'<p>Tu n’avais pas rédigé de justification.</p>'}${sourceReflection}<p>${h(question)}</p></div>${traces.length?`<h4>📋 Tes convictions au moment du vote</h4>${traces.map(t=>`<div class="mirror-trace"><div class="label">${h(P[t.id])} · ${h({suspect:'🔴 Suspect',ecarte:'🟢 Écarté',verifier:'🟠 À vérifier',inconnu:'❔ Inconnu'}[t.status])}</div><p>${h(t.text)}</p>${t.tags?`<p class="small">Tes pastilles : ${h(t.tags)}</p>`:''}${t.observation?`<blockquote>Ta note : « ${h(t.observation)} »</blockquote>`:''}</div>`).join('')}`:'<div class="mirror-trace"><strong>Tu n’avais classé aucun dossier.</strong><p>Ton absence de certitude faisait aussi partie de ton enquête.</p></div>'}<p class="mirror-foot">🔒 Bilan personnel. Cette photographie est figée : si tu modifies une fiche maintenant, le souvenir de ton vote ne change pas. Les faits de la soirée sont disponibles dans « L’affaire ».</p></section>`;
 }
 function carnet(){
  const step=ctx().phase,memories=unlockedMemories(session?.role,step);
@@ -725,6 +791,7 @@ root.addEventListener('click',async e=>{
  const person=e.target.closest('[data-notebook-person]');if(person){selectedNotebookPerson=person.dataset.notebookPerson;render();return;}
  const status=e.target.closest('[data-status-value]');if(status){editNote(selectedNotebookPerson,'status',status.dataset.statusValue);render();return;}
  const tag=e.target.closest('[data-note-tag]');if(tag){editNote(selectedNotebookPerson,'tag',tag.dataset.noteTag);render();return;}
+ const conviction=e.target.closest('[data-vote-source]');if(conviction){chosenSource=conviction.dataset.voteSource;render();return;}
  const votePerson=e.target.closest('[data-vote-person]');if(votePerson){chosenSuspect=votePerson.dataset.votePerson;render();return;}
  const choose=e.target.closest('[data-person]');if(choose){selectedPlayer=choose.dataset.person;render();return;}
  const el=e.target.closest('[data-action],[data-tab]');if(!el)return;if(el.dataset.tab){tab=el.dataset.tab;render();return}const action=el.dataset.action;if(pending)return;pending=true;error='';try{if(action==='dismiss'){}else if(action==='google')await hostLogin();else if(action==='host'){location.href=location.pathname+'?mj=1';return}else if(action==='create'||action==='new-room')await createRoom();else if(action==='leave')leaveRoom();else if(action==='join')await openRoom(joinCode,selectedPlayer);else if(action==='copy'){const url=location.origin+location.pathname+'?room='+session.code;await navigator.clipboard.writeText(url)}else if(action==='answer')await submitAnswer(ctx().phase,selectedAnswer);else if(action==='vote')await vote()}catch(ex){error=ex.message||String(ex)}finally{pending=false;render()}});
