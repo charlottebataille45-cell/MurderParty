@@ -71,7 +71,16 @@
 [data-final-panel]{scroll-margin-top:76px}
 @media(max-width:360px){.final-step{font-size:11px;padding:8px 3px}}
 
-</style></head><body><main><header><div>🕯️ LES ROUBATVOT</div><h1>Le Tribunal</h1><div class="muted">Un coffret a disparu. Les certitudes aussi.</div></header><div id="status"></div><div id="root"><div class="card">Connexion à Firebase…</div></div><footer>Halloween 2026 · Ingré · Questions et réponses orales · Carnets Cluedo privés sur Firebase.</footer></main>
+/* V4.9.3 : les commandes de salle restent accessibles, sans bandeau permanent. */
+.room-settings{margin:28px 0 0;padding:12px 2px 0;border-top:1px solid #3c4660;color:var(--muted)}
+.room-settings>summary{padding:9px 3px;font-size:12px;cursor:pointer}
+.room-settings-content{padding:10px 4px 6px}
+.room-settings-meta{display:flex;flex-direction:column;gap:2px;margin:0 0 13px}
+.room-settings-meta strong{color:var(--text);font-size:14px}
+.room-settings-actions{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px}
+.room-settings-actions .btn{font-size:13px;padding:10px 12px}
+.room-settings-content>details>summary{cursor:pointer;padding:9px 3px}
+</style></head><body><main><header><div>🕯️ LES ROUBATVOT</div><h1>Le Tribunal</h1><div class="muted">Un coffret a disparu. Les certitudes aussi.</div></header><div id="root"><div class="card">Connexion à Firebase…</div></div><footer>Halloween 2026 · Ingré · Questions et réponses orales · Carnets Cluedo privés sur Firebase.</footer></main>
 <script type="module">
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
 import {getAuth,onAuthStateChanged,signInAnonymously,signInWithPopup,GoogleAuthProvider,signOut} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
@@ -110,7 +119,7 @@ const serverNow=()=>Date.now()+serverOffset;
 let selectedNotebookPerson='james';
 let notebookView='dossiers';
 let tab='enquete',error='',pending=false,selectedAnswer=-1,chosenSuspect='',chosenSource='',voteArgument='',joinCode=new URLSearchParams(location.search).get('room')||'',selectedPlayer='james';
-const root=document.getElementById('root'),stat=document.getElementById('status');
+const root=document.getElementById('root');
 const h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const path=(code,trail='')=>ref(db,`rooms/${code}${trail?'/'+trail:''}`);
 const sessionKey='roubatvot_v49_session';
@@ -643,9 +652,15 @@ function updateCountdowns(){
   el.textContent=left>0?`🎤 Encore ${left} s pour échanger et noter vos hypothèses ; la suite est automatique.`:'⌛ La prochaine question se prépare automatiquement…';
  }
 }
-function showStatus(){if(!session){stat.innerHTML='';return;}const c=ctx();stat.innerHTML=`<div class="card flex between"><div><strong>🟢 Salle ${h(session.code)}</strong><br><span class="muted small">${Object.keys(c.members).length}/7 profils · ${c.phase<18?'Manche '+(Math.floor(c.phase/6)+1)+'/3':c.phase===18?'Verdict':'Révélation'}</span></div><button class="btn secondary" data-action="copy">Copier le lien</button></div>`}
+
 function loginUI(){const mj=new URLSearchParams(location.search).get('mj')==='1';return `<div class="card"><h2>Entrer dans l’enquête</h2>${mj?`<p>Accès réservé à Charlotte.</p>${me&&!me.isAnonymous?'<p class="ok">Compte Google MJ connecté.</p>':'<button class="btn" data-action="google">Se connecter avec Google</button>'}${me&&!me.isAnonymous?`<button class="btn secondary" data-action="create">Créer une salle</button>`:''}`:`<label>Code de salle<input id="code" maxlength="8" value="${h(joinCode)}" placeholder="ABCDEFGH"></label><p><strong>Choisis ton personnage</strong></p><div class="person-grid">${investigators.map(p=>`<button type="button" class="person-tile ${selectedPlayer===p?'selected':''}" data-person="${p}"><span class="emoji">${h(P[p].split(' ')[0])}</span><span class="name">${h(P[p].split(' ').slice(1).join(' '))}</span></button>`).join('')}</div><button class="btn" data-action="join">Rejoindre la salle</button><p class="small muted">Chaque joueur utilise son propre navigateur / téléphone, sans le compte Google MJ.</p><button class="btn secondary" data-action="host">Je suis Charlotte (MJ)</button>`}</div>`}
-function menu(){return `<div class="tabs" role="navigation" aria-label="Navigation de l’enquête">${[['enquete','🎭 Tribunal'],['carnet','📋 Mon Cluedo'],['affaire','🕰️ L’affaire']].map(([k,label])=>`<button class="${tab===k?'active':''}" data-tab="${k}" aria-current="${tab===k?'page':'false'}">${label}</button>`).join('')}</div><details class="settings" data-details-key="settings"><summary>Paramètres de la salle</summary><button class="btn secondary" data-action="leave">Quitter cette salle</button>${session.role==='charlotte'?`<button class="btn secondary" data-action="new-room">Créer une nouvelle salle de test</button><details data-details-key="mj-dossier"><summary>Dossier confidentiel de Charlotte</summary>${mjUI()}</details>`:''}</details>`}
+function menu(){return `<div class="tabs" role="navigation" aria-label="Navigation de l’enquête">${[['enquete','🎭 Tribunal'],['carnet','📋 Mon Cluedo'],['affaire','🕰️ L’affaire']].map(([k,label])=>`<button class="${tab===k?'active':''}" data-tab="${k}" aria-current="${tab===k?'page':'false'}">${label}</button>`).join('')}</div>`}
+// V4.9.3 : informations techniques uniquement dans les paramètres, placés avant le pied de page.
+function roomSettings(){
+ const c=ctx();
+ const phase=c.phase<18?'Manche '+(Math.floor(c.phase/6)+1)+'/3':c.phase===18?'Verdict':'Révélation';
+ return `<details class="settings room-settings" data-details-key="settings"><summary>Paramètres de la salle</summary><div class="room-settings-content"><div class="room-settings-meta"><strong>🟢 Salle ${h(session.code)}</strong><span class="muted small">${Object.keys(c.members).length}/7 profils · ${phase}</span></div><div class="room-settings-actions"><button class="btn secondary" data-action="copy">Copier le lien</button><button class="btn secondary" data-action="leave">Quitter cette salle</button>${session.role==='charlotte'?'<button class="btn secondary" data-action="new-room">Créer une nouvelle salle de test</button>':''}</div>${session.role==='charlotte'?`<details data-details-key="mj-dossier"><summary>Dossier confidentiel de Charlotte</summary>${mjUI()}</details>`:''}</div></details>`;
+}
 function chapterPrelude(step){
  if(step===0)return `<div class="card reveal-stage"><div class="quiet">Prologue · La même soirée, plusieurs vérités</div><p class="dramatic">À 20 h 35, le Trésor de la Chouquette n’est plus sur la table. Sept personnes racontent ce qu’elles ont vu. Pas forcément ce qu’elles ont compris.</p><p>Chacun pense avoir retenu quelque chose. Les autres en feront ce qu’ils voudront. Écoutez les questions et les réponses prononcées à voix haute.</p></div>`;
  if(step===6)return `<div class="card reveal-stage"><div class="quiet">Manche II · Ce qui a été tu</div><p>Vous avez entendu des versions différentes. Certaines paroles sont devenues des soupçons. Qui les a prononcées en premier ?</p></div>`;
@@ -774,9 +789,9 @@ function render(){
   if(el.open)expandedDetails.add(el.dataset.detailsKey);
   else expandedDetails.delete(el.dataset.detailsKey);
  }
- showStatus();let html='';
+ let html='';
  if(!session)html=loginUI();
- else html=menu()+(tab==='carnet'?carnet():tab==='affaire'?affaire():chapterPrelude(ctx().phase)+interrogation());
+ else html=menu()+(tab==='carnet'?carnet():tab==='affaire'?affaire():chapterPrelude(ctx().phase)+interrogation())+roomSettings();
  if(error)html=`<div class="card error">⚠️ ${h(error)} <button class="btn secondary" data-action="dismiss">Fermer</button></div>`+html;
  root.innerHTML=html;
  for(const el of root.querySelectorAll('details[data-details-key]'))el.open=expandedDetails.has(el.dataset.detailsKey);
