@@ -1,4 +1,6 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#10111e"><title>Le Tribunal des Roubatvot</title><style>
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#10111e"><title>Le Tribunal des Roubatvot</title>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
 :root{color-scheme:dark;--bg:#0c101d;--panel:#171e31;--line:#33405a;--text:#eff3fa;--muted:#b0bbcf;--gold:#f4c972;--accent:#76cecf}*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#0b101e,#18142b);color:var(--text);font:16px/1.5 system-ui,Segoe UI,sans-serif;min-height:100vh}main{max-width:880px;margin:auto;padding:20px 14px 80px}header{text-align:center;padding:17px 0 8px}h1{font:700 clamp(25px,5vw,36px) Georgia,serif;color:var(--gold);margin:4px}h2{font-size:22px;margin:0 0 10px}h3{font-size:18px;margin:10px 0}p{margin:8px 0 14px}.hint,.muted{color:var(--muted)}.tag{display:inline-block;font-size:12px;border:1px solid #6c6983;border-radius:99px;padding:2px 9px;color:#eed5a1}.card{background:rgba(24,32,52,.97);border:1px solid var(--line);border-radius:15px;padding:18px;margin:14px 0;box-shadow:0 6px 20px #05061125}.flex{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}.btn{padding:12px 17px;border:0;background:var(--gold);color:#1b1b21;border-radius:9px;font-weight:800;cursor:pointer;font-size:15px}.btn.secondary{background:#2f425e;color:#fff}.btn.danger{background:#7a3941;color:white}.btn:disabled{opacity:.44;cursor:not-allowed}input,textarea,select{width:100%;padding:12px;background:#0d1425;color:white;border:1px solid #61718b;border-radius:8px;font:inherit}textarea{min-height:74px;resize:vertical}label{display:block;margin:10px 0 5px}.options{display:grid;gap:9px;margin:15px 0}.choice{display:block;background:#1d2943;padding:13px;border:1px solid #52617b;border-radius:11px;cursor:pointer}.choice input{width:auto;margin-right:10px}.choice:has(input:checked){border-color:var(--gold);background:#3e3646}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0}.tabs button{background:#25344b;color:white;border:1px solid #425774;border-radius:8px;padding:9px 13px;cursor:pointer}.tabs button.active{background:#ac8853;color:#130f10;font-weight:800}.quote{border-left:3px solid var(--gold);padding:9px 13px;background:#2c2b3e;font-size:18px}.timeline{display:flex;gap:6px;flex-wrap:wrap}.dot{font-size:12px;border-radius:99px;background:#30384e;padding:5px 10px}.dot.done{background:#25564d}.round{font-size:14px;color:var(--gold);font-weight:700}.private{border:1px dashed #bd9768;background:#2b2636;padding:12px;border-radius:10px}.note-row{border-top:1px solid var(--line);padding:13px 0}.note-row:first-of-type{border:0}.error{color:#ff9ca5}.ok{color:#a4e7c7}.hide{display:none}.small{font-size:13px}footer{text-align:center;color:#8d99b1;font-size:12px;margin-top:30px}.memory{border-left:3px solid #8a7fcb;background:#28263e;border-radius:7px;padding:12px;margin:12px 0}.rumor{border:1px solid #725e7c;background:#292336;border-radius:10px;padding:14px;margin:12px 0}.warning-line{color:#d8bfa4;font-size:13px}.reveal-stage{border:1px solid #8f765f;background:linear-gradient(135deg,#211c2d,#182231);padding:22px;border-radius:13px}.reveal-stage h2{font:700 clamp(23px,5vw,30px) Georgia,serif;color:var(--gold)}.reveal-stage .clockline{border-left:2px solid #d3b47a;padding:7px 13px;margin:9px 0}.reveal-stage .clockline .time{color:var(--gold);font-weight:bold}.reveal-stage .dramatic{font:italic 20px Georgia,serif;line-height:1.6}.quiet{letter-spacing:.08em;text-transform:uppercase;color:#decaa2}.flash-head{font-size:13px;letter-spacing:.04em}
 .flash-reflection{font-size:12px;color:#b8dcd9;border-top:1px solid #4a5571;padding-top:8px;margin-top:8px}.analysis-flash{padding:12px;background:#20283d;border-left:3px solid #d9b36b;border-radius:7px;margin:9px 0}.analysis-flash p{margin:5px 0 0}.small{font-size:.85rem}
 :root{--gold:#f5cb7b;--accent:#86d9d1;--line:#43516b}main{max-width:720px;padding:12px 12px 94px}header{padding:10px 0 2px}header h1{font-size:clamp(24px,6vw,33px)}.card{padding:16px;margin:12px 0;border-radius:17px}.tabs{position:sticky;top:0;z-index:8;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:#0d1424ed;backdrop-filter:blur(10px);padding:8px 2px;border-radius:13px;gap:5px}.tabs button{padding:12px 5px;border-radius:10px;font-weight:700;font-size:clamp(12px,3vw,15px)}.card-title{color:var(--gold);margin:5px 0 10px}.step-track{height:7px;background:#26344e;border-radius:999px;overflow:hidden;margin:9px 0}.step-track-fill{height:100%;background:linear-gradient(90deg,#6db9bd,#efc471);border-radius:999px}.versus{display:flex;align-items:center;justify-content:center;gap:15px;margin:12px 0}.character{display:grid;place-items:center;gap:2px;min-width:90px;text-align:center}.character .avatar{font-size:32px}.versus .mid{color:#abb8cb}.big-question{font:600 clamp(19px,4.8vw,25px)/1.4 Georgia,serif;text-align:center;background:#242943;border-radius:13px;padding:20px 12px;margin:15px 0}.role-instruction{background:#22394d;padding:12px;border-radius:11px;color:#e2f4ff}.response-grid{display:grid;gap:10px;margin:12px 0}.response-card{border:1px solid #576986;border-radius:14px;background:#202a42;padding:15px;display:flex;gap:12px;cursor:pointer;align-items:flex-start;min-height:65px}.response-card.selected{border:2px solid var(--gold);background:#34304a}.response-card input{position:absolute;opacity:0;width:1px;height:1px}.response-letter{display:grid;place-items:center;background:#364b68;border-radius:10px;width:33px;height:33px;flex:0 0 33px;font-weight:800}.response-card.selected .response-letter{background:var(--gold);color:#171a24}.person-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}.person-tile{background:#1d2c42;color:inherit;border:1px solid #485874;border-radius:13px;min-height:91px;padding:9px 3px;display:flex;flex-direction:column;align-items:center;gap:4px;justify-content:center;font-size:12px;cursor:pointer;position:relative}.person-tile.selected{border:2px solid var(--gold);background:#3b3444}.person-tile .emoji{font-size:28px}.person-tile .tiny{font-size:10px;color:#c8d0e2}.person-tile .name{font-weight:750}.status-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}.status-pill{color:#f4f4ff;background:#223048;padding:11px 4px;border:1px solid #52627b;border-radius:12px;font-size:13px;font-weight:700;min-height:44px;cursor:pointer}.status-pill.active{border:2px solid var(--gold);background:#403a43}.status-summary{margin:0;color:#b4c7d5;font-size:12px}.clue-line{border-left:3px solid #dcb669;background:#202b3e;padding:10px 12px;border-radius:7px;margin:10px 0}.clue-line .time{color:var(--gold);font-weight:800}.suspect-vote-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.suspect-vote-grid .person-tile{min-height:83px}.w100{width:100%}.mini-tag{display:inline-block;border-radius:20px;border:1px solid #698296;padding:4px 9px;font-size:12px}.scroll-tip{font-size:13px;color:#afc0d0}details.settings{margin:12px 0;color:#b9c6db}details.settings summary{cursor:pointer;padding:5px;font-size:12px}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #eac27c;outline-offset:2px}@media(min-width:580px){.person-grid{grid-template-columns:repeat(4,1fr)}.status-picker{grid-template-columns:repeat(4,1fr)}}
@@ -80,744 +82,125 @@
 .room-settings-actions{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px}
 .room-settings-actions .btn{font-size:13px;padding:10px 12px}
 .room-settings-content>details>summary{cursor:pointer;padding:9px 3px}
+
+/* Synopsis V16.6 : extension minimale des vues de pilotage et du dénouement. */
+.host-panel{border-color:#8b7656;background:#20273b}.host-form{border:1px solid #465877;border-radius:12px;padding:13px;margin:12px 0}.host-form textarea{min-height:62px}.host-form .btn{margin:5px 0 12px}
+.status-list{margin:10px 0}.status-line{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid #344359;padding:8px 0}.btn-small{font-size:12px;padding:7px 8px}.chapter-title{padding:8px 14px}.chapter-title .round{margin:0}
+.plan{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:18px 0}.plan>div{border:1px solid #66738a;border-radius:12px;background:#26334d;text-align:center;padding:20px 5px;min-height:80px}.plan>div:nth-child(4){border-style:dashed;border-color:#dfbf7f}
+.clockline{border-left:2px solid #d3b47a;padding:8px 13px;margin:12px 0}.influence-edge{animation:panel-in .3s ease-out both}.celebration{text-align:center;padding:40px 22px}
+@media(min-width:850px){.host-panel{margin-top:18px}}@media(prefers-reduced-motion:reduce){.influence-edge{animation:none}}
 </style></head><body><main><header><div>🕯️ LES ROUBATVOT</div><h1>Le Tribunal</h1><div class="muted">Un coffret a disparu. Les certitudes aussi.</div></header><div id="root"><div class="card">Connexion à Firebase…</div></div><footer>Halloween 2026 · Ingré · Questions et réponses orales · Carnets Cluedo privés sur Firebase.</footer></main>
 <script type="module">
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
 import {getAuth,onAuthStateChanged,signInAnonymously,signInWithPopup,GoogleAuthProvider,signOut} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
-import {getDatabase,ref,get,set,update,onValue,serverTimestamp,runTransaction} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js';
+import {getDatabase,ref,get,set,remove,onValue,serverTimestamp,push} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js';
 const firebaseConfig={apiKey:'AIzaSyAUA4xdHZyh17ZkmDHe0gXqIrNZgEovcrw',authDomain:'roubatvot-murder-party.firebaseapp.com',databaseURL:'https://roubatvot-murder-party-default-rtdb.firebaseio.com',projectId:'roubatvot-murder-party',storageBucket:'roubatvot-murder-party.firebasestorage.app',messagingSenderId:'225363228130',appId:'1:225363228130:web:94c1839cbe0d542f86b5bb'};
-const Q=[{"id":1,"round":1,"asker":"james","target":"charlotte","question":"Je t'ai vue près de la table avant la disparition. Qu'est-ce que tu y faisais exactement ?","answers":["Je terminais les décorations. Il fallait bien que quelqu'un prépare cette soirée.","J'étais près de la table, oui. Mais être près du coffret ne signifie pas l'avoir touché.","Tu m'as vue près de la table, James. As-tu vu mes mains sur le coffret ?"],"relances":["Quelle décoration préparais-tu à ce moment-là ?","Qu'as-tu réellement touché sur la table ?","Tu ne réponds pas : quel objet as-tu déplacé ?"],"truth":"Charlotte s'est approchée de la table à 20 h 29 pour une décoration ; elle n'a pas déplacé le coffret."},{"id":2,"round":1,"asker":"nino","target":"andreas","question":"Comment sais-tu que je suis passé près de la table ? Tu regardais le Trésor ou tu me surveillais ?","answers":["Je t'ai vu passer vers 20 h 25. Je regardais ce qui se passait autour de moi.","J'ai remarqué ton passage vers 20 h 25 parce que tu semblais vouloir rester discret.","Je t'ai aperçu près de la table vers 20 h 25. Pourquoi veux-tu tant savoir si je te regardais ?"],"relances":["M'as-tu vu toucher le coffret, ou seulement passer ?","Ton impression vient de quel geste précis ?","Réponds : que m'as-tu vu faire exactement ?"],"truth":"Andreas a remarqué Nino près de la table vers 20 h 25 ; il ne l'a pas vu déplacer le Trésor."},{"id":3,"round":1,"asker":"andreas","target":"nino","question":"Tu étais près de la table à 20 h 25. Qu'est-ce que tu cherchais ?","answers":["Une friandise ! Je n'ai pas volé un coffret pour un bonbon.","J'avais faim, je suis venu prendre une friandise. Et alors ?","L'emballage était à moi. Mais qui a touché au coffret après ?"],"relances":["Pourquoi voulais-tu éviter qu'on parle de la friandise ?","As-tu laissé l'emballage près de la table ?","Tu admets la friandise : as-tu vu quelqu'un d'autre près du coffret ?"],"truth":"Nino a pris une friandise à 20 h 25 et laissé un emballage ; cela ne prouve aucun déplacement du coffret."},{"id":4,"round":1,"asker":"matys","target":"james","question":"Tu dis que le coffret était encore là après le message. Tu l'as vraiment vu ?","answers":["Je l'ai vu après le message de 20 h 31. Je m'en souviens bien.","Oui, je l'ai vu après 20 h 31, mais je ne le surveillais pas tout le temps.","Je sais qu'il était là après 20 h 31, pas à quelle seconde il a disparu."],"relances":["Qui peut confirmer ce dernier moment ?","Pendant combien de temps as-tu cessé de regarder la table ?","Quelle est ta dernière observation certaine, sans supposition ?"],"truth":"James a vu le coffret après 20 h 31 ; il n'a pas surveillé chaque seconde suivante."},{"id":5,"round":1,"asker":"mathieu","target":"norah","question":"Je t'ai vue accroupie près des jouets vers 20 h 32. Pourquoi as-tu caché ton téléphone en me voyant ?","answers":["J'écrivais quelque chose de personnel sur mon téléphone. Oui, près des jouets.","J'étais près des jouets avec mon téléphone ; ça ne t'autorise pas à lire mon écran.","Oui, j'ai verrouillé mon téléphone près des jouets. Mais toi, pourquoi surveillais-tu mes mains ?"],"relances":["Un message à qui, si ce n'est pas trop personnel ?","As-tu touché autre chose que ton téléphone ?","Pourquoi ce secret, juste à ce moment-là ?"],"truth":"Norah était accroupie près des jouets avec son téléphone vers 20 h 32 ; elle préparait un message privé pour Matys."},{"id":6,"round":1,"asker":"norah","target":"mathieu","question":"Mathieu, je t'ai vu cacher quelque chose sous ton pull vers 20 h 28. Pourquoi ?","answers":["C'était une surprise que je voulais garder secrète. Oui, je cachais un objet.","Oui, j'avais un objet sous mon pull. Rien ne prouve que c'était le coffret.","J'ai caché quelque chose à 20 h 28. Toi aussi, tu as caché ton écran, non ?"],"relances":["Quelle surprise voulait-on nous cacher ?","Peut-on savoir au moins quelle forme avait cet objet ?","C'est toi qu'on interroge : que cachais-tu exactement ?"],"truth":"Mathieu cachait un sac de friandises sous son pull vers 20 h 28, pas le coffret."},{"id":7,"round":2,"asker":"james","target":"mathieu","question":"J'ai moi aussi vu quelque chose sous ton pull. Pourquoi refuses-tu de dire ce que c'était ?","answers":["C'était une surprise. Je ne voulais pas la gâcher en la montrant tout de suite.","Tu as vu un objet sous mon pull, James. Tu n'as pas vu le coffret.","Tu m'as vu porter quelque chose vers 20 h 28. Qu'as-tu réellement vu ensuite ?"],"relances":["Quelle surprise peut justifier tant de secret ?","Que contenait l'objet que tu cachais ?","Pourquoi ne pas expliquer directement ce que tu transportais ?"],"truth":"James n'a pas identifié l'objet caché par Mathieu ; Mathieu protégeait une surprise de friandises."},{"id":8,"round":2,"asker":"nino","target":"norah","question":"Norah, tu étais près des jouets avec ton téléphone. Pourquoi as-tu caché ton écran à cet endroit ?","answers":["C'était personnel. Je rédigeais un message sur mon téléphone.","Je préparais quelque chose sur mon téléphone. Ça n'avait rien à voir avec le Trésor.","Je cachais mon écran pour garder une surprise. Est-ce devenu interdit ?"],"relances":["Si tu ne veux pas tout lire, à qui était adressé le message ?","Qu'est-ce que tu peux nous confirmer sans révéler le contenu ?","As-tu seulement gardé ton téléphone en main ?"],"truth":"Norah préparait sur son téléphone un message destiné à Matys, près des jouets. Sa présence reste à examiner."},{"id":9,"round":2,"asker":"andreas","target":"matys","question":"Matys, où étais-tu vers 20 h 33, au moment où le coffret n'était plus surveillé ?","answers":["À la cuisine avec Nino. On discutait, c'est tout.","J'étais avec Nino près de la cuisine. Lui aussi peut le confirmer.","Nino et moi étions ensemble à la cuisine ; je sais que vous allez penser qu'on se couvre."],"relances":["Qu'est-ce qui te permet de dater cette conversation ?","Existe-t-il quelqu'un d'autre qui vous a vus ?","Pourquoi avoir attendu cette question pour le dire ?"],"truth":"Matys et Nino étaient ensemble près de la cuisine vers 20 h 33, sans alibi complet sur tout l'intervalle."},{"id":10,"round":2,"asker":"matys","target":"andreas","question":"Andreas, peux-tu confirmer nous avoir vus, Nino et moi, près de la cuisine vers 20 h 33 ?","answers":["Oui, je vous ai vus tous les deux à la cuisine vers 20 h 33.","Oui, vous étiez ensemble vers 20 h 33 ; je n'ai pas surveillé vos mouvements ensuite.","Je confirme vous avoir vus ensemble. Je ne peux pas dire ce que vous avez fait avant."],"relances":["Cette observation prouve-t-elle notre innocence pendant quatre minutes ?","À quel moment as-tu cessé de nous voir ?","Peux-tu confirmer uniquement ce que tu as personnellement observé ?"],"truth":"Andreas corrobore indépendamment la présence de Matys et Nino près de la cuisine vers 20 h 33."},{"id":11,"round":2,"asker":"mathieu","target":"james","question":"James, tu as remarqué plusieurs personnes. Mais toi, où étais-tu vers 20 h 33 ?","answers":["Dans le salon, près du passage vers les jouets. Je regardais de ce côté.","J'étais dans le salon, pas loin du coin des jouets. Pourquoi ?","Dans le salon, je regardais vers les jouets. Personne ne m'a demandé mon alibi avant."],"relances":["Quelqu'un peut-il confirmer ton emplacement ?","Pourquoi te trouvais-tu si près des jouets ?","Qui pourrait dire ce que tu faisais à cet instant ?"],"truth":"James était dans le salon près du passage vers les jouets ; il ne dispose pas d'alibi indépendant complet."},{"id":12,"round":2,"asker":"norah","target":"charlotte","question":"Pendant que tout le monde regardait le message d'Halloween, qui surveillait le Trésor ?","answers":["Personne n'avait cette mission. Nous fêtions Halloween, pas une exposition de musée.","Je pensais que quelqu'un remarquerait forcément si le coffret bougeait.","Nous étions occupés. Je ne peux pas certifier chaque déplacement dans la pièce."],"relances":["Qui a vu le coffret en dernier, alors ?","Qu'est-ce qui te permettait d'être aussi sûre ?","Pouvons-nous distinguer ce que tu sais de ce que tu supposes ?"],"truth":"Personne ne surveillait le coffret sans interruption ; le message faisait partie des animations prévues."},{"id":13,"round":3,"asker":"james","target":"norah","question":"Norah, tu étais près des jouets et tu cachais ton téléphone. Qu'y faisais-tu vraiment ?","answers":["Je rédigeais un message sur mon téléphone. Je ne portais pas le coffret.","J'avais mon téléphone en main, pas une boîte. Pourquoi mélanges-tu les deux ?","J'étais accroupie avec mon téléphone. Je pensais que personne n'y prêterait attention."],"relances":["Quelqu'un a-t-il vu ce que tu tenais en main ?","Ton téléphone était-il la seule chose que tu touchais ?","Pourquoi avoir choisi le coin des jouets pour écrire ?"],"truth":"Norah avait son téléphone et préparait un message personnel. Aucune observation ne l'identifie avec le coffret."},{"id":14,"round":3,"asker":"nino","target":"james","question":"James, tu regardais vers les jouets. Qu'as-tu réellement aperçu autour de 20 h 33 ?","answers":["Une petite silhouette transportait quelque chose vers les jouets. Je n'ai pas vu son visage.","Quelqu'un qui me paraissait petit portait un objet. Je ne sais pas ce que c'était.","J'ai vu une petite silhouette avec quelque chose. J'ai cru qu'on jouait simplement."],"relances":["James, comment sais-tu que ce n'était pas quelqu'un accroupi ?","Est-ce que la taille te paraît certaine ou estimée ?","Pourquoi n'as-tu pas parlé plus tôt de cette silhouette ?"],"truth":"James affirme avoir vu une silhouette de petite taille avec un objet vers les jouets vers 20 h 33 ; il n'a reconnu personne. James étant lui-même petit, sa fiabilité peut être interrogée sans l'accuser à tort."},{"id":15,"round":3,"asker":"andreas","target":"mathieu","question":"Mathieu, tu as caché un objet sous ton pull à 20 h 28. Peux-tu enfin expliquer ce que c'était ?","answers":["C'était un sac de friandises pour la soirée. J'en gardais la surprise.","Un sac de bonbons. L'énorme théorie du coffret sous mon pull ne tenait pas debout.","Oui, un sac de friandises. Je vous ai laissés imaginer pire en restant vague."],"relances":["Un sac à 20 h 28 explique-t-il aussi tes déplacements après 20 h 31 ?","Peux-tu dater le moment où tu as rangé ce sac ?","Pourquoi n'as-tu pas donné cette explication plus tôt ?"],"truth":"Le sac de Mathieu contient des friandises. Une fiche numérique fictive du jeu le confirme, sans l'innocenter sur toute la soirée."},{"id":16,"round":3,"asker":"matys","target":"norah","question":"Norah, le message que tu préparais près des jouets… à qui était-il destiné ?","answers":["À toi, Matys. Je préparais une petite surprise à t'envoyer après le jeu.","C'était un brouillon pour toi, Matys. Je ne voulais pas que les autres le lisent.","À toi, évidemment. Et tout le monde vient de découvrir ma surprise."],"relances":["Tu peux confirmer l'heure du brouillon sans nous montrer tes messages réels ?","Pourquoi avoir caché cet écran à Mathieu ?","Le jeu peut-il montrer le brouillon fictif pour départager les versions ?"],"truth":"Le brouillon numérique fictif, daté de 20 h 32, est destiné à Matys. Aucun accès à un vrai téléphone ou SMS n'est requis."},{"id":17,"round":3,"asker":"mathieu","target":"nino","question":"Nino, on t'a vu à la table à 20 h 25, puis à la cuisine vers 20 h 33. Que prouvent ces deux faits ?","answers":["J'ai pris une friandise, puis parlé avec Matys. Pas un coffret.","On m'a vu près de la table, pas transporter le Trésor.","Vous avez passé du temps sur mon emballage ; qui a observé le coffret lui-même ?"],"relances":["Est-ce que quelqu'un t'a vu prendre le coffret ?","Que peux-tu établir sur la période entre ces deux moments ?","Quelle observation sur le coffret avons-nous oubliée ?"],"truth":"Nino a pris une friandise à 20 h 25 et était avec Matys vers 20 h 33. Il reste un intervalle insuffisamment observé."},{"id":18,"round":3,"asker":"norah","target":"andreas","question":"Vers 20 h 33, as-tu entendu quelque chose en direction du coin des jouets ?","answers":["Oui. Un bruit de couvercle venait du coin des jouets. Je n'ai vu personne.","Quelque chose s'est refermé là-bas. J'ai pensé à une boîte de jouets.","J'ai entendu un bruit semblable à un couvercle près des jouets. Impossible d'identifier l'objet."],"relances":["As-tu vu qui produisait ce bruit ?","Peux-tu certifier que c'était le coffret ?","Qu'est-ce que tu peux attester, sans inventer l'auteur ?"],"truth":"Andreas a entendu un bruit compatible avec un couvercle près des jouets vers 20 h 33, sans voir la personne ni l'objet."}];
+const Q=[{"id":1,"round":1,"asker":"james","target":"charlotte","question":"Tu étais près de la table vers 20 h 29. À quel moment as-tu remarqué que le coffret avait disparu ?","answers":["Vers 20 h 30. Je pensais que Mathieu l'avait simplement rangé.","J'ai vu la table vide vers 20 h 30. Je n'ai vu personne emporter le coffret.","Je préparais les décorations. J'ai remarqué l'absence avant l'extinction de 20 h 31."],"relances":["As-tu vu quelqu'un toucher le coffret ?","Pourquoi as-tu d'abord pensé à Mathieu ?"]},{"id":2,"round":1,"asker":"nino","target":"andreas","question":"Pourquoi étais-tu près du coffret après avoir lu ton manga ?","answers":["Je venais récupérer mon téléphone, pas toucher au coffret.","J'étais près de la table pour mon téléphone. Mathieu peut confirmer m'avoir vu.","Je suis passé près du coffret. Être à côté ne prouve pas que je l'ai déplacé."],"relances":["As-tu vu le coffret partir ?","À qui as-tu parlé de ton téléphone ?"]},{"id":3,"round":1,"asker":"andreas","target":"nino","question":"Tu as pris une friandise discrètement. Pourquoi ne pas l'avoir dit tout de suite ?","answers":["J'ai pris un bonbon, pas un coffret.","Oui, je cachais une friandise. C'est tout ce que j'ai pris.","Je ne voulais pas qu'on me reproche les bonbons. Je n'ai pas déplacé le Trésor."],"relances":["As-tu vu une personne porter le coffret ?","Est-ce que tu sais d'où vient l'emballage près des jouets ?"]},{"id":4,"round":1,"asker":"matys","target":"james","question":"Quand as-tu vu le coffret pour la dernière fois avec certitude ?","answers":["Je l'ai vu sur la table avant 20 h 28, pas après.","Juste avant 20 h 28. Ensuite je n'ai plus regardé.","Je peux dire qu'il était là avant 20 h 28. Je ne sais pas quand il a disparu."],"relances":["L'as-tu observé pendant le blackout ?","Qui peut confirmer une observation plus tardive ?"]},{"id":5,"round":1,"asker":"mathieu","target":"norah","question":"Toi et Matys prépariez une surprise. Pourquoi ce message secret ?","answers":["C'était une plaisanterie pour plus tard, pas une histoire de coffret.","J'échangeais avec Matys sur notre blague. Je voulais garder la surprise.","C'était un message privé à Matys. Il ne disait rien sur le Trésor."],"relances":["Que voulais-tu cacher au groupe ?","As-tu réellement observé le coffret ?"]},{"id":6,"round":1,"asker":"norah","target":"mathieu","question":"Tu as dissimulé quelque chose en allant vers la cuisine. Qu'est-ce que c'était ?","answers":["Un sac de bonbons. Je voulais garder la surprise.","Je cachais des friandises, pas le coffret.","Vous avez vu un sac sous mes vêtements ; vous avez imaginé le reste."],"relances":["Est-ce que tu étais avec Nino et James après ?","As-tu touché le coffret sur la table ?"]},{"id":7,"round":2,"asker":"james","target":"mathieu","question":"Nous étions ensemble autour du moment du noir. Pourquoi ta surprise était-elle cachée ?","answers":["Parce que les bonbons devaient rester une surprise.","J'étais avec vous autour de 20 h 31. Le sac ne contenait pas le coffret.","C'était prévu pour la soirée, pas pour cacher une disparition."],"relances":["Peux-tu confirmer où était James à 20 h 31 ?","As-tu remarqué la table vide avant le noir ?"]},{"id":8,"round":2,"asker":"nino","target":"norah","question":"Que voulait dire ton message à Matys : « Attends le bon moment, surtout ne dis rien aux autres » ?","answers":["On préparait simplement une petite blague.","C'était une plaisanterie entre Matys et moi, pas un aveu.","Je lui demandais de ne pas dévoiler notre surprise avant le bon moment."],"relances":["Quand avez-vous préparé cette blague ?","As-tu vu quelqu'un déplacer le Trésor ?"]},{"id":9,"round":2,"asker":"andreas","target":"matys","question":"Tu préparais quelque chose avec Norah. Où étais-tu avant le blackout ?","answers":["Dans ma chambre, à préparer une blague avec Norah.","Je préparais une surprise innocente. Je n'ai pas déplacé le coffret.","Norah et moi échangions sur la blague, pas sur le Trésor."],"relances":["As-tu vu le coffret sur la table ?","Ton message prouve-t-il ce que tu faisais à 20 h 29 ?"]},{"id":10,"round":2,"asker":"matys","target":"andreas","question":"Mathieu t'a remarqué près de la table. Qu'allais-tu y faire ?","answers":["Je reprenais mon téléphone après mon manga.","Je cherchais mon téléphone. Je ne portais aucune boîte.","Mathieu a vu mon passage, pas un déplacement du Trésor."],"relances":["As-tu observé le coffret ?","Quelle heure exacte peux-tu confirmer ?"]},{"id":11,"round":2,"asker":"mathieu","target":"james","question":"Tu es allé chercher un accessoire de costume avant 20 h 31. Qu'as-tu rapporté ?","answers":["Un accessoire pour mon déguisement, pas le coffret.","J'ai pris quelque chose pour mon costume, puis je suis revenu.","Je ne portais que mon accessoire. Mathieu était avec moi au moment du noir."],"relances":["L'as-tu gardé en main ?","As-tu regardé la table en revenant ?"]},{"id":12,"round":2,"asker":"norah","target":"charlotte","question":"C'est toi qui avais prévu d'éteindre les lumières. Quel était le but ?","answers":["C'était une animation d'Halloween programmée pour 20 h 31.","Le noir faisait partie de la fête. Le coffret manquait déjà vers 20 h 30.","J'ai organisé l'effet de lumière, pas la disparition du Trésor."],"relances":["As-tu programmé le noir avant la disparition ?","Peux-tu affirmer qui a déplacé le coffret ?"]},{"id":13,"round":3,"asker":"james","target":"norah","question":"Ta blague avec Matys avait-elle un rapport avec le Trésor ?","answers":["Non, notre plaisanterie était indépendante du coffret.","Le message était mystérieux exprès, mais ce n'était pas un indice de vol.","Nous voulions faire rire tout le monde, pas cacher la boîte."],"relances":["Quel passage de votre message a été mal compris ?","Est-ce une certitude ou ton explication personnelle ?"]},{"id":14,"round":3,"asker":"nino","target":"james","question":"Tu as vu le coffret avant 20 h 28. Que peux-tu affirmer sur la suite ?","answers":["Je ne sais pas ce qui s'est passé après.","Mon dernier souvenir certain est avant 20 h 28.","Je ne peux pas transformer mon souvenir en alibi pour tout le monde."],"relances":["As-tu vu le coffret pendant le noir ?","Peux-tu identifier la personne qui l'a déplacé ?"]},{"id":15,"round":3,"asker":"andreas","target":"mathieu","question":"Le sac caché sous tes vêtements explique-t-il la disparition du coffret ?","answers":["Non, c'était un sac de friandises.","Le sac explique ce que je cachais, pas où le coffret est allé.","Mon secret était réel, mais votre accusation n'en découle pas."],"relances":["Peux-tu confirmer ce que contenait le sac ?","As-tu vu quelqu'un emporter le coffret ?"]},{"id":16,"round":3,"asker":"matys","target":"norah","question":"Notre message secret a éveillé des soupçons. Avions-nous caché le Trésor ?","answers":["Non. Nous préparions une blague pour la soirée.","Nous avons gardé le secret de notre plaisanterie, pas d'un coffret.","On peut préparer une surprise sans être coupable d'une disparition."],"relances":["Qui a interprété le message comme une preuve ?","Qu'aviez-vous effectivement convenu ?"]},{"id":17,"round":3,"asker":"mathieu","target":"nino","question":"Tu as parlé d'une petite silhouette allant vers les jouets avant le noir. Qu'as-tu réellement distingué ?","answers":["Une petite silhouette se dirigeait vers les jouets. Je n'ai pas reconnu qui c'était.","J'ai aperçu quelqu'un de petit, mais je ne sais pas qui ni ce qu'il portait.","Je l'ai vue se diriger vers les jouets. Je refuse de deviner son identité."],"relances":["As-tu reconnu son visage ?","As-tu vu un coffret dans ses mains ?"]},{"id":18,"round":3,"asker":"norah","target":"andreas","question":"As-tu une preuve que le coffret a été volé, plutôt que simplement déplacé ?","answers":["Non. Nous avons des observations, pas une preuve de vol.","Personne ne m'a montré le coffret dans les mains d'un suspect.","Je ne peux pas conclure à un vol à partir d'un bruit ou d'une impression."],"relances":["Que faudrait-il vérifier concrètement ?","Un objet absent prouve-t-il un vol ?"]}];
 const P={charlotte:'👑 Charlotte',james:'👺 James',nino:'🦊 Nino',andreas:'🏹 Andreas',matys:'🛡️ Matys',mathieu:'🧙 Mathieu',norah:'💌 Norah',enola:'🧸 Enola'};
 const investigators=['james','nino','andreas','matys','mathieu','norah'];
-const auth=getAuth(initializeApp(firebaseConfig)),db=getDatabase();
-let me=null,session=null,room=null,unsub=null,answerUnsub=null,noteUnsub=null,finalVotesUnsub=null,verdictSnapshotUnsub=null,lastAnswerStep=null;
-let verdictSnapshot=null;
-let serverOffset=0,autoBusy=false,autoLastAttempt=0,autoTimer=null;
-const DISCUSSION_MS=30000;
-const CONVICTION_SOURCES={
- observation:{label:'Un fait que j’ai vu moi-même',short:'Observation personnelle',icon:'👀',question:'Qu’as-tu réellement observé : le coffret, un objet ou un geste ?'},
- temoignage:{label:'Le récit d’un autre joueur',short:'Témoignage',icon:'🗣️',question:'Qu’avait vu ce témoin, avant toute interprétation ?'},
- collectif:{label:'Des soupçons répétés dans le groupe',short:'Soupçons collectifs',icon:'👥',question:'La répétition ajoutait-elle une preuve indépendante ?'},
- comportement:{label:'La réaction ou l’attitude d’une personne',short:'Comportement',icon:'🎭',question:'Une réaction étrange prouvait-elle un déplacement du coffret ?'},
- intuition:{label:'Mon intuition',short:'Intuition',icon:'🧠',question:'Ton intuition était-elle distincte d’une preuve ?'}
-};
-const SOURCE_KEYS=Object.keys(CONVICTION_SOURCES);
-const VOTE_DELAY_MS=12000;
-// Le verdict libère 3 écrans consultables librement ; aucun chronomètre de révélation.
-let finalPage=1;
-const expandedDetails=new Set();
-const finalPageKey=()=>`roubatvot_v491_final_page_${session?.code||''}_${session?.role||''}`;
-function setFinalPage(n){
- if(ctx().phase!==19)return;
- finalPage=Math.min(3,Math.max(1,Number(n)||1));
- try{localStorage.setItem(finalPageKey(),String(finalPage))}catch(e){}
- render();
- const target=root.querySelector('[data-final-panel]');
- if(target)target.scrollIntoView({block:'start',behavior:'instant'});
-}
-const serverNow=()=>Date.now()+serverOffset;
-let selectedNotebookPerson='james';
-let notebookView='dossiers';
-let tab='enquete',error='',pending=false,selectedAnswer=-1,chosenSuspect='',chosenSource='',voteArgument='',joinCode=new URLSearchParams(location.search).get('room')||'',selectedPlayer='james';
-const root=document.getElementById('root');
-const h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const path=(code,trail='')=>ref(db,`rooms/${code}${trail?'/'+trail:''}`);
-const sessionKey='roubatvot_v49_session';
-const ctx=()=>({isHost:session?.role==='charlotte',role:session?.role,phase:Number(room?.progress?.step||0),answers:room?.answers||{},votes:room?.votes||{},members:room?.players||{}});
-const isComplete=n=>!!room?.answers?.[String(n)];
-const suspects=['james','nino','andreas','matys','mathieu','charlotte','norah','enola'];
+const suspects=['charlotte','james','nino','andreas','matys','mathieu','norah','enola'];
 const noteStatuses=['inconnu','suspect','verifier','ecarte'];
-const NOTE_TAGS=[['vu','👀 Vu'],['entendu','👂 Entendu'],['cache','🤫 Cache quelque chose'],['contradiction','⚠️ Contradiction'],['verifier','❔ À vérifier']];
-const NOTE_TAG_IDS=NOTE_TAGS.map(([key])=>key);
-const emptyTags=()=>Object.fromEntries(NOTE_TAG_IDS.map(id=>[id,false]));
-function normalizeTags(value){
- const src=value&&typeof value==='object'&&!Array.isArray(value)?value:{};
- return Object.fromEntries(NOTE_TAG_IDS.map(id=>[id,src[id]===true]));
-}
-function normalizeNote(value){
- const src=value&&typeof value==='object'&&!Array.isArray(value)?value:{};
- return {status:noteStatuses.includes(src.status)?src.status:'inconnu',text:typeof src.text==='string'?src.text.slice(0,600):'',tags:normalizeTags(src.tags)};
-}
-// Les souvenirs de jeu sont immuables et déverrouillés selon la progression.
-// Leur affichage reste limité au rôle courant (les textes sont embarqués dans l'HTML).
-function unlockedMemories(role,step){return (MEMORY_FRAGMENTS[role]||[]).filter(x=>step>=x.after)}
-
-
-// Souvenirs divergents : observations compatibles, angles morts différents.
-// Ces fragments ne constituent pas de nouveaux faits et n'apparaissent qu'après la
-// confrontation concernée ; ils ne sont jamais partagés automatiquement.
-const MEMORY_FRAGMENTS={
- james:[{after:4,text:'Tu as vu le coffret après le message de 20 h 31. Mais tu n’as pas observé toute la suite.'},{after:14,text:'Tu as aperçu une petite silhouette avec un objet vers les jouets. Tu n’as reconnu ni son visage, ni la forme précise de l’objet.'}],
- nino:[{after:3,text:'L’emballage de friandise était bien à toi. Tu ne connais pas pour autant le parcours du coffret.'},{after:9,text:'Tu te souviens avoir parlé avec Matys à la cuisine. Cela ne dit rien de ce qui se passait ailleurs.'}],
- andreas:[{after:2,text:'Tu as aperçu Nino à 20 h 25, sans le voir toucher au coffret.'},{after:18,text:'Tu as perçu un bruit de couvercle. Tu n’as pas identifié l’objet ni son auteur.'}],
- matys:[{after:9,text:'Tu étais avec Nino vers 20 h 33. Tu ne peux certifier tous ses mouvements durant les minutes précédentes.'},{after:10,text:'Andreas vous a vus, Nino et toi, ensemble à la cuisine. Il confirme cet instant, pas toute la soirée.'}],
- mathieu:[{after:6,text:'Tu sais ce que tu cachais sous ton pull ; les autres ne voyaient qu’une forme.'},{after:15,text:'Tu as expliqué le sac de friandises. Cela ne remplace pas ton alibi pour toutes les autres minutes.'}],
- norah:[{after:5,text:'Tu étais près des jouets avec ton téléphone. Un geste ordinaire peut paraître étrange lorsqu’on ne connaît pas son contexte.'},{after:16,text:'Ton brouillon était bien destiné à Matys. Mais les autres ne savent pas tout de tes déplacements près des jouets.'}],
- charlotte:[{after:1,text:'Tu as touché à une décoration, pas au coffret. James a raison sur ta présence.'},{after:12,text:'Tu n’as jamais organisé de surveillance continue de la table. Ton ignorance est réelle.'}]
+const NOTE_TAGS=[['vu','👀 Vu'],['entendu','👂 Entendu'],['cache','🤫 Secret'],['contradiction','⚠️ Contradiction'],['verifier','❔ À vérifier']];
+const MEMORIES={
+ charlotte:['Tu as prévu l’extinction de 20 h 31 avant de constater la disparition.','Vers 20 h 30, tu as remarqué que le coffret n’était plus sur la table et pensé que Mathieu l’avait déplacé.'],
+ james:['Tu as réellement vu le coffret sur la table avant 20 h 28.','Tu as récupéré ton accessoire de costume avant 20 h 31 et tu étais avec Mathieu au moment du noir.'],
+ nino:['Tu as pris une friandise en cachette ; cela ne signifie pas avoir déplacé le coffret.','Avant le noir, tu as aperçu une petite silhouette allant vers les jouets, sans la reconnaître.'],
+ andreas:['Après ton manga, tu es passé près de la table pour reprendre ton téléphone.','Mathieu t’a vu près de la table, mais personne ne t’a vu emporter la boîte.'],
+ matys:['Avec Norah, tu préparais une plaisanterie dans ta chambre.','Le message « Attends le bon moment, surtout ne dis rien aux autres » parlait de cette surprise.'],
+ mathieu:['Tu as caché un sac de friandises, pas le coffret.','Tu étais avec Nino et James à la cuisine autour du blackout de 20 h 31.'],
+ norah:['Tu as échangé un message mystérieux avec Matys pour une plaisanterie.','La blague n’avait rien à voir avec le coffret.']
 };
-const PERSONAL_RUMORS={
- james:'« Celui qui semble tout voir est peut-être celui qui oublie un détail. » Même les témoins ont des angles morts.',
- nino:'« Il a caché quelque chose : c’est donc lui. » Un petit secret n’explique pas nécessairement une disparition.',
- andreas:'« Deux témoignages différents : quelqu’un ment. » Et si leurs heures n’étaient pas les mêmes ?',
- matys:'« Défendre quelqu’un revient à le couvrir. » Une interprétation n’est pas une preuve.',
- mathieu:'« Un objet dissimulé ne peut être que le Trésor. » Qui a réellement vu cet objet ?',
- norah:'« Un écran verrouillé cache forcément un crime. » On peut aussi protéger une surprise.',
- charlotte:'« La personne qui organise sait forcément tout. » Pas ce que chacun fait dans son dos.'
-};
-function personalMemory(step){
- const own=unlockedMemories(session?.role,step);
- return own.length?own[own.length-1]:null;
-}
-function rumorCard(step){
- if(step<12||step>=19)return '';
- const hasSuspect=Object.values(notes).some(n=>n?.status==='suspect');
- const intro=hasSuspect?'Tu as déjà désigné au moins un suspect. Relis tes notes : quel fait distingue ton hypothèse d’une impression ?':'Ton carnet comporte peut-être une absence : qu’as-tu entendu directement, et qu’as-tu seulement déduit ?';
- return `<div class="rumor"><div class="flash-head">✉️ FRAGMENT ANONYME — LECTURE PRIVÉE</div><p class="dramatic">${h(PERSONAL_RUMORS[session?.role]||'Un souvenir n’est pas une preuve.')}</p><p>${h(intro)}</p><p class="warning-line">Cette note est une rumeur de jeu, pas un fait établi. Elle ne modifie aucune de tes observations.</p></div>`;
-}
-function testimonyLens(step){
- if(step>=12&&step<18)return `<div class="analysis-flash"><strong>🕯️ RUMEUR NON VÉRIFIÉE</strong><p>Des personnes ont caché des gestes. As-tu noté ce qu’elles ont fait, ou ce que tu crois qu’elles voulaient faire ?</p></div>`;
- if(step===18)return `<div class="analysis-flash"><strong>🕯️ VERS LE VERDICT</strong><p>Reprends les heures : les témoins décrivent-ils un coffret, ou seulement des objets, des silhouettes et un bruit ?</p></div>`;
- return '';
-}
-// V4.8 — Étape 3 : analyses déterministes, propres au joueur, sans fausse preuve.
-// "step" vaut le nombre de confrontations TERMINÉES (0..18).
-// Toutes les mentions factuelles ci-dessous sont garanties par les trois variantes
-// de la confrontation correspondante : aucune réponse privée n'est présumée.
-const ROLE_ANGLES={
- james:['mathieu','charlotte','andreas','norah'],
- nino:['andreas','matys','james','norah'],
- andreas:['nino','james','matys','mathieu'],
- matys:['norah','nino','andreas','james'],
- mathieu:['james','norah','nino','charlotte'],
- norah:['mathieu','charlotte','james','matys'],
- charlotte:['james','norah','andreas','nino']
-};
-const FLASH_TAG_QUESTIONS={
- contradiction:'Tu as coché « Contradiction » : quels deux témoignages s’opposent vraiment ?',
- cache:'Tu as noté un secret : connais-tu son contenu ou seulement le geste caché ?',
- vu:'Tu as coché « Vu » : l’as-tu observé toi-même ou entendu raconter ?',
- entendu:'Tu as coché « Entendu » : ce son ou ce récit désigne-t-il quelqu’un ?',
- verifier:'Tu as marqué « À vérifier » : quelle question manque encore ?'
-};
-const FLASH_STATUS_TAG={
- suspect:'🔴 Soupçon à éprouver',
- verifier:'🟠 Détail à vérifier',
- ecarte:'🟢 Certitude à questionner',
- inconnu:'❔ Angle encore ouvert'
-};
-function flashState(note){
- const n=normalizeNote(note);
- return {status:n.status,tags:n.tags,hasText:n.text.trim().length>0};
-}
-function getDynamicHint(suspect,status,step,role=session?.role,note=notes[suspect]){
- // Le bilan après révélation est volontairement réservé à l'étape 4.
- if(step>=19)return null;
- const st=noteStatuses.includes(status)?status:'inconnu';
- const tag=FLASH_STATUS_TAG[st];
- const select=(after,topic,texts)=>({id:suspect,after,topic,tag,text:texts[st]||texts.inconnu});
- const isMe=role===suspect;
- switch(suspect){
-  case 'charlotte': {
-   if(step<1)return null;
-   if(step>=12)return select(12,'surveillance',{
-    suspect:'Charlotte était près de la table, mais personne ne la surveillait ensuite. Quel geste précis du coffret peux-tu lui attribuer ?',
-    ecarte:'Tu écartes Charlotte. Sa présence près de la table explique-t-elle où elle était à chaque instant ?',
-    verifier:'Personne ne surveillait le coffret sans interruption. Peux-tu distinguer une occasion d’une action observée ?',
-    inconnu:'Charlotte organisait la soirée, sans surveiller chaque déplacement. Que sait-elle vraiment de la disparition ?'
-   });
-   if(step>=4)return select(4,'horaires',{
-    suspect:'Charlotte était près de la table avant que James revoie le coffret. Pourquoi relier ces deux instants ?',
-    ecarte:'James dit avoir revu le coffret après son passage. Mais connaît-on tous les mouvements de Charlotte ensuite ?',
-    verifier:'La présence de Charlotte et le dernier souvenir de James ne datent pas du même moment. Que manque-t-il ?',
-    inconnu:'James a vu le coffret après le message. Que change cette heure pour les soupçons portant sur Charlotte ?'
-   });
-   return select(1,'table',{
-    suspect:'James a vu Charlotte près de la table. L’a-t-il vue déplacer le coffret ?',
-    ecarte:'Charlotte était près de la table. Cela suffit-il à exclure un geste ultérieur ?',
-    verifier:'Qu’a observé James exactement : une présence, une décoration ou le coffret déplacé ?',
-    inconnu:'Charlotte est passée près de la table. Présence et culpabilité sont-elles la même chose ?'
-   });
-  }
-  case 'nino': {
-   if(step<3)return null;
-   if(step>=17)return select(17,'intervalle',{
-    suspect:'Nino reconnaît la friandise et sa présence à la cuisine plus tard. Quel fait relie ces deux moments au coffret ?',
-    ecarte:'Nino a expliqué sa friandise, et Andreas l’a vu avec Matys. Qui l’a vu pendant l’intervalle ?',
-    verifier:'Un emballage à 20 h 25 et une présence à 20 h 33 ne racontent pas ce qui s’est passé entre les deux.',
-    inconnu:'La friandise de Nino est expliquée. Le chemin du coffret, lui, reste une autre question.'
-   });
-   if(step>=10)return select(10,'alibi',{
-    suspect:'Andreas confirme Nino avec Matys vers 20 h 33. Quelle partie de ton accusation reste possible ?',
-    ecarte:'Andreas confirme un instant précis à la cuisine. Peux-tu en faire un alibi pour toute la soirée ?',
-    verifier:'Nino était à la cuisine à un moment donné. Quelles minutes ne sont pas documentées ?',
-    inconnu:isMe?'Tu sais pourquoi tu étais à la table, puis à la cuisine. Qui a observé le coffret entre ces deux moments ?':'La cuisine à 20 h 33 est corroborée. Les minutes précédentes restent à examiner.'
-   });
-   return select(3,'friandise',{
-    suspect:'Nino a reconnu une friandise. Quel témoignage le montre emportant le coffret ?',
-    ecarte:'Nino était à la table pour une friandise. Cela dit-il ce qu’il faisait ensuite ?',
-    verifier:'L’emballage appartient à Nino. Prouve-t-il autre chose que sa présence près de la table ?',
-    inconnu:isMe?'Tu sais pourquoi tu étais près de la table. Mais que sais-tu de ce que les autres voyaient ?':'L’emballage explique un geste. Ne lui fais pas raconter toute la disparition.'
-   });
-  }
-  case 'andreas': {
-   if(step<2)return null;
-   if(step>=18)return select(18,'bruit',{
-    suspect:'Andreas a entendu un bruit près des jouets. A-t-il identifié l’objet ou la personne qui l’a produit ?',
-    ecarte:'Tu écartes Andreas. Son témoignage sonore est plausible, mais qui peut confirmer sa position ?',
-    verifier:'Le bruit ressemble à un couvercle. Comment le relier au coffret sans avoir vu l’objet ?',
-    inconnu:isMe?'Tu sais ce que tu as entendu, mais pas qui l’a fait. Quel autre témoignage recoupe ce bruit ?':'Andreas décrit un son sans voir son auteur. Quel témoignage permettrait de le recouper ?'
-   });
-   if(step>=10)return select(10,'corroboration',{
-    suspect:'Andreas confirme un alibi partiel. Pourquoi supposer qu’il ment sur ce qu’il a vu ?',
-    ecarte:'Andreas a confirmé deux personnes à la cuisine. Cette observation vérifie-t-elle ses propres déplacements ?',
-    verifier:'Andreas est un témoin de l’alibi de Nino et Matys. Qui corrobore le sien ?',
-    inconnu:isMe?'Tu as vu Nino et Matys ensemble. Cela ne permet pas de raconter toute la soirée à leur place.':'Andreas apporte un regard indépendant sur la cuisine. Quel détail reste invérifiable ?'
-   });
-   return select(2,'observation',{
-    suspect:'Andreas a remarqué Nino près de la table. Pourquoi cette observation ferait-elle de lui le responsable ?',
-    ecarte:'Andreas a vu passer Nino, sans voir le coffret partir. Est-ce un alibi pour Andreas ?',
-    verifier:'Andreas a vu Nino à 20 h 25. Que peut-il attester au-delà de ce passage ?',
-    inconnu:isMe?'Tu as vu Nino près de la table, sans le voir prendre le coffret. Quelle limite donner à ton souvenir ?':'Andreas décrit le passage de Nino. Ne confonds pas son observation et son interprétation.'
-   });
-  }
-  case 'matys': {
-   if(step<9)return null;
-   if(step>=10)return select(10,'alibi',{
-    suspect:'Andreas a vu Matys avec Nino à la cuisine. Quel élément contredit cette observation ?',
-    ecarte:'Andreas confirme Matys à 20 h 33, mais pas ses mouvements avant et après. Pourquoi l’écarter entièrement ?',
-    verifier:'Matys et Nino ont été vus ensemble. À quel moment leur alibi commence-t-il et finit-il ?',
-    inconnu:isMe?'Andreas vous a vus, Nino et toi, près de la cuisine. Que n’a-t-il pas pu voir ?':'Un témoin confirme Matys à la cuisine à un instant donné, pas sa soirée entière.'
-   });
-   return select(9,'déclaration',{
-    suspect:'Matys dit avoir discuté avec Nino à la cuisine. Qui d’autre peut le confirmer ?',
-    ecarte:'Matys propose Nino comme témoin. Deux proches suffisent-ils à établir tout un alibi ?',
-    verifier:'Matys situe son déplacement à 20 h 33. Qui a vu leur conversation ?',
-    inconnu:isMe?'Tu étais avec Nino, mais qui peut appuyer votre souvenir commun ?':'Matys décrit une conversation à la cuisine. La corroboration arrive-t-elle d’un autre témoin ?'
-   });
-  }
-  case 'mathieu': {
-   if(step<6)return null;
-   if(step>=15)return select(15,'sac expliqué',{
-    suspect:'Le sac de friandises est confirmé. Quel élément distinct permet encore de soupçonner Mathieu ?',
-    ecarte:'Le sac explique son secret à 20 h 28. Qui peut confirmer ses déplacements après 20 h 31 ?',
-    verifier:'Le sac est identifié. L’affaire du coffret est-elle pour autant résolue ?',
-    inconnu:isMe?'Tu as expliqué le sac. Ta version suffit-elle à dater le trajet du coffret ?':'Le sac est expliqué par un document du jeu. Cet objet était-il l’unique raison de soupçonner Mathieu ?'
-   });
-   if(step>=7)return select(7,'deux témoins',{
-    suspect:'Norah et James ont remarqué l’objet caché à 20 h 28. James revoit le coffret après 20 h 31. Quelle conclusion en tires-tu ?',
-    ecarte:'Mathieu a caché un objet avant la dernière vision du coffret. Ses déplacements ultérieurs restent-ils connus ?',
-    verifier:'James a vu une forme sous le pull, pas le contenu. Comment en connaître la nature ?',
-    inconnu:isMe?'Tu sais ce que tu cachais, mais James ne voyait qu’une forme. À quel moment vos interprétations divergent-elles ?':'Deux personnes ont vu un objet caché. Aucune ne dit alors avoir identifié le coffret.'
-   });
-   return select(6,'objet caché',{
-    suspect:'Mathieu admet avoir caché un objet à 20 h 28. Quel témoignage établit qu’il s’agissait du coffret ?',
-    ecarte:'Tu écartes Mathieu alors que son objet n’est pas encore identifié. Sur quel élément ?',
-    verifier:'Norah voit Mathieu cacher quelque chose, sans identifier précisément l’objet. Quel fait manque ?',
-    inconnu:isMe?'Tu connais l’objet sous ton pull ; les autres non. Comment distinguer ton secret de leur hypothèse ?':'Le contenu du pull reste inconnu des témoins. Pourquoi tant de certitude autour de cette forme ?'
-   });
-  }
-  case 'norah': {
-   if(step<5)return null;
-   if(step>=16)return select(16,'brouillon confirmé',{
-    suspect:'Le brouillon pour Matys est confirmé. Quel fait, autre que ce message, te conduit à soupçonner Norah ?',
-    ecarte:'Son brouillon explique l’écran caché, mais pas nécessairement tous ses mouvements près des jouets.',
-    verifier:'Le destinataire du message est connu. Que sait-on réellement de ses déplacements vers 20 h 33 ?',
-    inconnu:isMe?'Ton brouillon pour Matys est connu. Qui peut confirmer ce qui se passait autour de toi ?':'Le message était pour Matys. Peut-on séparer ce secret de sa présence près des jouets ?'
-   });
-   if(step>=13)return select(13,'téléphone',{
-    suspect:'Norah affirme qu’elle tenait son téléphone. Qui l’a réellement vue emporter un coffret ?',
-    ecarte:'Le téléphone n’explique pas forcément tout ce qui s’est passé près des jouets. Que manque-t-il ?',
-    verifier:'Norah était accroupie avec son téléphone. La voyait-on sans interruption ?',
-    inconnu:isMe?'Tu avais ton téléphone en main. Que les autres pouvaient-ils voir de l’endroit où ils se trouvaient ?':'Un téléphone a été vu près des jouets. Aucun témoin n’a identifié un coffret dans ses mains.'
-   });
-   return select(5,'écran caché',{
-    suspect:'Norah cachait son écran près des jouets. En quoi cela prouve-t-il qu’elle portait le coffret ?',
-    ecarte:'Tu écartes Norah. Son téléphone explique-t-il à lui seul sa présence près des jouets ?',
-    verifier:'Mathieu a vu Norah cacher son écran. Qu’a-t-il réellement pu voir dans ses mains ?',
-    inconnu:isMe?'Tu sais pourquoi tu as verrouillé ton écran. Les autres ont-ils accès à cette explication ?':'Un écran verrouillé attire l’attention. Un secret numérique est-il un objet déplacé ?'
-   });
-  }
-  case 'james': {
-   if(step<4)return null;
-   if(step>=14)return select(14,'silhouette',{
-    suspect:'Si James a vraiment observé la silhouette, il regardait quelqu’un d’autre. Pourquoi doutes-tu de son récit ?',
-    ecarte:'James décrit une petite silhouette, mais son emplacement n’est pas indépendamment confirmé. Pourquoi le disculper entièrement ?',
-    verifier:'James a huit ans et parle d’une silhouette sans visage. Quel détail est sûr, et lequel reste une estimation ?',
-    inconnu:isMe?'Tu te souviens d’une petite silhouette, pas d’un visage. Qu’as-tu réellement identifié ?':'James parle d’une petite silhouette, sans visage identifiable. Peut-on déduire son identité de la taille seule ?'
-   });
-   if(step>=11)return select(11,'témoin près des jouets',{
-    suspect:'James était dans le salon près des jouets. Quel fait prouve qu’il a touché au coffret ?',
-    ecarte:'James n’a pas d’alibi indépendant pour chaque minute. Pourquoi écarter sa présence près des jouets ?',
-    verifier:'James dit regarder vers les jouets. Qui peut confirmer l’endroit où il se trouvait ?',
-    inconnu:isMe?'Tu te souviens être près du passage vers les jouets. Qui pourrait confirmer ta position ?':'Le témoin était lui aussi près des jouets. Il faut distinguer ce qu’il a vu de ce qu’il a fait.'
-   });
-   return select(4,'dernier témoin',{
-    suspect:'James a vu le coffret après 20 h 31. Pourquoi cette observation ferait-elle de lui celui qui l’a déplacé ?',
-    ecarte:'James dit avoir revu le coffret. Cela garantit-il tout ce qu’il a fait ensuite ?',
-    verifier:'James date une dernière vision du coffret. Qui peut confirmer ce souvenir ?',
-    inconnu:isMe?'Tu as revu le coffret après le message. Pourquoi ne peux-tu pas dater sa disparition ?':'James dit avoir vu le coffret après le message. Ce souvenir ne donne pas l’heure exacte du déplacement.'
-   });
-  }
-  case 'enola': {
-   // Jamais proposée spontanément : elle reste toutefois dans les huit dossiers.
-   // Le portrait peut être discuté au vote, sans que le logiciel oriente la solution.
-   if(step<18||st==='inconnu')return null;
-   return select(18,'preuve insuffisante',{
-    suspect:'Tu soupçonnes Enola. Quelle observation la désigne personnellement, plutôt qu’une simple possibilité ?',
-    ecarte:'Tu écartes Enola. Une personne non interrogée peut-elle être écartée sans observation directe ?',
-    verifier:'Tu hésites à propos d’Enola. Qu’est-ce qui relève du témoignage, et qu’est-ce qui reste une hypothèse ?',
-    inconnu:'Quels faits permettent d’examiner cette hypothèse ?'
-   });
-  }
- }
- return null;
-}
-// Une fiche sélectionnée et les pistes réellement annotées priment ; un second
-// Flash peut attirer l'attention sur un angle mort, au lieu de répéter un sujet.
-function personalFlashs(step){
- if(step>=19)return []; // Étape 4 : futur bilan rétrospectif.
- const role=session?.role||'james';
- const focus=ROLE_ANGLES[role]||ROLE_ANGLES.james;
- const list=suspects.map(id=>{
-  const n=flashState(notes[id]);
-  const hint=getDynamicHint(id,n.status,step,role,notes[id]);
-  if(!hint)return null;
-  const rank=n.status==='suspect'?75:n.status==='ecarte'?64:n.status==='verifier'?58:12;
-  const marked=NOTE_TAG_IDS.some(t=>n.tags[t]);
-  const tags=(n.tags.contradiction?8:0)+(n.tags.cache?5:0)+(n.tags.verifier?5:0)+((n.tags.vu||n.tags.entendu)?2:0);
-  const age=step-hint.after;
-  const recent=age>=0&&age<=2?13:0;
-  const personal=Math.max(0,24-8*focus.indexOf(id));
-  const roleBoost=focus.includes(id)?personal:0;
-  const selected=selectedNotebookPerson===id?(n.status==='inconnu'?27:10):0;
-  const rotation=(suspects.indexOf(id)+step+investigators.indexOf(role)+8)%8;
-  return {...hint,marked:marked||n.hasText||n.status!=='inconnu',score:rank+tags+(n.hasText?4:0)+recent+roleBoost+selected,rotation};
- }).filter(Boolean);
- if(!list.length)return [];
- const order=(a,b)=>b.score-a.score||a.rotation-b.rotation||a.id.localeCompare(b.id);
- const marked=list.filter(f=>f.marked).sort(order);
- const chosen=[];
- if(marked.length)chosen.push(marked[0]);
- else {
-  const familiar=list.filter(f=>focus.includes(f.id)).sort(order);
-  chosen.push(familiar[0]||list.slice().sort(order)[0]);
- }
- const remaining=list.filter(f=>f.id!==chosen[0]?.id);
- // La deuxième suggestion explore une autre personne, en évitant de ramener
- // systématiquement le même suspect quand un seul est annoté.
- const exploratory=remaining.map(f=>({...f,exploreScore:(f.marked?f.score*.72:f.score)+
-  (f.after>=step-2?9:0)+((suspects.indexOf(f.id)+step+Math.max(0,investigators.indexOf(role))*2)%7)*2}));
- exploratory.sort((a,b)=>b.exploreScore-a.exploreScore||a.id.localeCompare(b.id));
- if(exploratory.length)chosen.push(exploratory[0]);
- return chosen.slice(0,2).map(({id,tag,text,topic})=>{
-  const markedTags=normalizeTags(notes[id]?.tags);
-  const topTag=['contradiction','cache','vu','entendu','verifier'].find(k=>markedTags[k]);
-  return {id,tag,text,topic,reflect:topTag?FLASH_TAG_QUESTIONS[topTag]:''};
- });
-}
-let notes={},dirty=new Set(),notesReady=false,noteTimers=new Map(),noteInFlight=new Set(),noteFailures=new Map(),noteStatus='Connexion au carnet…';
-function noteKey(){return `roubatvot_v49_notes_${session.code}_${me.uid}_${session.role}`}
-function cacheNotes(){try{localStorage.setItem(noteKey(),JSON.stringify({notes,dirty:[...dirty]}))}catch{}}
-function restoreNotes(){
- notes={};dirty=new Set();notesReady=false;noteFailures.clear();noteStatus='Connexion au carnet…';
- try{
-  const x=JSON.parse(localStorage.getItem(noteKey())||'null');
-  if(x&&typeof x==='object'){
-   for(const who of suspects)if(x.notes&&x.notes[who])notes[who]=normalizeNote(x.notes[who]);
-   dirty=new Set((Array.isArray(x.dirty)?x.dirty:[]).filter(p=>suspects.includes(p)&&notes[p]));
-  }
- }catch{}
-}
-function updateNoteUI(){const e=root.querySelector('[data-note-sync]');if(e)e.textContent=noteStatus}
-function editNote(who,field,value){
- if(!suspects.includes(who)||!['status','text','tag'].includes(field))return;
- const n=normalizeNote(notes[who]);
- if(field==='status'&&noteStatuses.includes(value))n.status=value;
- if(field==='text')n.text=String(value).slice(0,600);
- if(field==='tag'&&NOTE_TAG_IDS.includes(value))n.tags[value]=!n.tags[value];
- notes[who]=n;
- dirty.add(who);noteStatus='Modifications à synchroniser';cacheNotes();queueNote(who);updateNoteUI();
-}
-function queueNote(who,delay=700){
- if(noteTimers.has(who))clearTimeout(noteTimers.get(who));
- noteTimers.set(who,setTimeout(()=>{noteTimers.delete(who);void syncNote(who)},delay));
-}
-async function syncNote(who){
- if(!session||!notesReady||!dirty.has(who)||noteInFlight.has(who))return;
- const payload=normalizeNote(notes[who]);
- const serialized=JSON.stringify(payload);
- noteStatus='Enregistrement dans Firebase…';updateNoteUI();noteInFlight.add(who);
- const writingSession=session;
- let retryMs=0;
- try{
-  await set(path(writingSession.code,`notebooks/${writingSession.role}/${who}`),{...payload,updatedAt:serverTimestamp()});
-  if(session!==writingSession)return;
-  noteFailures.delete(who);
-  if(JSON.stringify(normalizeNote(notes[who]))===serialized)dirty.delete(who);
-  noteStatus=dirty.size?'Enregistrement en cours…':'Carnet sauvegardé dans Firebase';cacheNotes();updateNoteUI();
- }catch(e){
-  if(session===writingSession){
-   const failures=(noteFailures.get(who)||0)+1;noteFailures.set(who,failures);
-   retryMs=Math.min(30000,1500*2**Math.min(failures-1,5));
-   noteStatus='Connexion indisponible : copie locale conservée';cacheNotes();updateNoteUI();
-  }
- }finally{
-  noteInFlight.delete(who);
-  if(session===writingSession&&dirty.has(who)&&notesReady)queueNote(who,retryMs||250);
- }
-}
-function listenNotebook(){
- restoreNotes();
- noteUnsub=onValue(path(session.code,`notebooks/${session.role}`),snap=>{
-  const cloud=snap.val()||{};
-  for(const who of suspects)if(!dirty.has(who)){
-   if(cloud[who]&&noteStatuses.includes(cloud[who].status))notes[who]=normalizeNote(cloud[who]);
-   else delete notes[who];
-  }
-  notesReady=true;noteStatus=dirty.size?'Synchronisation en cours…':'Carnet synchronisé avec Firebase';cacheNotes();
-  for(const who of dirty)queueNote(who,100);
-  if(!root.querySelector('[data-note]:focus'))render();else updateNoteUI();
- },e=>{
-  noteStatus='Accès au carnet refusé : copie locale conservée';
-  // Aucun panneau d'erreur bloquant pour le déroulement du Tribunal.
-  updateNoteUI();
- });
-}
-function listenCurrentAnswer(){
- const step=Number(room?.progress?.step||0);if(step===lastAnswerStep)return;
- lastAnswerStep=step;if(answerUnsub){answerUnsub();answerUnsub=null;}
- room.answers={};selectedAnswer=-1;
- if(step>=18)return;
- const q=Q[step];
- if(![q.asker,q.target].includes(session.role))return;
- answerUnsub=onValue(path(session.code,`answers/${q.id}`),snap=>{
-  room.answers=snap.exists()?{[q.id]:snap.val()}:{};render();
- },e=>{error='Réponse : '+e.message;render()});
-}
-
-async function anon(){if(auth.currentUser&&!auth.currentUser.isAnonymous){await signOut(auth)}if(!auth.currentUser)await signInAnonymously(auth);me=auth.currentUser}
+const CONVICTIONS={observation:'Observation directe',temoignage:'Témoignage',collectif:'Soupçons du groupe',comportement:'Comportement',intuition:'Intuition'};
+const FACTS=[['Avant 20 h 28','James voit le coffret sur la table.'],['20 h 28–20 h 30','Enola déplace innocemment le coffret vers le coin des jouets.'],['Vers 20 h 30','Charlotte remarque que le coffret n’est plus sur la table.'],['20 h 31','Extinction des lumières programmée par Charlotte, sans lien avec le déplacement.']];
+const STAGE={FIRST:18,DISCUSS:19,SECOND:20,VERDICTS:21,INFLUENCES:22,CERTAINTIES:23,FAKE:24,CLOCK:25,ZONE:26,SEARCH:27,FOUND:28,NOVOL:29,ENOLA:30,JUDGMENT:31,PARTY:32,ARCHIVE:33};
+const auth=getAuth(initializeApp(firebaseConfig)),db=getDatabase(),root=document.getElementById('root');
+const qs=new URLSearchParams(location.search),screenMode=qs.get('screen')==='1';
+const sessionKey='roubatvot_synopsis_v16_session';
+let me=null,session=null,room=null,unsub=[],noteUnsub=null,answerUnsub=null,firstUnsub=null,secondUnsub=null,lastAnswerStep=-1;
+let notes={},dirty=new Set(),noteTimer=null,notesReady=false,noteStatus='Connexion au carnet…';
+let tab='enquete',notebookView='dossiers',selectedPerson='james',selectedPlayer='james',selectedAnswer=-1,chosenSuspect='',chosenSource='',voteArgument='',influencedBy='aucune',influenceReason='';
+let joinCode=qs.get('room')||'',error='',pending=false,transcriptDraft='',followup1Draft='',followup2Draft='',advanceConfirm=false,replayIndex=0,finalView=0,claimText='',claimAuthor='james',claimKind='hypothese',claimStatus='en_attente';
+const expanded=new Set();
+const h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const p=(suffix='')=>ref(db,`rooms/${session.code}${suffix?'/'+suffix:''}`);
+const at=(code,suffix='')=>ref(db,`rooms/${code}${suffix?'/'+suffix:''}`);
+const nowStage=()=>Number(room?.progress?.step??0);
+const host=()=>session?.role==='charlotte';
+const member=()=>Boolean(session&&room?.players?.[session.role]?.uid===me?.uid);
+const normalizedNote=v=>({status:noteStatuses.includes(v?.status)?v.status:'inconnu',text:typeof v?.text==='string'?v.text.slice(0,600):'',tags:Object.fromEntries(NOTE_TAGS.map(([k])=>[k,v?.tags?.[k]===true]))});
+const noteKey=()=>`roubatvot_v16_notes_${session?.code}_${session?.role}_${me?.uid}`;
+const fullName=id=>P[id]||id;
+const latestTestimony=i=>{const entries=Object.values(room?.testimonies?.[i]||{});return entries.length?entries.sort((a,b)=>(a.at||0)-(b.at||0)).at(-1):null};
+const revisions=i=>Object.values(room?.testimonies?.[i]||{}).sort((a,b)=>(a.at||0)-(b.at||0));
+const allFinished=round=>investigators.every(id=>Boolean(room?.[round==='initial'?'votesInitial':'votesFinal']?.[id]||room?.absences?.[round]?.[id]));
+function stageName(n){if(n<18)return `Interrogation ${n+1}/18`;return ({18:'Premier vote',19:'Confrontation collective',20:'Vote final',21:'Tableau 1 — Les verdicts',22:'Tableau 2 — Les influences',23:'Tableau 3 — Le procès des certitudes',24:'Faux verdict',25:'Énigme — Les heures',26:'Énigme — La zone',27:'Recherche du coffret',28:'Le coffret retrouvé',29:'Aucun vol',30:'Enola',31:'Double verdict',32:'Halloween sauvé',33:'Archives et souvenirs'})[n]||'Fin de session'}
+const noteSync=()=>{const el=root.querySelector('[data-note-sync]');if(el)el.textContent=noteStatus};
+function persistLocalNotes(){if(!session)return;try{localStorage.setItem(noteKey(),JSON.stringify({notes,dirty:[...dirty]}))}catch{}}
+function loadLocalNotes(){notes={};dirty=new Set();try{const saved=JSON.parse(localStorage.getItem(noteKey())||'null');for(const who of suspects)if(saved?.notes?.[who])notes[who]=normalizedNote(saved.notes[who]);dirty=new Set((saved?.dirty||[]).filter(who=>suspects.includes(who)))}catch{}}
+function editNote(who,field,value){if(!suspects.includes(who)||!member()||nowStage()>=STAGE.ARCHIVE)return;const n=normalizedNote(notes[who]);if(field==='status'&&noteStatuses.includes(value))n.status=value;else if(field==='text')n.text=String(value).slice(0,600);else if(field==='tag'&&NOTE_TAGS.some(([key])=>key===value))n.tags[value]=!n.tags[value];else return;notes[who]=n;dirty.add(who);noteStatus='Sauvegarde en cours…';persistLocalNotes();noteSync();if(noteTimer)clearTimeout(noteTimer);noteTimer=setTimeout(()=>void saveNotes(),600)}
+async function saveNotes(){if(!session||!notesReady||!dirty.size)return;const current=session;for(const who of [...dirty]){try{const copy=normalizedNote(notes[who]);await set(at(current.code,`notebooks/${current.role}/${who}`),{...copy,updatedAt:serverTimestamp()});if(session!==current)return;if(JSON.stringify(copy)===JSON.stringify(normalizedNote(notes[who])))dirty.delete(who)}catch(ex){noteStatus='Copie locale conservée — réessaie quand la connexion revient';persistLocalNotes();noteSync();return}}noteStatus='Carnet sauvegardé';persistLocalNotes();noteSync()}
+function unsubscribe(){for(const stop of unsub)try{stop()}catch{}unsub=[];for(const name of ['noteUnsub','answerUnsub','firstUnsub','secondUnsub']){const f=({noteUnsub,answerUnsub,firstUnsub,secondUnsub})[name];if(f)try{f()}catch{}}noteUnsub=answerUnsub=firstUnsub=secondUnsub=null;lastAnswerStep=-1;if(noteTimer)clearTimeout(noteTimer);noteTimer=null}
+function clearSession(){if(session){try{localStorage.removeItem(noteKey())}catch{}}unsubscribe();session=null;room=null;notes={};dirty=new Set();notesReady=false;tab='enquete';localStorage.removeItem(sessionKey);history.replaceState(null,'',location.pathname+(qs.get('mj')==='1'?'?mj=1':''))}
+function joinURL(){return `${location.origin}${location.pathname}?room=${encodeURIComponent(session.code)}`}
 async function hostLogin(){await signInWithPopup(auth,new GoogleAuthProvider());me=auth.currentUser;render()}
-function leaveRoom(renderNow=true){
- if(!session)return;
- // Les notes en cours restent aussi dans le cache local et seront synchronisées à la reprise.
- cacheNotes();
- if(unsub){unsub();unsub=null;}
- if(autoTimer){clearInterval(autoTimer);autoTimer=null;}
- if(answerUnsub){answerUnsub();answerUnsub=null;}
- if(noteUnsub){noteUnsub();noteUnsub=null;}
- if(finalVotesUnsub){finalVotesUnsub();finalVotesUnsub=null;}
- if(verdictSnapshotUnsub){verdictSnapshotUnsub();verdictSnapshotUnsub=null;}
- verdictSnapshot=null;
- for(const timer of noteTimers.values())clearTimeout(timer);
- noteTimers.clear();noteInFlight.clear();noteFailures.clear();
- const wasHost=session.role==='charlotte';
- session=null;room=null;lastAnswerStep=null;selectedAnswer=-1;
- notes={};dirty=new Set();notesReady=false;noteStatus='Connexion au carnet…';
- tab='enquete';notebookView='dossiers';error='';chosenSuspect='';chosenSource='';voteArgument='';finalPage=1;expandedDetails.clear();
- localStorage.removeItem(sessionKey);
- // Ne supprime ni la salle ni les carnets enregistrés dans Firebase.
- history.replaceState(null,'',location.pathname+(wasHost?'?mj=1':''));
- if(renderNow)render();
-}
-async function createRoom(){if(!me||me.isAnonymous||!me.emailVerified)throw Error('Connecte ton compte Google MJ.');const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';for(let j=0;j<5;j++){const nums=crypto.getRandomValues(new Uint8Array(8));const code=[...nums].map(i=>chars[i%chars.length]).join('');try{await set(path(code),{edition:'4.9',hostUid:me.uid,createdAt:serverTimestamp(),players:{charlotte:{uid:me.uid}},progress:{step:0}});if(session)leaveRoom(false);await openRoom(code,'charlotte');return}catch(e){if(e.code!=='PERMISSION_DENIED')throw e;throw e}}}
-async function openRoom(code,role){code=String(code).trim().toUpperCase();if(!/^[A-HJ-NP-Z2-9]{8}$/.test(code))throw Error('Code de salle invalide (8 caractères).');const edition=await get(path(code,'edition'));if(edition.val()!=='4.9')throw Error('Cette salle appartient à une ancienne édition. Crée une nouvelle salle.');const host=(await get(path(code,'hostUid'))).val();if(role==='charlotte' && (host!==me.uid||me.isAnonymous))throw Error('Seule Charlotte peut reprendre le poste MJ.');if(role!=='charlotte' && host===me.uid)throw Error('Ouvre le personnage dans un navigateur privé, sans la session Google MJ.');const old=await get(path(code,`players/${role}`));if(old.exists()&&old.child('uid').val()!==me.uid)throw Error('Ce rôle est déjà réservé par un autre téléphone.');if(!old.exists())await set(path(code,`players/${role}`),{uid:me.uid});session={code,role};localStorage.setItem(sessionKey,JSON.stringify(session));selectedAnswer=-1;tab='enquete';expandedDetails.clear();try{finalPage=Math.min(3,Math.max(1,Number(localStorage.getItem(finalPageKey()))||1))}catch(e){finalPage=1}startListening()}
-function startListening(){
- if(unsub)unsub();
- if(answerUnsub){answerUnsub();answerUnsub=null;}
- if(noteUnsub){noteUnsub();noteUnsub=null;}
- if(finalVotesUnsub){finalVotesUnsub();finalVotesUnsub=null;}
- if(verdictSnapshotUnsub){verdictSnapshotUnsub();verdictSnapshotUnsub=null;}
- verdictSnapshot=null;
- for(const t of noteTimers.values())clearTimeout(t);noteTimers.clear();lastAnswerStep=null;
- const subs=[];room={players:{},progress:{step:0},answers:{},votes:{}};
- subs.push(onValue(path(session.code,'players'),s=>{room.players=s.val()||{};render()},e=>{error=e.message;render()}));
- subs.push(onValue(path(session.code,'progress'),s=>{const previous=Number(room.progress?.step||0);room.progress=s.val()||{};const current=Number(room.progress?.step||0);if((current===18||current===19)&&current!==previous)tab='enquete';if(current===19&&session.role!=='charlotte'&&!finalVotesUnsub)finalVotesUnsub=onValue(path(session.code,'votes'),v=>{room.votes=v.val()||{};render()},e=>{error='Verdicts : '+e.message;render()});listenCurrentAnswer();render()},e=>{error=e.message;render()}));
- if(session.role==='charlotte')subs.push(onValue(path(session.code,'votes'),s=>{room.votes=s.val()||{};render()},e=>{error=e.message;render()}));
- else subs.push(onValue(path(session.code,'votes/'+session.role),s=>{if(Number(room.progress?.step||0)<19){room.votes={[session.role]:s.val()};render()}},e=>{error=e.message;render()}));
- listenNotebook();
- // L'instantané du vote est consultable exclusivement par son propriétaire.
- // Charlotte ne vote pas et n'a donc pas d'instantané historique.
- if(investigators.includes(session.role)){
-  verdictSnapshotUnsub=onValue(path(session.code,`verdictSnapshots/${session.role}`),snap=>{
-   verdictSnapshot=snap.exists()?snap.val():null;
-   if(ctx().phase>=19)render();
-  },e=>{console.warn('Bilan indisponible :',e.code||e.message);verdictSnapshot=null});
- }
- subs.push(onValue(ref(db,'.info/serverTimeOffset'),s=>{serverOffset=Number(s.val())||0}));
- if(autoTimer)clearInterval(autoTimer);
- autoTimer=setInterval(()=>{updateCountdowns();void tryAutoProgress()},1000);
- unsub=()=>{subs.forEach(fn=>fn());if(answerUnsub)answerUnsub();if(noteUnsub)noteUnsub();if(finalVotesUnsub)finalVotesUnsub();if(verdictSnapshotUnsub)verdictSnapshotUnsub();if(autoTimer){clearInterval(autoTimer);autoTimer=null;}for(const t of noteTimers.values())clearTimeout(t);noteTimers.clear()};
- render();
-}
+async function createRoom(){if(!me||me.isAnonymous||!me.emailVerified)throw Error('Connexion Google organisateur requise.');const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';for(let n=0;n<5;n++){const bytes=crypto.getRandomValues(new Uint8Array(8));const code=Array.from(bytes,b=>chars[b%chars.length]).join('');try{await set(at(code),{edition:'synopsis-v16',hostUid:me.uid,createdAt:serverTimestamp(),players:{charlotte:{uid:me.uid}},progress:{step:0,influenceIndex:0}});await openRoom(code,'charlotte');return}catch(ex){if(ex.code==='PERMISSION_DENIED')throw Error('La création est refusée par Firebase. Vérifie la connexion organisateur et les règles correspondantes.');throw ex}}throw Error('Création impossible.')}
+async function openRoom(code,role){code=String(code||'').trim().toUpperCase();if(!/^[A-HJ-NP-Z2-9]{8}$/.test(code))throw Error('Code de salle invalide.');if(![...investigators,'charlotte'].includes(role))throw Error('Rôle inconnu.');const edition=(await get(at(code,'edition'))).val();if(!edition)throw Error('Salle introuvable.');if(edition!=='synopsis-v16')throw Error('Cette salle utilise une autre version. Utilise une nouvelle salle avec les règles fournies.');const hostUid=(await get(at(code,'hostUid'))).val();if(role==='charlotte'&&(me?.isAnonymous||hostUid!==me.uid))throw Error('Seule l’organisatrice peut accéder au Pilotage.');if(role!=='charlotte'&&hostUid===me.uid)throw Error('Utilise un navigateur privé pour incarner un autre joueur.');const existing=(await get(at(code,`players/${role}`))).val();if(existing&&existing.uid!==me.uid)throw Error('Personnage déjà réservé à un autre compte.');if(!existing)await set(at(code,`players/${role}`),{uid:me.uid});if(session)unsubscribe();session={code,role};localStorage.setItem(sessionKey,JSON.stringify(session));tab='enquete';startListeners()}
+function subscribeVotes(){if(firstUnsub)firstUnsub();if(secondUnsub)secondUnsub();const shared=host()||nowStage()>=STAGE.VERDICTS;const prefix=shared?'':session.role;firstUnsub=onValue(p(`votesInitial${prefix?'/'+prefix:''}`),s=>{if(shared)room.votesInitial=s.val()||{};else room.votesInitial={[session.role]:s.val()};renderSafely()},e=>{error='Votes initiaux : '+e.message;renderSafely()});secondUnsub=onValue(p(`votesFinal${prefix?'/'+prefix:''}`),s=>{if(shared)room.votesFinal=s.val()||{};else room.votesFinal={[session.role]:s.val()};renderSafely()},e=>{error='Votes finaux : '+e.message;renderSafely()})}
+function subscribeAnswer(){const step=nowStage();if(lastAnswerStep===step)return;lastAnswerStep=step;if(answerUnsub)answerUnsub();answerUnsub=null;room.currentAnswer=null;selectedAnswer=-1;transcriptDraft='';followup1Draft='';followup2Draft='';if(step>=18)return;const q=Q[step];if(host()||q.asker===session.role||q.target===session.role){answerUnsub=onValue(p(`answers/${q.id}`),s=>{room.currentAnswer=s.val();renderSafely()},e=>{error='Réponse : '+e.message;renderSafely()})}}
+function startListeners(){unsubscribe();loadLocalNotes();notesReady=false;noteStatus='Connexion au carnet…';room={players:{},progress:{step:0,influenceIndex:0},testimonies:{},claims:{},votesInitial:{},votesFinal:{},absences:{},currentAnswer:null};unsub.push(onValue(p('players'),s=>{room.players=s.val()||{};renderSafely()},e=>{error=e.message;renderSafely()}));unsub.push(onValue(p('progress'),s=>{const before=nowStage();room.progress=s.val()||{step:0};const after=nowStage();if(before!==after){tab='enquete';advanceConfirm=false;subscribeAnswer();subscribeVotes()}renderSafely()},e=>{error='Progression : '+e.message;renderSafely()}));unsub.push(onValue(p('testimonies'),s=>{room.testimonies=s.val()||{};renderSafely()},e=>{error='Interrogations : '+e.message;renderSafely()}));unsub.push(onValue(p('absences'),s=>{room.absences=s.val()||{};renderSafely()},e=>{error='Absences : '+e.message;renderSafely()}));unsub.push(onValue(p('claims'),s=>{room.claims=s.val()||{};renderSafely()},e=>{error='Déclarations : '+e.message;renderSafely()}));noteUnsub=onValue(p(`notebooks/${session.role}`),s=>{const cloud=s.val()||{};for(const who of suspects)if(!dirty.has(who)){if(cloud[who])notes[who]=normalizedNote(cloud[who]);else delete notes[who]}notesReady=true;noteStatus=dirty.size?'Sauvegarde en attente…':'Carnet synchronisé';persistLocalNotes();if(dirty.size)setTimeout(()=>void saveNotes(),250);renderSafely()},e=>{noteStatus='Carnet indisponible : données locales conservées';noteSync()});subscribeAnswer();subscribeVotes();renderSafely()}
+async function submitAnswer(){const q=Q[nowStage()];if(!q||q.target!==session.role||selectedAnswer<0)throw Error('Choisis une réponse avant de confirmer.');await set(p(`answers/${q.id}`),{value:selectedAnswer,by:me.uid,submittedAt:serverTimestamp()})}
+async function saveTestimony(){if(!host()||nowStage()>=18)throw Error('Enregistrement réservé à l’organisatrice.');const q=Q[nowStage()];if(!room.currentAnswer)throw Error('Attends la réponse enregistrée du personnage.');const statement=transcriptDraft.trim();if(!statement)throw Error('Inscris uniquement la réponse réellement prononcée.');const r=push(p(`testimonies/${q.id}`));await set(r,{interrogation:q.id,statement,followup1:followup1Draft.trim(),followup2:followup2Draft.trim(),validated:true,at:serverTimestamp()});transcriptDraft=followup1Draft=followup2Draft=''}
+function voteForm(final){const n=nowStage(),phase=final?STAGE.SECOND:STAGE.FIRST;if(n!==phase||!investigators.includes(session.role))return '';const prior=final?room.votesFinal?.[session.role]:room.votesInitial?.[session.role];if(prior)return `<div class="card ok">Ton ${final?'vote final':'premier vote'} est enregistré. Il restera privé jusqu’au tableau des verdicts.</div>`;return `<div class="card"><div class="round">${final?'VOTE FINAL':'PREMIER VOTE'} · CONFIDENTIEL</div><h2>Qui a déplacé le Trésor ?</h2><p>Choisis ton suspect et indique ta raison. Tes réponses restent privées jusqu’au dévoilement collectif.</p><div class="suspect-vote-grid">${suspects.map(id=>`<button type="button" class="person-tile ${chosenSuspect===id?'selected':''}" data-vote-person="${id}" aria-pressed="${chosenSuspect===id}"><span class="emoji">${h(fullName(id).split(' ')[0])}</span><span class="name">${h(fullName(id).split(' ').slice(1).join(' '))}</span></button>`).join('')}</div><button class="status-pill w100 ${chosenSuspect==='indetermine'?'active':''}" data-vote-person="indetermine">❔ Preuves insuffisantes</button><label>Ce qui te convainc le plus<select id="voteSource"><option value="">Choisir…</option>${Object.entries(CONVICTIONS).map(([id,label])=>`<option value="${id}" ${chosenSource===id?'selected':''}>${h(label)}</option>`).join('')}</select></label><label>Ton argument (obligatoire)<textarea id="voteReason" maxlength="500" placeholder="Ce que tu as entendu, observé ou déduit…">${h(voteArgument)}</textarea></label>${final?`<label>Qui t’a réellement influencé ?<select id="influencedBy"><option value="aucune" ${influencedBy==='aucune'?'selected':''}>Personne</option><option value="inconnue" ${influencedBy==='inconnue'?'selected':''}>Je ne sais pas</option>${investigators.filter(x=>x!==session.role).map(id=>`<option value="${id}" ${influencedBy===id?'selected':''}>${h(fullName(id))}</option>`).join('')}</select></label><label>Par quel argument ? (facultatif)<textarea id="influenceReason" maxlength="350" placeholder="Uniquement si cette influence a réellement eu lieu">${h(influenceReason)}</textarea></label>`:''}<button class="btn w100" data-action="vote-${final?'final':'initial'}" ${!chosenSuspect||!chosenSource||!voteArgument.trim()?'disabled':''}>Enregistrer mon ${final?'vote final':'premier vote'}</button></div>`}
+async function vote(final){const stage=nowStage();if(stage!==(final?STAGE.SECOND:STAGE.FIRST)||!investigators.includes(session.role))throw Error('Vote indisponible.');if(!suspects.includes(chosenSuspect)&&chosenSuspect!=='indetermine')throw Error('Choisis un suspect.');if(!Object.hasOwn(CONVICTIONS,chosenSource)||!voteArgument.trim())throw Error('Précise ta raison.');const payload={suspect:chosenSuspect,source:chosenSource,argument:voteArgument.trim(),by:me.uid,submittedAt:serverTimestamp()};if(final){payload.influencedBy=influencedBy;payload.influenceReason=influenceReason.trim()}await set(p(`${final?'votesFinal':'votesInitial'}/${session.role}`),payload);chosenSuspect='';chosenSource='';voteArgument='';influencedBy='aucune';influenceReason=''}
+async function savePublicClaim(){if(!host()||nowStage()!==STAGE.DISCUSS)throw Error('La consignation collective n’est disponible que pendant la confrontation.');const text=claimText.trim();if(!text)throw Error('Inscris une déclaration réellement prononcée.');const node=push(p('claims'));await set(node,{author:claimAuthor,kind:claimKind,status:claimStatus,text,at:serverTimestamp()});claimText=''}
+async function markAbsent(id,round){if(!host()||!investigators.includes(id)||!['initial','final'].includes(round))throw Error('Action interdite.');if(nowStage()!==(round==='initial'?18:20))throw Error('Cette étape est terminée.');await set(p(`absences/${round}/${id}`),true)}
+async function advance(){if(!host())throw Error('Pilotage réservé à l’organisatrice.');const step=nowStage();if(step>=STAGE.ARCHIVE)throw Error('La soirée est terminée.');if(step<18&&(!room.currentAnswer||!latestTestimony(step+1)?.validated))throw Error('Enregistre et valide oralement le témoignage avant de poursuivre.');if(step===STAGE.FIRST&&!allFinished('initial'))throw Error('Attends les votes ou marque les absences dans le Pilotage.');if(step===STAGE.SECOND&&!allFinished('final'))throw Error('Attends les votes finaux ou marque les absences dans le Pilotage.');await set(p('progress/step'),step+1)}
+async function nextInfluence(){if(!host()||nowStage()!==STAGE.INFLUENCES)throw Error('Action réservée au second tableau.');const count=investigators.filter(id=>{const b=room.votesFinal?.[id];return b&&investigators.includes(b.influencedBy)&&b.influencedBy!==id}).length;if((room.progress?.influenceIndex||0)>=count)return;await set(p('progress/influenceIndex'),(room.progress?.influenceIndex||0)+1)}
+async function deleteSession(){if(!host()||nowStage()!==STAGE.ARCHIVE)throw Error('Suppression indisponible.');const expected=`SUPPRIMER ${session.code}`;const typed=prompt(`La session et ses données seront effacées définitivement. Les PDF déjà téléchargés resteront sur les appareils.\n\nSaisis exactement : ${expected}`);if(typed!==expected)return;const old=session;await remove(p());const proof=await get(at(old.code,'edition'));if(proof.exists())throw Error('Suppression non confirmée : ne considère pas la session comme effacée.');clearSession()}
+function latestVotes(){return investigators.map(id=>({id,initial:room.votesInitial?.[id]||null,final:room.votesFinal?.[id]||null,absentInitial:room.absences?.initial?.[id],absentFinal:room.absences?.final?.[id]}))}
+function formatVote(b){return b?(b.suspect==='indetermine'?'Preuves insuffisantes':fullName(b.suspect))+(b.argument?` — « ${b.argument} »`:''):'Abstention / vote absent'}
+function countFinal(){const counts={};for(const id of investigators){const who=room.votesFinal?.[id]?.suspect;if(who&&who!=='indetermine')counts[who]=(counts[who]||0)+1}const max=Math.max(0,...Object.values(counts));return Object.entries(counts).filter(([,v])=>v===max).map(([id])=>id)}
+function influenceEdges(){return investigators.flatMap(id=>{const b=room.votesFinal?.[id];return b&&investigators.includes(b.influencedBy)&&id!==b.influencedBy?[{from:b.influencedBy,to:id,reason:b.influenceReason||'Argument non détaillé'}]:[]})}
+function classificationFacts(){const items=[];const changed=latestVotes().filter(x=>x.initial?.suspect&&x.final?.suspect&&x.initial.suspect!==x.final.suspect);if(changed.length)items.push(`${changed.length} joueur${changed.length>1?'s ont':' a'} changé de suspect entre les deux votes.`);const edges=influenceEdges();if(edges.length)items.push(`${edges.length} influence${edges.length>1?'s ont':' a'} été explicitement déclarée${edges.length>1?'s':''}.`);const repeated=Object.values(room.votesFinal||{}).filter(x=>x.source==='collectif').length;if(repeated)items.push(`${repeated} personne${repeated>1?'s':''} ${repeated>1?'ont':'a'} déclaré s’appuyer surtout sur les soupçons du groupe.`);for(const c of Object.values(room.claims||{}).filter(c=>c.status==='validee'))items.push(`${fullName(c.author)} a déclaré : « ${c.text} » (${c.kind}).`);return items.slice(0,3)}
+function tableVerdicts(){return `<div class="card reveal-stage"><div class="quiet">TABLEAU 1 · LES VERDICTS</div><h2>Vous n’avez pas tous raconté la même histoire.</h2>${latestVotes().map(x=>`<div class="conviction-voice"><strong>${h(fullName(x.id))}</strong><p><span class="muted">Premier vote :</span> ${h(formatVote(x.initial))}</p><p><span class="muted">Vote final :</span> ${h(formatVote(x.final))}</p></div>`).join('')}<p class="small muted">Ces choix sont les votes réellement enregistrés. Aucun changement d’avis n’est supposé.</p></div>`}
+function tableInfluences(){const edges=influenceEdges(),visible=edges.slice(0,room.progress?.influenceIndex||0);return `<div class="card reveal-stage"><div class="quiet">TABLEAU 2 · LES INFLUENCES</div><h2>Qui a réellement influencé qui ?</h2>${visible.length?visible.map((e,i)=>`<div class="conviction-voice influence-edge" style="animation-delay:${i*120}ms"><strong>${h(fullName(e.from))} → ${h(fullName(e.to))}</strong><p>${h(e.reason)}</p></div>`).join(''):'<p>Aucune influence révélée pour le moment.</p>'}<p class="small muted">Seules les influences expressément déclarées sont affichées. Un vote identique ne prouve pas une influence.</p></div>`}
+function tableCertainties(){const items=classificationFacts();return `<div class="card reveal-stage"><div class="quiet">TABLEAU 3 · LE PROCÈS DES CERTITUDES</div><h2>Qu'avez-vous réellement prouvé ?</h2>${items.length?items.map((v,i)=>`<div class="conviction-voice"><strong>Constat ${i+1}</strong><p>${h(v)}</p></div>`).join(''):'<p>Les données enregistrées ne suffisent pas à démontrer une influence ou un changement d’avis collectif.</p>'}<p>Avoir une conviction ne constitue pas une preuve. Le Tribunal n’attribue aucune intention aux joueurs.</p></div>`}
+function fakeVerdict(){const leaders=countFinal();const title=leaders.length===1?`Le Tribunal s'apprête à désigner ${fullName(leaders[0])}…`:leaders.length>1?`Les accusations se partagent entre ${leaders.map(fullName).join(' et ')}…`:'Aucune accusation ne permet de désigner un seul suspect…';return `<div class="card reveal-stage"><div class="quiet">LE FAUX VERDICT</div><h2>${h(title)}</h2><p class="dramatic">Le marteau va tomber. Quelqu’un souhaite-t-il contester ce verdict ?</p><p>Silence. Le Tribunal interrompt son jugement.</p><h2>VERDICT SUSPENDU</h2><p class="dramatic">Mais avez-vous seulement prouvé qu’un vol avait eu lieu ?</p></div>`}
+function enigmaClock(){return `<div class="card reveal-stage"><div class="quiet">ÉNIGME COLLECTIVE · PREMIÈRE ÉTAPE</div><h2>Quand le coffret a-t-il disparu ?</h2><div class="clockline"><strong>Avant 20 h 28</strong> — James a vu le coffret.</div><div class="clockline"><strong>Vers 20 h 30</strong> — Charlotte remarque son absence.</div><div class="clockline"><strong>20 h 31</strong> — Les lumières s'éteignent.</div><p>Reconstituez oralement l'intervalle. L'organisatrice valide la réponse avant de poursuivre.</p></div>`}
+function enigmaZone(){return `<div class="card reveal-stage"><div class="quiet">ÉNIGME COLLECTIVE · DEUXIÈME ÉTAPE</div><h2>Où chercher ?</h2><div class="plan"><div>🍽️ Table</div><div>🍳 Cuisine</div><div>🚪 Passage</div><div>🧸 Coin des jouets</div></div><p><strong>Témoignage :</strong> Nino a aperçu une petite silhouette non identifiée se dirigeant vers les jouets.</p><p><strong>Indice numérique :</strong> un emballage de bonbon a été remarqué près des jouets ; sa provenance reste inconnue.</p><p>Sur cette représentation simplifiée, quelle zone faut-il vérifier ? Répondez oralement.</p></div>`}
+function stagesHTML(){const step=nowStage();if(step===STAGE.VERDICTS)return tableVerdicts();if(step===STAGE.INFLUENCES)return tableInfluences();if(step===STAGE.CERTAINTIES)return tableCertainties();if(step===STAGE.FAKE)return fakeVerdict();if(step===STAGE.CLOCK)return enigmaClock();if(step===STAGE.ZONE)return enigmaZone();if(step===STAGE.SEARCH)return `<div class="card reveal-stage"><h2>🔍 À vous de chercher !</h2><p>Le Tribunal vous autorise maintenant à chercher <strong>tous ensemble dans le coin des jouets</strong>. Retrouvez le coffret sans l’ouvrir.</p></div>`;if(step===STAGE.FOUND)return `<div class="card reveal-stage"><h2>Le coffret est retrouvé.</h2><p>Laissez-le fermé. La question n’est plus seulement : « Qui l’a pris ? »</p></div>`;if(step===STAGE.NOVOL)return `<div class="card reveal-stage"><h2>Il n’y a pas eu de vol.</h2><p>Le coffret a été déplacé avant l’extinction des lumières, sans intention de voler.</p></div>`;if(step===STAGE.ENOLA)return `<div class="card reveal-stage"><h2>🧸 Enola</h2><p class="dramatic">Enola a déplacé innocemment le coffret pour jouer, entre 20 h 28 et 20 h 30. Personne n’avait besoin de l’accuser ou de l’interroger.</p></div>`;if(step===STAGE.JUDGMENT)return `<div class="card reveal-stage"><h2>LE TRIBUNAL DÉCLARE COUPABLES… LES CERTITUDES.</h2><p>Les suspects sont tous acquittés. Le Tribunal condamne symboliquement les certitudes collectives, jamais les personnes.</p><p class="dramatic">Le plus grand trésor n’était pas celui qui avait disparu. C’était celui qui nous réunissait tous autour de cette table.</p></div>`;if(step===STAGE.PARTY)return `<div class="card reveal-stage celebration"><h2>🎃 HALLOWEEN SAUVÉ !</h2><p class="dramatic">Affaire classée. Le Trésor de la Chouquette peut être ouvert et partagé librement !</p><p>Halloween 2026 · Ingré</p></div>`;if(step===STAGE.ARCHIVE)return `<div class="card reveal-stage"><h2>🎃 HALLOWEEN SAUVÉ ! — Affaire classée</h2><p>Ton enquête reste consultable jusqu’à la suppression volontaire de la session. Tu peux enregistrer ton dossier PDF souvenir personnel.</p><div class="final-steps">${["🗳️ Les verdicts","🕰️ Les faits","🧸 La vérité"].map((name,i)=>`<button class="final-step" data-final-view="${i}" aria-current="${finalView===i?"step":"false"}">${name}</button>`).join("")}</div>${finalView===0?tableVerdicts():finalView===1?`<div class="card"><h3>Les faits</h3>${FACTS.map(([t,x])=>`<p><strong>${h(t)}</strong> — ${h(x)}</p>`).join("")}</div>`:`<div class="card"><h3>Le Trésor retrouvé</h3><p>Enola l’a déplacé innocemment pour jouer. Aucun vol, aucun coupable.</p></div>`}<button class="btn" data-action="pdf">Télécharger mon dossier PDF</button></div>`;return ''}
+function interrogation(){const step=nowStage();if(step>=18)return stageContent();const q=Q[step],ans=room.currentAnswer,asking=q.asker===session.role,target=q.target===session.role;const previous=revisions(q.id),last=latestTestimony(q.id);let html=`<div class="card"><div class="round">MANCHE ${q.round}/3 · INTERROGATION ${q.id}/18</div><div class="versus"><strong>${h(fullName(q.asker))}</strong><span>interroge →</span><strong>${h(fullName(q.target))}</strong></div><div class="big-question">« ${h(q.question)} »</div>`;
+ if(asking)html+='<p class="role-instruction">Lis la question principale à voix haute. Au maximum deux questions complémentaires peuvent être posées oralement.</p>';
+ if(target&&!ans)html+=`<p>Choisis une formulation fidèle à ton personnage et prononce-la à voix haute.</p><div class="response-grid">${q.answers.map((a,i)=>`<label class="response-card ${selectedAnswer===i?'selected':''}"><input name="answer" type="radio" value="${i}" ${selectedAnswer===i?'checked':''}><span class="response-letter">${'ABC'[i]}</span><span>${h(a)}</span></label>`).join('')}</div><button class="btn w100" data-action="answer" ${selectedAnswer<0?'disabled':''}>Enregistrer ma réponse</button>`;
+ if(target&&ans)html+=`<div class="private">Ta réponse enregistrée : « ${h(q.answers[ans.value])} »</div>`;
+ if(asking&&ans)html+=`<div class="private"><strong>Relances facultatives (maximum deux)</strong>${q.relances.map(a=>`<p>« ${h(a)} »</p>`).join('')}</div>`;
+ if(!asking&&!target)html+='<p>Écoute les questions et les réponses orales, puis complète ton carnet Cluedo.</p>';
+ if(last)html+=`<div class="clue-line"><strong>Procès-verbal validé</strong><p>${h(last.statement)}</p>${last.followup1?`<p>Relance 1 : ${h(last.followup1)}</p>`:''}${last.followup2?`<p>Relance 2 : ${h(last.followup2)}</p>`:''}${previous.length>1?`<p class="small">${previous.length-1} correction(s) conservée(s) dans l’historique.</p>`:''}</div>`;
+ html+='</div>';return html}
+function stageContent(){const s=nowStage();if(s===STAGE.FIRST||s===STAGE.SECOND)return investigators.includes(session.role)?voteForm(s===STAGE.SECOND):`<div class="card"><h2>${h(stageName(s))}</h2><p>Les six enquêteurs votent individuellement. Charlotte ne vote pas : elle pilote la séance.</p></div>`;if(s===STAGE.DISCUSS)return `<div class="card"><h2>🎤 Confrontation collective</h2><p>Les premiers votes sont enregistrés, mais encore secrets. Échangez oralement vos théories et vos preuves, puis chacun déposera son vote final.</p><p>Les notes privées restent privées.</p></div>`;return stagesHTML()}
+function affaire(){const step=nowStage(),pieces=[{at:0,title:'Disparition constatée',text:'Vers 20 h 30, Charlotte remarque la table vide. Un déplacement ne prouve pas un vol.'},{at:3,title:'Friandise de Nino',text:'Nino reconnaît avoir pris un bonbon en cachette, sans lien démontré avec le coffret.'},{at:4,title:'Dernière observation du coffret',text:'James l’a vu sur la table avant 20 h 28. Il n’atteste rien après.'},{at:6,title:'Sac de Mathieu',text:'Mathieu avait caché un sac de friandises, non le coffret.'},{at:12,title:'Blackout',text:'Charlotte avait programmé l’extinction à 20 h 31, indépendamment de la disparition.'},{at:16,title:'Message de Norah et Matys',text:'Le message concernait une plaisanterie indépendante du Trésor.'},{at:17,title:'Petite silhouette',text:'Nino a aperçu une silhouette non identifiée allant vers les jouets avant le noir.'},{at:18,title:'Emballage près des jouets',text:'Indice numérique : un emballage a été remarqué près des jouets ; son origine est inconnue.'}];return `<div class="card"><h2>🕰️ L’affaire</h2><p>Faits et témoignages accessibles au fur et à mesure, sans révéler le dénouement.</p>${pieces.filter(p=>step>=p.at).map(p=>`<div class="clue-line"><strong>${h(p.title)}</strong><p>${h(p.text)}</p></div>`).join('')}${step>=STAGE.ENOLA?`<h3>Chronologie établie après la révélation</h3>${FACTS.map(([t,x])=>`<div class="clockline"><strong>${h(t)}</strong><p>${h(x)}</p></div>`).join('')}`:''}${step===STAGE.ARCHIVE?`<div class="card"><h3>Rejouer la chronologie</h3><p class="small">Lecture privée sans modifier l’enquête.</p><div class="clockline"><strong>${h(FACTS[replayIndex][0])}</strong><p>${h(FACTS[replayIndex][1])}</p></div><p><strong>Mes convictions réellement enregistrées :</strong></p><p>Premier vote : ${h(formatVote(room.votesInitial?.[session.role]))}</p><p>Vote final : ${h(formatVote(room.votesFinal?.[session.role]))}</p><div class="flex"><button class="btn secondary" data-replay="prev" ${replayIndex===0?'disabled':''}>← Précédent</button><span>${replayIndex+1}/${FACTS.length}</span><button class="btn secondary" data-replay="next" ${replayIndex===FACTS.length-1?'disabled':''}>Suivant →</button></div></div>`:''}</div>`}
+function personalMirror(){if(nowStage()<STAGE.VERDICTS)return '';const first=room.votesInitial?.[session.role],last=room.votesFinal?.[session.role];if(!first&&!last)return '';return `<div class="mirror-panel"><h3>🪞 Le miroir de tes certitudes</h3><p><strong>Premier vote :</strong> ${h(formatVote(first))}</p><p><strong>Vote final :</strong> ${h(formatVote(last))}</p>${last?`<p><strong>Influence déclarée :</strong> ${h(last.influencedBy==='aucune'?'Aucune':last.influencedBy==='inconnue'?'Je ne sais pas':fullName(last.influencedBy))}</p>`:''}<p class="small">Il s’agit de tes propres déclarations, sans interprétation automatique.</p></div>`}
+function carnet(){const n=normalizedNote(notes[selectedPerson]),statusNames={inconnu:'❔ Inconnu',suspect:'🔴 Suspect',verifier:'🟠 À vérifier',ecarte:'🟢 Écarté'};const readonly=nowStage()>=STAGE.ARCHIVE;let header=`<div class="card"><div class="round">CARNET CONFIDENTIEL</div><h2>📋 Mon Cluedo</h2><p class="small" data-note-sync>${h(noteStatus)}</p><div class="cluedo-switch"><button class="cluedo-switch-btn ${notebookView==='dossiers'?'active':''}" data-cluedo-view="dossiers">🔎 Dossiers suspects</button><button class="cluedo-switch-btn ${notebookView==='souvenirs'?'active':''}" data-cluedo-view="souvenirs">🧩 Mes souvenirs</button></div></div>`;
+ if(notebookView==='souvenirs')return header+personalMirror()+`<div class="card"><h3>Ce dont ton personnage se souvient</h3>${(MEMORIES[session.role]||[]).map((t,i)=>`<div class="memory-entry"><strong>${i+1}.</strong><p>${h(t)}</p></div>`).join('')}</div>`;
+ return header+personalMirror()+`<div class="card"><div class="person-grid">${suspects.map(id=>`<button type="button" class="person-tile ${selectedPerson===id?'selected':''}" data-person-note="${id}"><span class="emoji">${h(fullName(id).split(' ')[0])}</span><span class="name">${h(fullName(id).split(' ').slice(1).join(' '))}</span><span class="tiny">${h(statusNames[normalizedNote(notes[id]).status])}</span></button>`).join('')}</div><h3>${h(fullName(selectedPerson))}</h3><div class="status-picker">${noteStatuses.map(id=>`<button type="button" class="status-pill ${n.status===id?'active':''}" data-status="${id}" ${readonly?'disabled':''}>${h(statusNames[id])}</button>`).join('')}</div><div class="quick-tags">${NOTE_TAGS.map(([id,label])=>`<button type="button" class="quick-tag" data-tag="${id}" aria-pressed="${n.tags[id]}" ${readonly?'disabled':''}>${h(label)}</button>`).join('')}</div><label>Mes notes privées<textarea id="noteText" data-note="${selectedPerson}" maxlength="600" ${readonly?'readonly':''}>${h(n.text)}</textarea></label><p class="small muted">Sauvegarde automatique dans Firebase ; accessible seulement sur ton identité.</p><div class="analysis-flash"><strong>🕯️ Question pour ton enquête</strong><p>Qu’as-tu réellement vu ou entendu concernant ${h(fullName(selectedPerson))}, et qu’as-tu seulement déduit ?</p></div></div>`}
+function pilotage(){if(!host())return '';const st=nowStage(),readiness=(round)=>`<div class="status-list">${investigators.map(id=>{const complete=room?.[round==='initial'?'votesInitial':'votesFinal']?.[id];const absent=room.absences?.[round]?.[id];return `<div class="status-line"><span>${h(fullName(id))}</span><span>${complete?'✓ Voté':absent?'– Abstention':`<button type="button" class="btn secondary btn-small" data-absent="${round}:${id}">Marquer absent</button>`}</span></div>`}).join('')}</div>`;
+ let html=`<section class="card host-panel"><div class="round">MODE PILOTAGE · CONFIDENTIEL</div><h2>${h(stageName(st))}</h2><p class="small">Progression manuelle de la soirée ; aucune avance automatique.</p>`;
+ if(st<18){const q=Q[st],ans=room.currentAnswer,previous=revisions(q.id);html+=`<p><strong>Interrogé :</strong> ${h(fullName(q.target))}</p><p><strong>Réponse enregistrée :</strong> ${ans?h(q.answers[ans.value]):'En attente du personnage'}</p><div class="host-form"><label>Réponse réellement prononcée<textarea id="spoken" maxlength="1000" placeholder="Recopie les paroles entendues (ou utilise la réponse enregistrée si elle a réellement été dite).">${h(transcriptDraft)}</textarea></label><button class="btn secondary" data-action="copy-answer" ${!ans?'disabled':''}>Reprendre la réponse enregistrée</button><label>1re question complémentaire et réponse (facultatif)<textarea id="followup1" maxlength="500">${h(followup1Draft)}</textarea></label><label>2e question complémentaire et réponse (facultatif)<textarea id="followup2" maxlength="500">${h(followup2Draft)}</textarea></label><button class="btn secondary" data-action="save-testimony" ${!ans?'disabled':''}>${previous.length?'Consigner une correction validée':'Valider le procès-verbal oral'}</button></div><p class="small">Le groupe valide oralement ce qui a été dit. Une correction crée un nouvel enregistrement ; les précédents restent disponibles.</p>${previous.length?`<details><summary>Historique (${previous.length})</summary>${previous.map((x,i)=>`<p>${i+1}. ${h(x.statement)}</p>`).join('')}</details>`:''}`}
+ if(st===STAGE.DISCUSS){const previous=Object.values(room.claims||{});html+=`<h3>Registre des affirmations orales</h3><p class="small">Consigner uniquement des déclarations réellement entendues. Faire confirmer le statut par leur auteur. Ce registre est public ; les carnets restent privés.</p><label>Auteur<select id="claimAuthor">${[...investigators,'charlotte'].map(id=>`<option value="${id}" ${claimAuthor===id?'selected':''}>${h(fullName(id))}</option>`).join('')}</select></label><label>Nature<select id="claimKind"><option value="temoignage" ${claimKind==='temoignage'?'selected':''}>Témoignage</option><option value="hypothese" ${claimKind==='hypothese'?'selected':''}>Hypothèse</option><option value="accusation" ${claimKind==='accusation'?'selected':''}>Accusation</option></select></label><label>État<select id="claimStatus"><option value="en_attente" ${claimStatus==='en_attente'?'selected':''}>À confirmer</option><option value="validee" ${claimStatus==='validee'?'selected':''}>Confirmée oralement</option><option value="contestee" ${claimStatus==='contestee'?'selected':''}>Contestée</option></select></label><label>Déclaration<textarea id="claimText" maxlength="500">${h(claimText)}</textarea></label><button class="btn secondary" data-action="save-claim">Consigner cette affirmation</button><p class="small">${previous.length} affirmation(s) enregistrée(s). Les corrections se consignent comme de nouvelles déclarations, sans effacer les précédentes.</p>`}
+ if(st===STAGE.FIRST||st===STAGE.SECOND)html+=`<h3>${st===STAGE.FIRST?'Premiers votes':'Votes finaux'}</h3>${readiness(st===STAGE.FIRST?'initial':'final')}`;
+ if(st===STAGE.INFLUENCES){const total=influenceEdges().length;html+=`<p>Influences révélées : ${room.progress?.influenceIndex||0}/${total}</p><button class="btn secondary" data-action="next-influence" ${(room.progress?.influenceIndex||0)>=total?'disabled':''}>Afficher le lien suivant</button>`}
+ if(st===STAGE.ARCHIVE){html+=`<p>Avant la suppression, laisse chacun enregistrer son PDF souvenir.</p><button class="btn danger w100" data-action="delete">Terminer et supprimer la session</button>`}else{let ready=st<18?Boolean(room.currentAnswer&&latestTestimony(st+1)?.validated):st===STAGE.FIRST?allFinished('initial'):st===STAGE.SECOND?allFinished('final'):true;html+=`<button class="btn w100" data-action="advance" ${ready?'':'disabled'}>${st===STAGE.ZONE?'Valider oralement puis autoriser la recherche':st===STAGE.SEARCH?'Coffret retrouvé et toujours fermé':st===STAGE.CLOCK?'Valider l’intervalle proposé':'Valider et poursuivre'} →</button>`}
+ return html+'</section>'}
+function screen(){const st=nowStage();if(st<STAGE.VERDICTS)return `<section class="card reveal-stage"><h2>🕯️ Le Tribunal des Roubatvot</h2><p>L’enquête est en cours. Écoutez les témoignages et confrontez vos hypothèses.</p></section>`;return stagesHTML()}
+function settings(){const connected=Object.keys(room?.players||{}).length;return `<details class="settings room-settings"><summary>Paramètres de la salle</summary><div class="room-settings-content"><p>Salle : <strong>${h(session.code)}</strong> · ${connected}/7 participants · ${h(stageName(nowStage()))}</p><div class="room-settings-actions"><button class="btn secondary" data-action="copy-url">Copier le lien</button><button class="btn secondary" data-action="leave">Quitter la salle</button>${host()?'<button class="btn secondary" data-action="open-screen">Ouvrir l’écran commun</button>':''}</div>${host()?`<details><summary>Vérité du scénario (confidentielle)</summary>${FACTS.map(([t,x])=>`<p><strong>${h(t)}</strong> — ${h(x)}</p>`).join('')}<p>La découverte physique du coffret précède sa révélation. La lumière de 20 h 31 était programmée, indépendante. Aucun suspect n’a volé le coffret.</p></details>`:''}</div></details>`}
+function login(){const mj=qs.get('mj')==='1';return `<div class="card"><h2>Entrer dans l’enquête</h2>${mj?`<p>Accès organisatrice.</p>${me&&!me.isAnonymous?`<button class="btn" data-action="create">Créer la salle</button>`:`<button class="btn" data-action="google">Connexion Google</button>`}`:`<label>Code de salle<input id="code" maxlength="8" value="${h(joinCode)}" placeholder="ABCDEFGH"></label><p>Choisis ton personnage :</p><div class="person-grid">${investigators.map(id=>`<button type="button" class="person-tile ${selectedPlayer===id?'selected':''}" data-join-person="${id}">${h(fullName(id))}</button>`).join('')}</div><button class="btn" data-action="join">Rejoindre l’enquête</button><button class="btn secondary" data-action="host-link">Accès organisatrice</button>`}</div>`}
+function nav(){return `<div class="tabs">${[['enquete','🎭 Tribunal'],['carnet','📋 Mon Cluedo'],['affaire','🕰️ L’affaire']].map(([id,label])=>`<button class="${tab===id?'active':''}" data-tab="${id}">${label}</button>`).join('')}</div>`}
+function renderSafely(){if(!document.activeElement||!document.activeElement.matches('textarea,input,select'))render();else noteSync()}
+function render(){for(const x of root.querySelectorAll('details[data-keep]')){if(x.open)expanded.add(x.dataset.keep);else expanded.delete(x.dataset.keep)}const current=nowStage();let body=!session?login():screenMode?screen():nav()+(tab==='carnet'?carnet():tab==='affaire'?affaire():`<section class="card chapter-title"><div class="round">${h(stageName(current))}</div></section>`+(current<18?interrogation():stageContent())+(host()?pilotage():''))+settings();if(error)body=`<div class="card error" role="alert">⚠️ ${h(error)} <button type="button" class="btn secondary" data-action="clear-error">Fermer</button></div>`+body;root.innerHTML=body;for(const el of root.querySelectorAll('details[data-keep]'))el.open=expanded.has(el.dataset.keep)}
+async function savePDF(){if(nowStage()<STAGE.ARCHIVE)throw Error('Le PDF souvenir est proposé après la fin du jeu.');const JSPDF=window.jspdf?.jsPDF;if(!JSPDF)throw Error('Le module PDF est indisponible. Vérifie la connexion internet, puis réessaie.');const doc=new JSPDF({unit:'mm',format:'a4'});let y=22,page=1;const margin=19;function add(text,opts={}){doc.setFont('helvetica',opts.bold?'bold':'normal');doc.setFontSize(opts.size||10);const content=doc.splitTextToSize(String(text??''),173);const height=content.length*(opts.size||10)*0.44+3;if(y+height>274){doc.addPage();page++;y=20}doc.text(content,margin,y);y+=height}function heading(text){y+=4;add(text,{bold:true,size:14});y+=2}doc.setTextColor(28,33,44);add('TRIBUNAL DES ROUBATVOT — DOSSIER CONFIDENTIEL',{bold:true,size:10});y+=7;add('DOSSIER D’ENQUÊTE',{bold:true,size:22});add('Le Trésor de la Chouquette',{bold:true,size:15});add(`Enquêteur : ${fullName(session.role)}`);add(`Référence fictive : ${session.code}-${session.role.toUpperCase()}`);add('Halloween 2026 · Ingré · AFFAIRE CLASSÉE');y+=8;heading('MES VOTES');add('Premier vote : '+formatVote(room.votesInitial?.[session.role]));add('Vote final : '+formatVote(room.votesFinal?.[session.role]));const last=room.votesFinal?.[session.role];if(last){add('Influence réellement déclarée : '+(last.influencedBy==='aucune'?'Aucune':last.influencedBy==='inconnue'?'Indéterminée':fullName(last.influencedBy)));if(last.influenceReason)add('Argument : '+last.influenceReason)}heading('MON CARNET CLUEDO');for(const id of suspects){const x=normalizedNote(notes[id]);if(x.status!=='inconnu'||x.text||Object.values(x.tags).some(Boolean)){add(`${fullName(id)} — ${x.status}`);if(x.text)add(x.text);const tags=NOTE_TAGS.filter(([key])=>x.tags[key]).map(([,label])=>label);if(tags.length)add(tags.join(' · '))}}heading('AFFIRMATIONS ORALES PUBLIQUES');for(const c of Object.values(room.claims||{})){add(`${fullName(c.author)} — ${c.kind} (${c.status})`);add(c.text)}heading('LES 18 INTERROGATIONS');let partial=[];for(const q of Q){const history=revisions(q.id);add(`PV ${q.id} — ${fullName(q.asker)} → ${fullName(q.target)}`,{bold:true});add('Question : '+q.question);if(history.length){const final=history.at(-1);add('Déclaration consignée : '+final.statement);if(final.followup1)add('Relance 1 : '+final.followup1);if(final.followup2)add('Relance 2 : '+final.followup2);if(history.length>1){add(`Corrections conservées : ${history.length-1}`);history.forEach((entry,i)=>add(`Version ${i+1} — ${new Date(entry.at||0).toLocaleString('fr-FR')} — ${entry.statement}`))}}else{partial.push('PV '+q.id);add('Déclaration non disponible')}}heading('CHRONOLOGIE — FAITS ÉTABLIS');for(const [time,fact]of FACTS)add(`${time} : ${fact}`);heading('CHRONOLOGIE — CONVICTIONS');add('Premier vote : '+formatVote(room.votesInitial?.[session.role]));add('Vote final : '+formatVote(room.votesFinal?.[session.role]));heading('RAPPORT FINAL');add('Aucun vol n’a été commis. Aucun suspect n’est coupable. Enola a déplacé le coffret innocemment pour jouer.');add('Le Tribunal déclare coupables… les certitudes, pas les personnes.');add('Le plus grand trésor n’était pas celui qui avait disparu. C’était celui qui nous réunissait tous autour de cette table.');add('HALLOWEEN SAUVÉ ! — AFFAIRE CLASSÉE');if(!room.votesInitial?.[session.role])partial.push('premier vote');if(!room.votesFinal?.[session.role])partial.push('vote final');if(partial.length){heading('ARCHIVES INCOMPLÈTES');add('Les sections suivantes manquent dans les données accessibles : '+partial.join(', ')+'. Leur absence ne signifie pas qu’elles n’ont jamais existé.')}doc.setProperties({title:'Dossier personnel du Tribunal des Roubatvot',subject:'Halloween 2026'});doc.save(`Tribunal_Roubatvot_${session.role}_Halloween_2026.pdf`)}
+root.addEventListener('input',e=>{if(e.target.dataset.note)editNote(e.target.dataset.note,'text',e.target.value);if(e.target.id==='voteReason')voteArgument=e.target.value;if(e.target.id==='influenceReason')influenceReason=e.target.value;if(e.target.id==='code')joinCode=e.target.value;if(e.target.id==='spoken')transcriptDraft=e.target.value;if(e.target.id==='followup1')followup1Draft=e.target.value;if(e.target.id==='followup2')followup2Draft=e.target.value;if(e.target.id==='claimText')claimText=e.target.value});
+root.addEventListener('change',e=>{if(e.target.name==='answer'){selectedAnswer=Number(e.target.value);render()}if(e.target.id==='voteSource'){chosenSource=e.target.value;render()}if(e.target.id==='influencedBy')influencedBy=e.target.value;if(e.target.id==='claimAuthor')claimAuthor=e.target.value;if(e.target.id==='claimKind')claimKind=e.target.value;if(e.target.id==='claimStatus')claimStatus=e.target.value});
+root.addEventListener('click',async e=>{const el=e.target.closest('button');if(!el)return;if(el.dataset.tab){tab=el.dataset.tab;render();return}if(el.dataset.replay){replayIndex=Math.max(0,Math.min(FACTS.length-1,replayIndex+(el.dataset.replay==='next'?1:-1)));render();return}if(el.dataset.finalView){finalView=Number(el.dataset.finalView);render();return}if(el.dataset.cluedoView){notebookView=el.dataset.cluedoView;render();return}if(el.dataset.personNote){selectedPerson=el.dataset.personNote;render();return}if(el.dataset.joinPerson){selectedPlayer=el.dataset.joinPerson;render();return}if(el.dataset.status){editNote(selectedPerson,'status',el.dataset.status);render();return}if(el.dataset.tag){editNote(selectedPerson,'tag',el.dataset.tag);render();return}if(el.dataset.votePerson){chosenSuspect=el.dataset.votePerson;render();return}if(el.dataset.absent){const [round,id]=el.dataset.absent.split(':');if(confirm(`Confirmer l’abstention exceptionnelle de ${fullName(id)} ?`)){try{await markAbsent(id,round)}catch(ex){error=ex.message;render()}}return}const action=el.dataset.action;if(!action||pending)return;pending=true;error='';try{switch(action){case'clear-error':break;case'google':await hostLogin();break;case'create':await createRoom();break;case'join':await openRoom(joinCode,selectedPlayer);break;case'host-link':location.assign(location.pathname+'?mj=1');return;case'leave':persistLocalNotes();unsubscribe();session=null;room=null;localStorage.removeItem(sessionKey);history.replaceState(null,'',location.pathname);break;case'copy-url':await navigator.clipboard.writeText(joinURL());break;case'open-screen':window.open(`${location.origin}${location.pathname}?screen=1&room=${encodeURIComponent(session.code)}`,'_blank');break;case'answer':await submitAnswer();break;case'copy-answer':if(room.currentAnswer){transcriptDraft=Q[nowStage()].answers[room.currentAnswer.value]};break;case'save-testimony':await saveTestimony();break;case'save-claim':await savePublicClaim();break;case'vote-initial':await vote(false);break;case'vote-final':await vote(true);break;case'advance':await advance();break;case'next-influence':await nextInfluence();break;case'pdf':await savePDF();break;case'delete':await deleteSession();break;default:break}}catch(ex){error=ex.message||String(ex)}finally{pending=false;render()}});
+onAuthStateChanged(auth,async user=>{me=user;try{if(!user){await signInAnonymously(auth);return}const old=JSON.parse(localStorage.getItem(sessionKey)||'null');if(old&&!session){try{await openRoom(old.code,old.role)}catch(ex){try{localStorage.removeItem(`roubatvot_v16_notes_${old.code}_${old.role}_${me.uid}`)}catch{}localStorage.removeItem(sessionKey);error='Ancienne session indisponible. Retour à l’accueil.'}}render()}catch(ex){error=ex.message;render()}});
 
-// Progression totalement autonome : chaque appareil peut prendre le relais.
-// Une transaction garantit qu'aucune confrontation n'est sautée, même si six téléphones tentent ensemble.
-async function tryAutoProgress(){
- if(!session||!room||autoBusy||!me)return;
- const step=ctx().phase;
- if(step>=19)return;
- if(serverNow()-autoLastAttempt<4500)return;
- if(step<18){
-  const q=Q[step];
-  if(![q.asker,q.target].includes(session.role))return;
-  const a=room.answers?.[q.id];
-  if(!a||!Number.isFinite(a.submittedAt)||serverNow()<a.submittedAt+DISCUSSION_MS)return;
- } else if(session.role!=='charlotte'){
-  // Chaque joueur connaît son vote ; le dernier vote envoyé déclenche également une tentative.
-  if(!room.votes?.[session.role])return;
- }
- autoBusy=true;autoLastAttempt=serverNow();
- try{
-  await runTransaction(path(session.code,'progress/step'),current=>current===step?step+1:undefined,{applyLocally:false});
- }catch(e){/* Tous les votes ne sont pas encore présents, ou une autre transaction a avancé. Réessai discret. */}
- finally{autoBusy=false}
-}
-
-// La navigation finale appartient à chaque appareil. Aucun horodatage Firebase
-// et aucune écriture supplémentaire ne sont nécessaires pour lire les résultats.
-function revealMoment(){return finalPage===3?5:finalPage===2?3:1;}
-const FINAL_TIMELINE=[
- ['20 h 25','Nino prend une friandise près de la table.'],
- ['20 h 28','Mathieu dissimule un sac de friandises.'],
- ['20 h 29','Charlotte déplace une décoration.'],
- ['Après 20 h 31','James voit encore le Trésor sur la table. Le message d’Halloween a détourné l’attention.'],
- ['Vers 20 h 32','Norah écrit un brouillon pour Matys près des jouets.'],
- ['Vers 20 h 33','Matys et Nino sont à la cuisine ; James décrit une petite silhouette avec un objet allant vers les jouets ; Andreas entend un bruit de couvercle.']
-];
-// Calcul fondé UNIQUEMENT sur les six votes rendus publics. Les notes privées n'y entrent pas.
-function collectiveDiagnosis(votes){
- const ballots=investigators.map(id=>({id,v: votes?.[id]||{}}));
- const count=suspect=>ballots.filter(x=>x.v.suspect===suspect).length;
- const sourceCount=source=>ballots.filter(x=>x.v.source===source).length;
- const group=suspects.map(id=>({id,n:count(id)})).filter(x=>x.n>0).sort((a,b)=>b.n-a.n||suspects.indexOf(a.id)-suspects.indexOf(b.id));
- const indeterminate=count('indetermine');
- const sources=SOURCE_KEYS.map(id=>({id,n:sourceCount(id)}));
- const selected=sources.reduce((sum,x)=>sum+x.n,0);
- const largest=group.length?group[0].n:0;
- return {ballots,group,indeterminate,sources,selected,largest,collectif:sourceCount('collectif')};
-}
-function sharedVerdicts(votes){
- return investigators.map(id=>{
-  const ballot=votes?.[id]||{};
-  const suspect=ballot.suspect==='indetermine'?'❔ Preuves insuffisantes':(P[ballot.suspect]||'Verdict non disponible');
-  const source=CONVICTION_SOURCES[ballot.source];
-  return `<div class="conviction-voice"><strong>${h(P[id])} → ${h(suspect)}</strong><small>${source?`${h(source.icon)} ${h(source.short)}`:'Source de conviction non indiquée'}${ballot.argument?` · « ${h(ballot.argument)} »`:''}</small></div>`;
- }).join('');
-}
-function sharedBeliefMirror(votes){
- const d=collectiveDiagnosis(votes);
- const major=d.group.filter(x=>x.n===d.largest);
- const lead=d.largest>=2?(major.length===1
-  ?`${d.largest} enquêteurs ont désigné ${P[major[0].id]}. Ils partageaient une accusation, pas nécessairement les mêmes preuves.`
-  :`${major.map(x=>P[x.id]).join(' et ')} recueillent chacun ${d.largest} accusations. Il n’y a pas une seule théorie dominante.`)
-  :`Aucune personne ne rassemble plusieurs accusations : les conclusions du groupe divergent.`;
- const collective=d.collectif===0
-  ?'Personne n’a déclaré que les soupçons répétés du groupe étaient sa raison principale. Cela ne permet pas de savoir si les discussions ont malgré tout influencé des choix.'
-  :`${d.collectif} enquêteur${d.collectif>1?'s':''} ${d.collectif>1?'déclarent':'déclare'} que les soupçons répétés du groupe ${d.collectif>1?'étaient':'étaient'} ${d.collectif>1?'leur raison principale':'sa raison principale'}. C’est leur déclaration, pas une preuve que quelqu’un les a trompés.`;
- return `<div class="conviction-stats"><div class="conviction-stat"><strong>${d.collectif}/6</strong><span>Disent avoir surtout suivi les soupçons du groupe</span></div><div class="conviction-stat"><strong>${d.largest}/6</strong><span>Plus grand nombre de voix pour une même personne</span></div></div><p>${h(lead)}</p><p>${h(collective)}</p><div class="collective-reflection"><h3>Un soupçon répété devient-il une preuve ?</h3><p>Les six votes indiquent ce que chacun pense et dit avoir retenu. Ils ne racontent pas à eux seuls qui a convaincu qui. Une histoire peut se renforcer sans qu’un nouveau fait apparaisse.</p></div><p class="small muted">${d.selected}/6 sources de conviction renseignées. Les notes privées ne sont jamais utilisées dans ce tableau.</p>`;
-}
-function finalNav(page){
- const titles=['🗳️ Les verdicts','🕰️ Les faits','🧸 La vérité'];
- return `<nav class="final-steps" aria-label="Navigation du dénouement">${titles.map((title,i)=>`<button type="button" class="final-step" data-final-page="${i+1}" aria-current="${page===i+1?'step':'false'}" aria-label="${h(title)}">${h(title)}</button>`).join('')}</nav>`;
-}
-function revealTheater(){
- const c=ctx(),page=finalPage,nav=finalNav(page);
- if(page===1)return `<section class="card reveal-stage" data-final-panel>${nav}<div class="quiet">Les certitudes du Tribunal</div><h2>Vous étiez là. Vous n’avez pas vu la même histoire.</h2><p>Voici les six verdicts et la raison principale que chacun a déclarée.</p>${sharedVerdicts(c.votes)}<h3>La contagion des soupçons</h3>${sharedBeliefMirror(c.votes)}</section>`;
- if(page===2)return `<section class="card reveal-stage" data-final-panel>${nav}<div class="quiet">Les faits n’ont pas voté</div><h2>Les heures racontent autre chose.</h2>${FINAL_TIMELINE.map(([time,fact])=>`<div class="clockline"><span class="time">${h(time)}</span><p>${h(fact)}</p></div>`).join('')}<p class="small muted">Les témoignages ne donnent encore ni le nom de la silhouette ni la nature de l’objet qu’elle transportait.</p><div class="collective-reflection"><h3>La question que personne ne posait</h3><p class="dramatic">Et si vous aviez confondu le nombre de personnes convaincues… avec la force des preuves ?</p></div></section>`;
- return `<section class="card reveal-stage" data-final-panel>${nav}<div class="quiet">Le Trésor</div><h2>Le déplacement était réel. Le vol, non.</h2><p class="dramatic">Enola a emporté le coffret vers ses jouets. Pour jouer. Tout simplement.</p><p>Le sac de Mathieu, le message de Norah, la friandise de Nino et les souvenirs de James étaient réels. La conspiration, elle, s’est construite dans vos interprétations — si vous en avez imaginé une.</p><div class="collective-reflection"><h3>Le second retournement</h3><p>Une accusation partagée n’était pas forcément une observation partagée. À vous de comparer les théories que vous avez réellement échangées.</p></div><p><strong>Aucun objet à chercher : tout le dénouement est numérique.</strong></p><details data-details-key="final-verdicts"><summary>🗳️ Relire les six verdicts et leurs raisons</summary>${sharedVerdicts(c.votes)}</details><button type="button" class="btn secondary" data-tab="carnet">🪞 Relire mes certitudes dans mon Cluedo</button></section>`;
-}
-async function submitAnswer(qIndex,answer){const q=Q[qIndex];if(!Number.isInteger(answer)||answer<0||answer>2)throw Error("Choisis une réponse.");if(session.role!==q.target||ctx().phase!==qIndex)throw Error('Ce n’est pas ton tour de répondre.');if(!ctx().members[q.asker])throw Error('Attends que l’enquêteur rejoigne la salle.');await set(path(session.code,`answers/${q.id}`),{value:answer,by:me.uid,submittedAt:serverTimestamp()});selectedAnswer=-1}
-// Copie figée des huit fiches : la note actuelle reste libre après ce vote.
-function captureVoteNotebook(){return Object.fromEntries(suspects.map(who=>[who,normalizeNote(notes[who])]))}
-async function vote(){
- if(!investigators.includes(session.role)||ctx().phase!==18)throw Error('Vote indisponible.');
- if(![...Object.keys(P),'indetermine'].includes(chosenSuspect))throw Error('Choisis un suspect.');
- if(!notesReady)throw Error('Attends la connexion de ton carnet avant de voter.');
- if(!SOURCE_KEYS.includes(chosenSource))throw Error('Indique ce qui t’a le plus convaincu.');
- // Firebase applique les deux écritures dans un seul update multi-emplacements :
- // aucun vote sans sa photographie privée des statuts, pastilles et notes.
- const currentSession=session;
- const ballot={suspect:chosenSuspect,source:chosenSource,argument:voteArgument.trim(),by:me.uid,submittedAt:serverTimestamp()};
- const portrait={by:me.uid,savedAt:serverTimestamp(),notes:captureVoteNotebook()};
- await update(path(currentSession.code),{
-  [`votes/${currentSession.role}`]:ballot,
-  [`verdictSnapshots/${currentSession.role}`]:portrait
- });
- // Les règles Firebase valident l'immuabilité ; le moteur peut avancer automatiquement.
- void tryAutoProgress();render();
-}
-function updateCountdowns(){
- for(const el of root.querySelectorAll('[data-autocount]')){
-  const start=Number(el.dataset.autocount||0),left=Math.ceil((start+DISCUSSION_MS-serverNow())/1000);
-  el.textContent=left>0?`🎤 Encore ${left} s pour échanger et noter vos hypothèses ; la suite est automatique.`:'⌛ La prochaine question se prépare automatiquement…';
- }
-}
-
-function loginUI(){const mj=new URLSearchParams(location.search).get('mj')==='1';return `<div class="card"><h2>Entrer dans l’enquête</h2>${mj?`<p>Accès réservé à Charlotte.</p>${me&&!me.isAnonymous?'<p class="ok">Compte Google MJ connecté.</p>':'<button class="btn" data-action="google">Se connecter avec Google</button>'}${me&&!me.isAnonymous?`<button class="btn secondary" data-action="create">Créer une salle</button>`:''}`:`<label>Code de salle<input id="code" maxlength="8" value="${h(joinCode)}" placeholder="ABCDEFGH"></label><p><strong>Choisis ton personnage</strong></p><div class="person-grid">${investigators.map(p=>`<button type="button" class="person-tile ${selectedPlayer===p?'selected':''}" data-person="${p}"><span class="emoji">${h(P[p].split(' ')[0])}</span><span class="name">${h(P[p].split(' ').slice(1).join(' '))}</span></button>`).join('')}</div><button class="btn" data-action="join">Rejoindre la salle</button><p class="small muted">Chaque joueur utilise son propre navigateur / téléphone, sans le compte Google MJ.</p><button class="btn secondary" data-action="host">Je suis Charlotte (MJ)</button>`}</div>`}
-function menu(){return `<div class="tabs" role="navigation" aria-label="Navigation de l’enquête">${[['enquete','🎭 Tribunal'],['carnet','📋 Mon Cluedo'],['affaire','🕰️ L’affaire']].map(([k,label])=>`<button class="${tab===k?'active':''}" data-tab="${k}" aria-current="${tab===k?'page':'false'}">${label}</button>`).join('')}</div>`}
-// V4.9.3 : informations techniques uniquement dans les paramètres, placés avant le pied de page.
-function roomSettings(){
- const c=ctx();
- const phase=c.phase<18?'Manche '+(Math.floor(c.phase/6)+1)+'/3':c.phase===18?'Verdict':'Révélation';
- return `<details class="settings room-settings" data-details-key="settings"><summary>Paramètres de la salle</summary><div class="room-settings-content"><div class="room-settings-meta"><strong>🟢 Salle ${h(session.code)}</strong><span class="muted small">${Object.keys(c.members).length}/7 profils · ${phase}</span></div><div class="room-settings-actions"><button class="btn secondary" data-action="copy">Copier le lien</button><button class="btn secondary" data-action="leave">Quitter cette salle</button>${session.role==='charlotte'?'<button class="btn secondary" data-action="new-room">Créer une nouvelle salle de test</button>':''}</div>${session.role==='charlotte'?`<details data-details-key="mj-dossier"><summary>Dossier confidentiel de Charlotte</summary>${mjUI()}</details>`:''}</div></details>`;
-}
-function chapterPrelude(step){
- if(step===0)return `<div class="card reveal-stage"><div class="quiet">Prologue · La même soirée, plusieurs vérités</div><p class="dramatic">À 20 h 35, le Trésor de la Chouquette n’est plus sur la table. Sept personnes racontent ce qu’elles ont vu. Pas forcément ce qu’elles ont compris.</p><p>Chacun pense avoir retenu quelque chose. Les autres en feront ce qu’ils voudront. Écoutez les questions et les réponses prononcées à voix haute.</p></div>`;
- if(step===6)return `<div class="card reveal-stage"><div class="quiet">Manche II · Ce qui a été tu</div><p>Vous avez entendu des versions différentes. Certaines paroles sont devenues des soupçons. Qui les a prononcées en premier ?</p></div>`;
- if(step===12)return `<div class="card reveal-stage"><div class="quiet">Manche III · La certitude est un piège</div><p>Vos versions circulent désormais dans la pièce. Lesquelles venez-vous de voir, et lesquelles avez-vous seulement entendues ?</p></div>`;
- return '';
-}
-function interrogation(){
- const c=ctx(),step=c.phase;
- if(step>=19)return revealTheater();
- if(step===18){
-  const mine=c.votes[session.role];
-  const choiceCards=SOURCE_KEYS.map(key=>{
-   const entry=CONVICTION_SOURCES[key];
-   return `<button type="button" class="conviction-choice" data-vote-source="${key}" aria-pressed="${chosenSource===key}"><span class="source-icon">${h(entry.icon)}</span><span>${h(entry.label)}</span></button>`;
-  }).join('');
-  return `<div class="card"><div class="round">VERDICT FINAL · 18 CONFRONTATIONS</div><h2>Qui a déplacé le Trésor ?</h2><p>Choisis une personne ou indique que tu ne peux pas conclure. Tu devras ensuite dire ce qui t’a principalement convaincu.</p>${session.role==='charlotte'?'<p class="muted">Tu ne votes pas. Le Tribunal recueille automatiquement les six verdicts avant de confronter vos convictions.</p>':mine?'<div class="ok">✅ Ton verdict et ta raison principale sont enregistrés. Ils apparaîtront ensemble après les six votes.</div>':`<div class="suspect-vote-grid">${suspects.map(p=>`<button type="button" class="person-tile ${chosenSuspect===p?'selected':''}" data-vote-person="${p}" aria-pressed="${chosenSuspect===p}"><span class="emoji">${h(P[p].split(' ')[0])}</span><span class="name">${h(P[p].split(' ').slice(1).join(' '))}</span></button>`).join('')}</div><button class="status-pill w100 ${chosenSuspect==='indetermine'?'active':''}" data-vote-person="indetermine" aria-pressed="${chosenSuspect==='indetermine'}">❔ Les preuves ne suffisent pas</button><h3>Qu’est-ce qui t’a le plus convaincu ?</h3><p class="small muted">Un seul choix. Ce que tu déclares sera montré aux autres après les votes. Il n’y a pas de bonne réponse.</p><div class="conviction-choices" role="group" aria-label="Origine principale de ma conviction">${choiceCards}</div>${chosenSource?`<div class="conviction-summary">${h(CONVICTION_SOURCES[chosenSource].question)}</div>`:''}<label>Mon argument (facultatif, public après les votes)<textarea id="voteReason" maxlength="220" placeholder="Ce qui m’a fait penser cela…">${h(voteArgument)}</textarea></label><button class="btn w100" data-action="vote" ${!chosenSuspect||!chosenSource?'disabled':''}>Déposer mon verdict</button>`}</div>`;
- }
- const q=Q[step],answer=c.answers[q.id];
- const asker=session.role===q.asker,target=session.role===q.target;
- const progress=`<div class="round">MANCHE ${q.round}/3 · CONFRONTATION ${q.id}/18</div><div class="step-track" aria-label="Progression"><div class="step-track-fill" style="width:${Math.round(step/18*100)}%"></div></div>`;
- if(!asker&&!target)return `<div class="card">${progress}<h2>👂 Observe et écoute</h2><p>Cette question appartient à un autre joueur. Ses choix et ses réponses ne s’affichent pas ici.</p><p>Écoute ce qui est dit autour de la table, puis forme ta propre hypothèse.</p><button class="btn secondary w100" data-tab="carnet">📋 Ouvrir mon carnet</button></div>`;
- let html=`<div class="card">${progress}<div class="versus"><div class="character"><div class="avatar">${h(P[q.asker].split(' ')[0])}</div><strong>${h(P[q.asker].split(' ').slice(1).join(' '))}</strong></div><div class="mid">interroge →</div><div class="character"><div class="avatar">${h(P[q.target].split(' ')[0])}</div><strong>${h(P[q.target].split(' ').slice(1).join(' '))}</strong></div></div><h2 class="card-title">${asker?'🎤 À toi d’interroger':'🎭 À toi de répondre'}</h2><div class="big-question">« ${h(q.question)} »</div>`;
- if(asker&&!answer)html+=`<div class="role-instruction">Lis la question à voix haute. Écoute la réponse, pas l’écran de ton voisin.</div>`;
- if(target&&!answer&&!c.members[q.asker])html+=`<p class="muted">En attente de ${h(P[q.asker])} pour poser la question.</p>`;
- if(target&&!answer&&c.members[q.asker])html+=`<p>Choisis une réponse, puis <strong>lis-la à voix haute</strong> avant de l’enregistrer.</p><div class="response-grid">${q.answers.map((text,i)=>`<label class="response-card ${selectedAnswer===i?'selected':''}"><input type="radio" name="answer" value="${i}" ${selectedAnswer===i?'checked':''}><span class="response-letter">${'ABC'[i]}</span><span>${h(text)}</span></label>`).join('')}</div><button class="btn w100" data-action="answer" ${selectedAnswer<0?'disabled':''}>Confirmer ma réponse</button>`;
- if(target&&answer)html+=`<div class="private"><strong>Ta déclaration choisie</strong><p>« ${h(q.answers[answer.value])} »</p><p>Prononce-la devant les autres. Ils ne la lisent pas sur leurs téléphones.</p><p class="muted small" data-autocount="${answer.submittedAt||0}"></p></div>`;
- if(asker&&answer)html+=`<div class="private"><strong>🎯 Ta relance personnelle</strong><p class="quote">« ${h(q.relances[answer.value])} »</p><p>Pose-la au même suspect, puis laisse les autres discuter.</p><p class="muted small" data-autocount="${answer.submittedAt||0}"></p></div>`;
- html+='</div>';
- if(target)html+=`<details class="card private" data-details-key="secret-personnage"><summary>🔒 Mon secret de personnage</summary><p>${h(q.truth)}</p><p class="small">Tu n’es pas obligé de tout raconter : respecte néanmoins les faits de ton rôle.</p></details>`;
- return html;
-}
-function affaire(){
- const step=ctx().phase;
- const pieces=[
- {after:0,time:'20 h 35',title:'Disparition constatée',text:'Le coffret n’est plus sur la table. Son déplacement exact reste à reconstruire.',type:'Fait de départ'},
- {after:3,time:'20 h 25',title:'Friandise de Nino',text:'Nino admet une friandise ; Andreas avait observé son passage près de la table.',type:'Témoignages'},
- {after:4,time:'Après 20 h 31',title:'Dernière vision du coffret',text:'James affirme l’avoir encore vu après le message d’Halloween.',type:'Témoignage'},
- {after:5,time:'Vers 20 h 32',title:'Norah près des jouets',text:'Mathieu affirme l’avoir aperçue avec son téléphone ; elle confirme sa présence.',type:'Témoignage'},
- {after:6,time:'20 h 28',title:'Secret de Mathieu',text:'Mathieu reconnaît avoir caché quelque chose sous son pull.',type:'Témoignage'},
- {after:10,time:'Vers 20 h 33',title:'Cuisine',text:'Matys dit être avec Nino ; Andreas confirme les avoir vus ensemble à ce moment.',type:'Recoupement'},
- {after:14,time:'Vers 20 h 33',title:'Silhouette sans visage',text:'James rapporte une silhouette de petite taille transportant un objet vers les jouets. Il ne l’a pas identifiée.',type:'Témoignage'},
- {after:15,time:'20 h 28',title:'Le sac de Mathieu',text:'Pièce fictive : inventaire de la surprise prévue pour la soirée — un sac de friandises. Elle explique un objet, pas tous les déplacements.',type:'Document fictif'},
- {after:16,time:'20 h 32',title:'Brouillon de Norah',text:'Pièce fictive, non issue d’un vrai téléphone : « J’ai une petite surprise pour toi après le jeu ❤️ » · À Matys · Non envoyé.',type:'Document fictif'},
- {after:18,time:'Vers 20 h 33',title:'Le bruit près des jouets',text:'Andreas a entendu un bruit compatible avec un couvercle ; personne n’a vu l’objet se refermer.',type:'Témoignage'}
- ];
- const available=pieces.filter(p=>step>=p.after);
- return `<div class="card"><span class="round">DOSSIER COMMUN</span><h2>🕰️ L’affaire</h2><p class="muted">Seulement les éléments déjà apparus pendant les échanges. Ce sont des témoignages et des documents du jeu, pas une transcription des réponses privées.</p>${available.map(p=>`<div class="clue-line"><span class="time">${h(p.time)}</span> <span class="mini-tag">${h(p.type)}</span><strong style="display:block">${h(p.title)}</strong><p>${h(p.text)}</p></div>`).join('')}<p class="scroll-tip">Les hypothèses restent dans ton carnet privé. Aucune personne n’est automatiquement innocentée.</p></div>`;
-}
-// V4.8 — Étape 4 : bilan personnalisé, strictement après le chapitre IV.
-// N'infère jamais des changements d'avis : nous conservons uniquement l'instantané final.
-const MIRROR_VERDICT_QUESTIONS={
- james:'James a décrit une silhouette sans visage. Quel élément te faisait penser que son témoignage pouvait être faux ou incomplet ?',
- nino:'La friandise de Nino et son passage à la cuisine étaient établis. Lequel de ces faits désignait réellement le coffret ?',
- andreas:'Andreas a entendu un bruit sans en voir l’auteur. Qu’est-ce qui te conduisait à l’accuser personnellement ?',
- matys:'Matys était avec Nino à la cuisine à un moment précis. Pourquoi cette observation te semblait-elle insuffisante ?',
- mathieu:'Mathieu avait dissimulé un sac de friandises. Qu’est-ce qui reliait encore ce secret au déplacement du coffret ?',
- charlotte:'Charlotte a déplacé une décoration et ignorait plusieurs mouvements dans la maison. Quel geste permettait de l’accuser du coffret ?',
- norah:'Norah écrivait un message pour Matys près des jouets. Quel élément prouvait qu’elle avait aussi touché au Trésor ?',
- enola:'Tu avais désigné Enola. Avais-tu relié la silhouette, le coin des jouets et le bruit de couvercle, ou suivi une intuition ?',
- indetermine:'Tu as estimé que les témoignages ne suffisaient pas. Qu’aurait-il fallu observer pour trancher avec certitude ?'
-};
-const MIRROR_STATUS_TEXT={
- suspect:name=>`Tu avais marqué ${name} comme suspect. Sur quel fait précis reposait ton accusation ?`,
- ecarte:name=>`Tu avais écarté ${name}. Avais-tu un alibi complet ou seulement une explication plausible ?`,
- verifier:name=>`Tu avais laissé ${name} « À vérifier ». Quelle information restait à confirmer ?`,
- inconnu:name=>`Tu n’avais pas tranché pour ${name}. Qu’est-ce qui manquait à ton enquête ?`
-};
-function mirrorFacts(snapshot,ballot){
- const saved=snapshot?.notes||{};
- const marked=suspects.map(id=>({id,n:normalizeNote(saved[id])})).filter(x=>x.n.status!=='inconnu'||x.n.text||NOTE_TAG_IDS.some(tag=>x.n.tags[tag]));
- marked.sort((a,b)=>Number(b.id===ballot?.suspect)-Number(a.id===ballot?.suspect)||
-  ({suspect:4,ecarte:3,verifier:2,inconnu:1}[b.n.status]-{suspect:4,ecarte:3,verifier:2,inconnu:1}[a.n.status])||suspects.indexOf(a.id)-suspects.indexOf(b.id));
- return marked.slice(0,2).map(({id,n})=>{
-  const tags=NOTE_TAGS.filter(([k])=>n.tags[k]).map(([,name])=>name).join(' · ');
-  return {id,status:n.status,text:MIRROR_STATUS_TEXT[n.status](P[id]),tags,observation:n.text};
- });
-}
-function mirrorPanel(){
- const step=ctx().phase;
- if(step<19)return '';
- if(revealMoment()<5)return `<section class="card" aria-label="Après le verdict"><h3>🕯️ Les certitudes vont tomber</h3><p>Le bilan de ton enquête sera accessible après avoir ouvert le troisième écran du Tribunal.</p><button class="btn secondary" data-tab="enquete">Retour au Tribunal</button></section>`;
- if(session.role==='charlotte'){
-  const classified=suspects.filter(id=>normalizeNote(notes[id]).status!=='inconnu');
-  return `<section class="mirror-panel" aria-label="Bilan de Charlotte"><div class="round">CHAPITRE V · APRÈS LA VÉRITÉ</div><h3>👑 Ce que tu ne pouvais pas voir</h3><p>Tu connaissais l’organisation de la soirée, mais pas les déplacements de chacun. Le secret des autres ne constituait pas une preuve.</p><p>${classified.length?`Tu as actuellement classé ${classified.length} dossier${classified.length>1?'s':''} dans ton carnet.`:'Tu n’avais pas encore classé de suspect dans ton carnet.'} Charlotte ne participe pas aux six votes : il n’existe donc pas d’instantané de verdict à lui attribuer.</p><p class="mirror-foot">Tes notes actuelles restent privées et modifiables. Elles ne sont pas présentées comme tes convictions au moment du verdict.</p></section>`;
- }
- const ballot=ctx().votes?.[session.role];
- if(!ballot)return `<section class="mirror-panel" aria-label="Bilan personnel"><h3>🕯️ Ton bilan se prépare</h3><p>Chargement de ton verdict personnel…</p></section>`;
- if(!verdictSnapshot||verdictSnapshot.by!==me?.uid||!verdictSnapshot.notes)return `<section class="mirror-panel" aria-label="Bilan personnel"><h3>🕯️ Ton verdict est connu</h3><p>Ton choix était ${h(P[ballot.suspect]||'« Les preuves ne suffisent pas »')}.</p><p>L’instantané de tes notes au moment du vote n’est pas disponible. Tes notes actuelles restent consultables, mais je ne peux pas en déduire ce que tu pensais alors.</p></section>`;
- const traces=mirrorFacts(verdictSnapshot,ballot);
- const choice=ballot.suspect==='indetermine'?'❔ Preuves insuffisantes':P[ballot.suspect]||'Choix inconnu';
- const question=MIRROR_VERDICT_QUESTIONS[ballot.suspect]||MIRROR_VERDICT_QUESTIONS.indetermine;
- const argument=typeof ballot.argument==='string'?ballot.argument.trim():'';
- const disclosed=CONVICTION_SOURCES[ballot.source];
- const sourceReflection=disclosed?`<p><strong>Tu avais choisi :</strong> ${h(disclosed.short)}. ${h(disclosed.question)}</p>`:'<p>La raison principale de ta conviction n’a pas été enregistrée.</p>';
- return `<section class="mirror-panel" aria-label="Bilan rétrospectif privé"><div class="round">CHAPITRE V · APRÈS LA VÉRITÉ</div><h3>🪞 Ce que tu croyais savoir</h3><p class="mirror-subtitle">Voici tes choix tels qu’ils étaient enregistrés au moment de ton vote. Ce bilan questionne tes raisonnements ; il ne les juge pas.</p><div class="mirror-verdict"><span class="mini-tag">🗳️ Ton verdict enregistré</span><strong>${h(choice)}</strong>${argument?`<p>Ta justification : « ${h(argument)} »</p>`:'<p>Tu n’avais pas rédigé de justification.</p>'}${sourceReflection}<p>${h(question)}</p></div>${traces.length?`<h4>📋 Tes convictions au moment du vote</h4>${traces.map(t=>`<div class="mirror-trace"><div class="label">${h(P[t.id])} · ${h({suspect:'🔴 Suspect',ecarte:'🟢 Écarté',verifier:'🟠 À vérifier',inconnu:'❔ Inconnu'}[t.status])}</div><p>${h(t.text)}</p>${t.tags?`<p class="small">Tes pastilles : ${h(t.tags)}</p>`:''}${t.observation?`<blockquote>Ta note : « ${h(t.observation)} »</blockquote>`:''}</div>`).join('')}`:'<div class="mirror-trace"><strong>Tu n’avais classé aucun dossier.</strong><p>Ton absence de certitude faisait aussi partie de ton enquête.</p></div>'}<p class="mirror-foot">🔒 Bilan personnel. Cette photographie est figée : si tu modifies une fiche maintenant, le souvenir de ton vote ne change pas. Les faits de la soirée sont disponibles dans « L’affaire ».</p></section>`;
-}
-function carnet(){
- const step=ctx().phase,memories=unlockedMemories(session?.role,step);
- const flashs=personalFlashs(step);
- const flashHtml=flashs.length?`<div class="card"><h3>🕯️ Mes Flashs d’analyse</h3><p class="muted small">Ces questions dépendent de tes soupçons, de tes annotations et des faits déjà abordés. Elles ne désignent aucun coupable.</p>${flashs.map(f=>`<div class="analysis-flash"><strong>${h(f.tag)} · ${h(P[f.id])}</strong><p>${h(f.text)}</p>${f.reflect?`<p class="flash-reflection">${h(f.reflect)}</p>`:""}</div>`).join('')}</div>`:'';
- const s=selectedNotebookPerson,entry=normalizeNote(notes[s]),stat=entry.status;
- const badgeText={inconnu:'❔ Inconnu',suspect:'🔴 Suspect',verifier:'🟠 À vérifier',ecarte:'🟢 Écarté'};
- const followed=suspects.filter(p=>notes[p]?.status&&notes[p].status!=='inconnu').length;
- const header=`<div class="card"><div class="flex between"><div><div class="round">CARNET CONFIDENTIEL</div><h2>📋 Mon Cluedo</h2></div><span class="mini-tag">🔒 Privé</span></div><p class="muted small">Deux espaces différents : ce que tu sais personnellement, et ce que tu penses des autres.</p><p class="status-summary" data-note-sync role="status">${h(noteStatus)}</p><div class="cluedo-switch" role="tablist" aria-label="Espaces du carnet"><button type="button" id="cluedo-memories-tab" class="cluedo-switch-btn ${notebookView==='souvenirs'?'active':''}" data-cluedo-view="souvenirs" role="tab" aria-controls="cluedo-memories" aria-selected="${notebookView==='souvenirs'}">🧩 Mes souvenirs <span class="small">(${memories.length})</span></button><button type="button" id="cluedo-suspects-tab" class="cluedo-switch-btn ${notebookView==='dossiers'?'active':''}" data-cluedo-view="dossiers" role="tab" aria-controls="cluedo-suspects" aria-selected="${notebookView==='dossiers'}">🔎 Dossiers suspects</button></div><p class="cluedo-section-note">${notebookView==='souvenirs'?'Ces souvenirs appartiennent à ton personnage. Ils ne sont pas des preuves établies.':`${followed} suspect${followed>1?'s':''} classé${followed>1?'s':''} · Tes choix et tes notes sont personnels.`}</p></div>`;
- if(notebookView==='souvenirs'){
-  const body=memories.length?memories.map((memory,i)=>`<div class="memory-entry"><span class="memory-entry-icon" aria-hidden="true">🧩</span><div><h4>Souvenir ${i+1}</h4><p>${h(memory.text)}</p></div></div>`).join(''):`<div class="memory-empty"><strong>Les souvenirs viendront…</strong>Écoute les premières confrontations. Tu retrouveras ici ce que ton personnage sait personnellement.</div>`;
-  return header+mirrorPanel()+`<section class="card cluedo-panel" id="cluedo-memories" role="tabpanel" aria-labelledby="cluedo-memories-tab"><div class="cluedo-section-head"><div><h3>🧩 Mes souvenirs</h3><p class="muted small">${h(P[session.role])} · regard personnel</p></div><span class="mini-tag">🔒 Pour toi</span></div><div class="memory-intro"><strong>Ce dont tu te souviens</strong><p>Tu peux être sincère et te tromper sur un détail. Ces fragments ne sont pas partagés automatiquement avec les autres joueurs.</p></div>${body}<div class="memory-boundary">Ces souvenirs ne changent pas quand tu ouvres le dossier d’un suspect. Le dossier commun « L’affaire » rassemble séparément les témoignages connus.</div>${rumorCard(step)}</section>`;
- }
- const suspectsUi=`<section class="card cluedo-panel suspect-panel" id="cluedo-suspects" role="tabpanel" aria-labelledby="cluedo-suspects-tab"><div class="cluedo-section-head"><div><h3>🔎 Dossiers suspects</h3><p class="muted small">Choisis une personne et consigne tes impressions.</p></div><span class="mini-tag">8 profils</span></div><div class="person-grid">${suspects.map(p=>{const st=notes[p]?.status||'inconnu';return `<button type="button" class="person-tile ${p===s?'selected':''}" data-notebook-person="${p}" aria-pressed="${p===s}" aria-label="Dossier ${h(P[p])}, ${h(badgeText[st])}"><span class="emoji">${h(P[p].split(' ')[0])}</span><span class="name">${h(P[p].split(' ').slice(1).join(' '))}</span><span class="tiny">${h(badgeText[st])}</span></button>`}).join('')}</div><div class="suspect-detail" aria-label="Fiche de ${h(P[s])}"><h3>${h(P[s])}</h3><p class="subhead">Quel est ton avis sur cette personne ? Tu peux changer d’idée.</p><div class="status-picker" role="group" aria-label="Statut de ${h(P[s])}">${[['inconnu','❔ Inconnu'],['suspect','🔴 Suspect'],['verifier','🟠 À vérifier'],['ecarte','🟢 Écarté']].map(([v,label])=>`<button type="button" class="status-pill ${stat===v?'active':''}" data-status-value="${v}" aria-pressed="${stat===v}">${label}</button>`).join('')}</div><div class="tag-context">Notes rapides · tes impressions, jamais des preuves officielles.</div><div class="quick-tags" role="group" aria-label="Annotations sur ${h(P[s])}">${NOTE_TAGS.map(([id,label])=>`<button type="button" class="quick-tag" data-note-tag="${id}" aria-pressed="${entry.tags?.[id]===true}">${h(label)}</button>`).join('')}</div><label for="suspectNote">Mes observations sur ${h(P[s].split(' ').slice(1).join(' '))}</label><textarea id="suspectNote" data-note="${s}" data-field="text" maxlength="600" placeholder="Qu’as-tu vu, entendu ou déduit ?">${h(entry.text||'')}</textarea><span class="suspect-note-help">Tu peux utiliser les pastilles sans rien écrire. Sauvegarde automatique.</span></div></section>`;
- return header+mirrorPanel()+suspectsUi+testimonyLens(step)+flashHtml;
-}
-function mjUI(){
- const c=ctx(),step=c.phase,connected=Object.keys(c.members).length;
- return `<div class="card"><h2>👑 Charlotte — Dossier confidentiel</h2>
- <p><strong>${step<18?'Manche '+(Math.floor(step/6)+1)+'/3 · Confrontation '+(step+1)+'/18':step===18?'Verdicts en cours':'Enquête terminée'}</strong></p>
- <p>Le tribunal avance seul. Tu joues une suspecte, pas une régisseuse. Tu n’as aucun bouton de passage ni de révélation. Laisse le doute s’installer, sans accuser les personnes réelles.</p>
- <p>Participants : ${connected}/7. ${connected<7?'Attente des personnages manquants.':'Tous les personnages sont inscrits.'}</p>
- <p class="muted small">Chaque réponse ouvre une période de ${Math.round(DISCUSSION_MS/1000)} secondes pour la relance orale et les notes. Le prochain tour est déclenché automatiquement par les téléphones connectés.</p>
- <details data-details-key="mj-verite"><summary>📜 Vérité du scénario (confidentiel)</summary>
- <p><strong>20 h 25 :</strong> Nino prend une friandise. <strong>20 h 28 :</strong> Mathieu cache un sac de friandises fictif. <strong>20 h 29 :</strong> Charlotte déplace une décoration. <strong>Après 20 h 31 :</strong> James voit encore le coffret. <strong>20 h 32 :</strong> Norah rédige un message pour Matys près des jouets. <strong>20 h 33 :</strong> Matys et Nino sont à la cuisine ; Enola transporte le coffret vers les jouets ; Andreas entend un couvercle. <strong>20 h 35 :</strong> disparition constatée.</p>
- </details><details class="card" data-details-key="mj-test"><summary>🧪 Nouvelle salle de test</summary><p class="muted small">L’ancienne salle et les carnets restent conservés.</p><button class="btn secondary" data-action="new-room">Créer une nouvelle salle</button></details></div>`;
-}
-function render(){
- // Conserver l'état ouvert/fermé des panneaux malgré les mises à jour Firebase.
- for(const el of root.querySelectorAll('details[data-details-key]')){
-  if(el.open)expandedDetails.add(el.dataset.detailsKey);
-  else expandedDetails.delete(el.dataset.detailsKey);
- }
- let html='';
- if(!session)html=loginUI();
- else html=menu()+(tab==='carnet'?carnet():tab==='affaire'?affaire():chapterPrelude(ctx().phase)+interrogation())+roomSettings();
- if(error)html=`<div class="card error">⚠️ ${h(error)} <button class="btn secondary" data-action="dismiss">Fermer</button></div>`+html;
- root.innerHTML=html;
- for(const el of root.querySelectorAll('details[data-details-key]'))el.open=expandedDetails.has(el.dataset.detailsKey);
- updateCountdowns();
-}
-root.addEventListener('change',e=>{
- if(e.target.name==='answer'){selectedAnswer=Number(e.target.value);render()}
- if(e.target.id==='player')selectedPlayer=e.target.value;
- if(e.target.id==='suspect')chosenSuspect=e.target.value;
- if(e.target.dataset.note){editNote(e.target.dataset.note,e.target.dataset.field,e.target.value);if(e.target.dataset.field==='status')render();}
-});
-root.addEventListener('input',e=>{
- if(e.target.dataset.note)editNote(e.target.dataset.note,e.target.dataset.field,e.target.value);
- if(e.target.id==='voteReason')voteArgument=e.target.value;
- if(e.target.id==='code')joinCode=e.target.value;
-});
-
-root.addEventListener('click',async e=>{
- const finalNavButton=e.target.closest('[data-final-page]');if(finalNavButton){if(!finalNavButton.disabled)setFinalPage(finalNavButton.dataset.finalPage);return;}
- const cluedoView=e.target.closest('[data-cluedo-view]');if(cluedoView){const next=cluedoView.dataset.cluedoView;if(next==='souvenirs'||next==='dossiers'){notebookView=next;render()}return;}
- const person=e.target.closest('[data-notebook-person]');if(person){selectedNotebookPerson=person.dataset.notebookPerson;render();return;}
- const status=e.target.closest('[data-status-value]');if(status){editNote(selectedNotebookPerson,'status',status.dataset.statusValue);render();return;}
- const tag=e.target.closest('[data-note-tag]');if(tag){editNote(selectedNotebookPerson,'tag',tag.dataset.noteTag);render();return;}
- const conviction=e.target.closest('[data-vote-source]');if(conviction){chosenSource=conviction.dataset.voteSource;render();return;}
- const votePerson=e.target.closest('[data-vote-person]');if(votePerson){chosenSuspect=votePerson.dataset.votePerson;render();return;}
- const choose=e.target.closest('[data-person]');if(choose){selectedPlayer=choose.dataset.person;render();return;}
- const el=e.target.closest('[data-action],[data-tab]');if(!el)return;if(el.dataset.tab){tab=el.dataset.tab;render();return}const action=el.dataset.action;if(pending)return;pending=true;error='';try{if(action==='dismiss'){}else if(action==='google')await hostLogin();else if(action==='host'){location.href=location.pathname+'?mj=1';return}else if(action==='create'||action==='new-room')await createRoom();else if(action==='leave')leaveRoom();else if(action==='join')await openRoom(joinCode,selectedPlayer);else if(action==='copy'){const url=location.origin+location.pathname+'?room='+session.code;await navigator.clipboard.writeText(url)}else if(action==='answer')await submitAnswer(ctx().phase,selectedAnswer);else if(action==='vote')await vote()}catch(ex){error=ex.message||String(ex)}finally{pending=false;render()}});
-onAuthStateChanged(auth,async u=>{me=u;try{if(!u){await signInAnonymously(auth);return}const prior=JSON.parse(localStorage.getItem(sessionKey)||'null');if(prior&&!session){try{await openRoom(prior.code,prior.role)}catch(e){localStorage.removeItem(sessionKey);error='Ancienne session : '+e.message}}render()}catch(e){error=e.message;render()}});
 </script></body></html>
