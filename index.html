@@ -63,17 +63,13 @@
 .collective-reflection{padding:12px 14px;background:#293041;border:1px solid #8a7764;border-radius:12px;margin:14px 0}
 .collective-reflection h3{margin:2px 0 7px;font:700 19px Georgia,serif;color:#f5cf86}
 @media(min-width:580px){.conviction-choices{grid-template-columns:repeat(2,minmax(0,1fr))}}
-/* V4.9.1 — trois écrans finaux à lecture libre, sans défilement automatique */
+/* V4.9.2 — onglets de navigation finale sans compteur ni boutons superflus */
 .final-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 13px}
 .final-step{min-height:58px;padding:9px 5px;border:1px solid #53667e;border-radius:11px;background:#1b2b41;color:#d5e1f0;cursor:pointer;font:700 12px/1.35 system-ui,sans-serif;text-align:center}
 .final-step[aria-current="step"]{border:2px solid var(--gold);background:#453b46;color:#fff}
-.final-step:focus-visible,.final-nav button:focus-visible{outline:3px solid #f0ca7f;outline-offset:2px}
-.final-nav{display:flex;flex-wrap:wrap;gap:9px;justify-content:space-between;align-items:center;margin:17px 0 2px}
-.final-nav .btn{flex:1 1 150px;min-height:48px}
-.final-nav .btn:disabled{opacity:.35}
+.final-step:focus-visible{outline:3px solid #f0ca7f;outline-offset:2px}
 [data-final-panel]{scroll-margin-top:76px}
-.final-guide{color:#cedbeb;font-size:13px;padding:9px 11px;border-left:3px solid #9fc9c9;background:#203044;border-radius:6px;margin:10px 0}
-@media(max-width:360px){.final-step{font-size:11px;padding:8px 3px}.final-nav .btn{font-size:13px}}
+@media(max-width:360px){.final-step{font-size:11px;padding:8px 3px}}
 
 </style></head><body><main><header><div>🕯️ LES ROUBATVOT</div><h1>Le Tribunal</h1><div class="muted">Un coffret a disparu. Les certitudes aussi.</div></header><div id="status"></div><div id="root"><div class="card">Connexion à Firebase…</div></div><footer>Halloween 2026 · Ingré · Questions et réponses orales · Carnets Cluedo privés sur Firebase.</footer></main>
 <script type="module">
@@ -613,16 +609,13 @@ function sharedBeliefMirror(votes){
 }
 function finalNav(page){
  const titles=['🗳️ Les verdicts','🕰️ Les faits','🧸 La vérité'];
- const current=`<nav class="final-steps" aria-label="Les trois écrans du dénouement">${titles.map((title,i)=>`<button type="button" class="final-step" data-final-page="${i+1}" aria-current="${page===i+1?'step':'false'}" aria-label="Écran ${i+1} sur 3 : ${h(title)}">${h(i+1+'. '+title)}</button>`).join('')}</nav>`;
- const buttons=`<div class="final-nav"><button type="button" class="btn secondary" data-final-page="${page-1}" ${page===1?'disabled':''}>← Précédent</button><button type="button" class="btn" data-final-page="${page+1}" ${page===3?'disabled':''}>${page===2?'Révéler la vérité →':page===1?'Voir les faits →':'Fin de l’enquête'}</button></div>`;
- return {current,buttons};
+ return `<nav class="final-steps" aria-label="Navigation du dénouement">${titles.map((title,i)=>`<button type="button" class="final-step" data-final-page="${i+1}" aria-current="${page===i+1?'step':'false'}" aria-label="${h(title)}">${h(title)}</button>`).join('')}</nav>`;
 }
 function revealTheater(){
- const c=ctx(),page=finalPage,{current,buttons}=finalNav(page);
- const common=`${current}<p class="final-guide">Écran ${page}/3 · Prends le temps de lire. Rien ne disparaît. Tu peux revenir aux autres écrans à tout moment.</p>`;
- if(page===1)return `<section class="card reveal-stage" data-final-panel>${common}<div class="quiet">Écran I · Les certitudes du Tribunal</div><h2>Vous étiez là. Vous n’avez pas vu la même histoire.</h2><p>Voici les six verdicts et la raison principale que chacun a déclarée.</p>${sharedVerdicts(c.votes)}<h3>La contagion des soupçons</h3>${sharedBeliefMirror(c.votes)}${buttons}</section>`;
- if(page===2)return `<section class="card reveal-stage" data-final-panel>${common}<div class="quiet">Écran II · Les faits n’ont pas voté</div><h2>Les heures racontent autre chose.</h2>${FINAL_TIMELINE.map(([time,fact])=>`<div class="clockline"><span class="time">${h(time)}</span><p>${h(fact)}</p></div>`).join('')}<p class="small muted">Les témoignages ne donnent encore ni le nom de la silhouette ni la nature de l’objet qu’elle transportait.</p><div class="collective-reflection"><h3>La question que personne ne posait</h3><p class="dramatic">Et si vous aviez confondu le nombre de personnes convaincues… avec la force des preuves ?</p></div>${buttons}</section>`;
- return `<section class="card reveal-stage" data-final-panel>${common}<div class="quiet">Écran III · Le Trésor</div><h2>Le déplacement était réel. Le vol, non.</h2><p class="dramatic">Enola a emporté le coffret vers ses jouets. Pour jouer. Tout simplement.</p><p>Le sac de Mathieu, le message de Norah, la friandise de Nino et les souvenirs de James étaient réels. La conspiration, elle, s’est construite dans vos interprétations — si vous en avez imaginé une.</p><div class="collective-reflection"><h3>Le second retournement</h3><p>Une accusation partagée n’était pas forcément une observation partagée. À vous de comparer les théories que vous avez réellement échangées.</p></div><p><strong>Aucun objet à chercher : tout le dénouement est numérique.</strong></p><details data-details-key="final-verdicts"><summary>🗳️ Relire les six verdicts et leurs raisons</summary>${sharedVerdicts(c.votes)}</details><button type="button" class="btn secondary" data-tab="carnet">🪞 Relire mes certitudes dans mon Cluedo</button>${buttons}</section>`;
+ const c=ctx(),page=finalPage,nav=finalNav(page);
+ if(page===1)return `<section class="card reveal-stage" data-final-panel>${nav}<div class="quiet">Les certitudes du Tribunal</div><h2>Vous étiez là. Vous n’avez pas vu la même histoire.</h2><p>Voici les six verdicts et la raison principale que chacun a déclarée.</p>${sharedVerdicts(c.votes)}<h3>La contagion des soupçons</h3>${sharedBeliefMirror(c.votes)}</section>`;
+ if(page===2)return `<section class="card reveal-stage" data-final-panel>${nav}<div class="quiet">Les faits n’ont pas voté</div><h2>Les heures racontent autre chose.</h2>${FINAL_TIMELINE.map(([time,fact])=>`<div class="clockline"><span class="time">${h(time)}</span><p>${h(fact)}</p></div>`).join('')}<p class="small muted">Les témoignages ne donnent encore ni le nom de la silhouette ni la nature de l’objet qu’elle transportait.</p><div class="collective-reflection"><h3>La question que personne ne posait</h3><p class="dramatic">Et si vous aviez confondu le nombre de personnes convaincues… avec la force des preuves ?</p></div></section>`;
+ return `<section class="card reveal-stage" data-final-panel>${nav}<div class="quiet">Le Trésor</div><h2>Le déplacement était réel. Le vol, non.</h2><p class="dramatic">Enola a emporté le coffret vers ses jouets. Pour jouer. Tout simplement.</p><p>Le sac de Mathieu, le message de Norah, la friandise de Nino et les souvenirs de James étaient réels. La conspiration, elle, s’est construite dans vos interprétations — si vous en avez imaginé une.</p><div class="collective-reflection"><h3>Le second retournement</h3><p>Une accusation partagée n’était pas forcément une observation partagée. À vous de comparer les théories que vous avez réellement échangées.</p></div><p><strong>Aucun objet à chercher : tout le dénouement est numérique.</strong></p><details data-details-key="final-verdicts"><summary>🗳️ Relire les six verdicts et leurs raisons</summary>${sharedVerdicts(c.votes)}</details><button type="button" class="btn secondary" data-tab="carnet">🪞 Relire mes certitudes dans mon Cluedo</button></section>`;
 }
 async function submitAnswer(qIndex,answer){const q=Q[qIndex];if(!Number.isInteger(answer)||answer<0||answer>2)throw Error("Choisis une réponse.");if(session.role!==q.target||ctx().phase!==qIndex)throw Error('Ce n’est pas ton tour de répondre.');if(!ctx().members[q.asker])throw Error('Attends que l’enquêteur rejoigne la salle.');await set(path(session.code,`answers/${q.id}`),{value:answer,by:me.uid,submittedAt:serverTimestamp()});selectedAnswer=-1}
 // Copie figée des huit fiches : la note actuelle reste libre après ce vote.
