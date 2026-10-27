@@ -114,7 +114,7 @@
 .vote-form textarea{min-height:67px}
 @media(min-width:520px){.vote-choice-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
-/* V16.9 — prologue immersif jusqu'au lancement privé par le MJ */
+/* V16.9 — prologue immersif jusqu'au lancement privé par la cheffe d’enquête */
 .prologue{min-height:72vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .prologue .prologue-seal{font:normal 48px Georgia,serif;color:#f0cf8e;text-shadow:0 0 22px #eac77766;margin:12px auto 0}
 .prologue-story{max-width:570px;margin:15px auto 8px;border-top:1px solid #6c625e;border-bottom:1px solid #6c625e;padding:18px 12px;font:18px/1.7 Georgia,serif}
@@ -166,7 +166,18 @@
 .mj-main-question{font-size:18px;font-weight:700}.mj-selected-reply{padding:10px;background:#273a48;border-radius:9px}
 .btn.w100{min-height:52px}.tabs button{min-height:50px}.person-tile{min-height:92px}
 @media(max-width:420px){.tabs button{font-size:12px;padding:12px 2px}.card{padding:14px}.response-card{padding:14px}.big-question{padding:18px 10px}}
-</style></head><body><main><header><div>🕯️ LES ROUBATVOT</div><h1>Le Tribunal</h1><div class="muted">Un coffret a disparu. Les certitudes aussi.</div></header><div id="root"><div class="card">Connexion à Firebase…</div></div><footer>Halloween 2026 · Ingré · Questions et réponses orales · Carnets Cluedo privés sur Firebase.</footer></main>
+.host-sounds{border:1px solid #947b58;background:#28263a;border-radius:14px;padding:14px;margin:18px 0 8px}
+.host-sounds-head{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:11px}
+.host-sounds .sound-toggle{width:100%;min-height:48px}
+.sound-cues{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:11px}
+.sound-cue{min-height:47px;padding:9px 7px;font-size:13px}
+.invite-share{margin:12px 0;padding:12px;background:#1a2940;border:1px solid #405775;border-radius:10px}
+.invite-share label{margin-top:0;color:#f2ddb2}
+.invite-share input{font-size:13px;max-width:100%}
+.invite-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:10px}
+.invite-actions .btn{font-size:13px;padding:10px 12px}
+@media(max-width:370px){.sound-cue{font-size:12px;padding:9px 5px}}
+</style></head><body><main><header><div>🕯️ LES ROUBATVOT</div><h1>Le Tribunal</h1><div class="muted">Un coffret a disparu. Les certitudes aussi.</div></header><div id="root"><div class="card">Ouverture du Tribunal…</div></div></main>
 <script type="module">
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
 import {getAuth,onAuthStateChanged,signInAnonymously,signInWithPopup,GoogleAuthProvider,signOut} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
@@ -204,8 +215,9 @@ let notes={},dirty=new Set(),noteTimer=null,notesReady=false,noteStatus='Connexi
 let tab='enquete',notebookView='dossiers',selectedPerson='james',selectedPlayer='james',selectedAnswer=-1,chosenSuspect='',chosenSource='',voteArgument='',influencedBy='',influenceReason='';
 let joinCode=qs.get('room')||'',error='',notice='',pending=false,transcriptDraft='',followup1Draft='',followup2Draft='',advanceConfirm=false,replayIndex=0,finalView=0;
 let debateShowRecap=false,timelineDraft=[],timelineError='',zoneChoice='';
-let presenceGeneration=0, presenceOwn=null, presenceDisconnect=null,hostDisconnectArmed=false;
+let presenceGeneration=0, presenceOwn=null, presenceDisconnect=null,hostPresenceReady=false;
 let soundCtx=null, soundOn=false, soundTimer=null, soundIntroFor=null, soundLastStage=null;
+let copyNotice='';
 const expanded=new Set();
 const h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const p=(suffix='')=>ref(db,`rooms/${session.code}${suffix?'/'+suffix:''}`);
@@ -233,7 +245,8 @@ function getSoundContext(){
  return soundCtx;
 }
 function tone(freq,delay,duration,volume=0.02,type='sine'){
- const ctx=getSoundContext();if(!soundOn||!ctx||ctx.state==='closed')return;
+ if(!host()||screenMode||!soundOn)return;
+ const ctx=getSoundContext();if(!ctx||ctx.state==='closed')return;
  const now=ctx.currentTime+Math.max(0,delay),osc=ctx.createOscillator(),gain=ctx.createGain();
  osc.type=type;osc.frequency.setValueAtTime(freq,now);
  gain.gain.setValueAtTime(0.0001,now);
@@ -251,12 +264,12 @@ function waitingSound(){
  tone(196,0,1.5,0.009,'sine');tone(146.83,0.45,1.8,0.008,'sine');
 }
 function openingSound(){
- // Coup de maillet + deux résonances à l'ouverture manuelle par le MJ.
+ // Coup de maillet + deux résonances à l'ouverture manuelle par la cheffe d’enquête.
  tone(110,0,0.65,0.045,'triangle');tone(220,0.17,1.1,0.018,'sine');tone(329.63,0.38,1.3,0.016,'sine');
 }
 function stopWaitingSound(){if(soundTimer){clearInterval(soundTimer);soundTimer=null}}
 function syncSound(){
- const active=Boolean(session&&nowStage()===-1);
+ const active=Boolean(session&&host()&&!screenMode&&nowStage()===-1);
  if(!soundOn||!active||document.hidden){stopWaitingSound();return}
  const key=`${session.code}:${session.role}`;
  if(soundIntroFor!==key){soundIntroFor=key;introSound()}
@@ -266,11 +279,15 @@ function syncSound(){
  },18000);
 }
 function stageSound(before,after){
- if(before===-1&&after===0){stopWaitingSound();if(soundOn)openingSound()}
+ if(!host()||screenMode||!soundOn)return;
+ if(before===-1&&after===0){stopWaitingSound();openingSound()}
  else if(after!==-1)stopWaitingSound();
+ const cues={18:'suspense',19:'bell',20:'bell',21:'suspense',22:'bell',23:'bell',24:'suspense',25:'gavel',26:'suspense',27:'reveal',28:'suspense',29:'finale'};
+ if(before!==after && cues[after])playSoundCue(cues[after]);
  soundLastStage=after;
 }
 function enableSound(){
+ if(!host()||screenMode)return;
  const ctx=getSoundContext();
  if(!ctx){error='Ce navigateur ne prend pas en charge les effets sonores.';render();return}
  soundOn=true;
@@ -278,12 +295,48 @@ function enableSound(){
  syncSound();
 }
 function toggleSound(){
+ if(!host()||screenMode)return;
  if(soundOn){soundOn=false;stopWaitingSound();if(soundCtx&&soundCtx.state==='running')void soundCtx.suspend().catch(()=>{})}
  else {soundIntroFor=null;enableSound()}
  render();
 }
 document.addEventListener('visibilitychange',()=>syncSound());
-function soundButton(){return `<button type="button" class="btn secondary sound-toggle" data-action="sound-toggle" aria-pressed="${soundOn}">${soundOn?'🔊 Couper les effets sonores':'🔈 Activer les effets sonores'}</button>`}
+function soundButton(){
+ if(!host()||screenMode)return '';
+ return `<button type="button" class="btn ${soundOn?'secondary':''} sound-toggle" data-action="sound-toggle" aria-pressed="${soundOn}">${soundOn?'🔇 Couper les sons':'🔊 Activer les sons sur mon enceinte'}</button>`;
+}
+function soundPanel(){
+ if(!host()||screenMode)return '';
+ const cues=[['bell','🔔 Cloche'],['suspense','🕯️ Suspense'],['gavel','⚖️ Marteau'],['reveal','✨ Révélation']];
+ return `<section class="host-sounds" aria-label="Effets sonores de la cheffe d’enquête"><div class="host-sounds-head"><strong>🎵 Ambiance de la soirée</strong><span class="small muted">Sur ton téléphone uniquement</span></div>${soundButton()}<div class="sound-cues">${cues.map(([key,label])=>`<button type="button" class="btn secondary sound-cue" data-sound-cue="${key}" ${soundOn?'':'disabled'}>${label}</button>`).join('')}</div></section>`;
+}
+// Sons originaux synthétisés localement dans le navigateur de la cheffe d'enquête.
+function percussion(delay=0,level=.08){
+ if(!host()||screenMode||!soundOn)return;
+ const ctx=getSoundContext();if(!ctx||ctx.state!=='running')return;
+ const buffer=ctx.createBuffer(1,Math.floor(ctx.sampleRate*.17),ctx.sampleRate);
+ const arr=buffer.getChannelData(0);
+ for(let i=0;i<arr.length;i++)arr[i]=(Math.random()*2-1)*Math.exp(-i/(ctx.sampleRate*.027));
+ const src=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gain=ctx.createGain();
+ src.buffer=buffer;filter.type='lowpass';filter.frequency.value=900;
+ const at=ctx.currentTime+delay;gain.gain.setValueAtTime(level,at);gain.gain.exponentialRampToValueAtTime(.0001,at+.17);
+ src.connect(filter);filter.connect(gain);gain.connect(ctx.destination);src.start(at);src.stop(at+.17);
+}
+function playSoundCue(which){
+ if(!host()||screenMode||!soundOn)return;
+ const ctx=getSoundContext();if(!ctx||ctx.state!=='running')return;
+ if(which==='bell'){
+  tone(523.25,0,1.6,.065,'sine');tone(784,.06,1.2,.034,'sine');tone(1046.5,.15,1,.022,'sine');
+ } else if(which==='gavel'){
+  percussion(0,.16);tone(115,0,.4,.08,'triangle');percussion(.32,.11);tone(115,.32,.35,.05,'triangle');
+ } else if(which==='suspense'){
+  for(let i=0;i<4;i++){tone(110,i*.35,.43,.038,'triangle');tone(164.81,i*.35+.14,.27,.021,'sine')}
+ } else if(which==='reveal'){
+  [196,246.94,293.66,392,523.25].forEach((n,i)=>tone(n,i*.21,1.45,.05,'sine'));
+ } else if(which==='finale'){
+  [261.63,329.63,392,523.25].forEach((n,i)=>tone(n,i*.17,1.3,.055,'triangle'));
+ }
+}
 
 // Une inscription ancienne n'est pas une connexion active : Firebase retire la présence
 // lors d'une déconnexion réelle, puis elle est renouvelée après reconnexion.
@@ -292,16 +345,17 @@ function subscribePresence(){
  const generation=++presenceGeneration,code=session.code,role=session.role,uid=me.uid;
  const presenceRef=at(code,`presence/${role}`);
  presenceOwn=presenceRef;
- if(role==='charlotte')hostDisconnectArmed=false;
+ if(role==='charlotte')hostPresenceReady=false;
  unsub.push(onValue(ref(db,'.info/connected'),async s=>{
   if(!s.val()||generation!==presenceGeneration||!session||session.code!==code)return;
   try{
-   // Le MJ ferme toute la salle lors d'une déconnexion, même si son navigateur plante.
-   const disconnect=onDisconnect(role==='charlotte'?at(code):presenceRef);
+   // Une déconnexion (y compris un rechargement) ne retire que la présence.
+    // La fermeture de la salle entière est volontaire et passe par deleteSession().
+   const disconnect=onDisconnect(presenceRef);
    presenceDisconnect=disconnect;
    await disconnect.remove();
    if(generation!==presenceGeneration)return;
-   if(role==='charlotte')hostDisconnectArmed=true;
+   if(role==='charlotte')hostPresenceReady=true;
    await set(presenceRef,{uid,connectedAt:serverTimestamp()});
   }catch(ex){
    error='Connexion à la salle impossible : '+(ex.message||String(ex));
@@ -335,7 +389,7 @@ async function saveNotes(){
  noteStatus='Carnet à jour (pour cette partie seulement)';noteSync();
 }
 function unsubscribe(){
- presenceGeneration++;stopWaitingSound();hostDisconnectArmed=false;
+ presenceGeneration++;stopWaitingSound();hostPresenceReady=false;
  if(presenceDisconnect){void presenceDisconnect.cancel().catch(()=>{});presenceDisconnect=null}
  if(presenceOwn){const old=presenceOwn;presenceOwn=null;void remove(old).catch(()=>{})}
  for(const stop of unsub)try{stop()}catch{}unsub=[];
@@ -345,28 +399,43 @@ function unsubscribe(){
  if(noteTimer)clearTimeout(noteTimer);noteTimer=null;
 }
 function clearSession(reason=''){
- unsubscribe();session=null;room=null;notes={};dirty=new Set();notesReady=false;tab='enquete';
+ unsubscribe();session=null;room=null;copyNotice='';notes={};dirty=new Set();notesReady=false;tab='enquete';
  sessionStorage.removeItem(sessionKey);
  history.replaceState(null,'',location.pathname+(qs.get('mj')==='1'?'?mj=1':''));
  if(reason)notice=reason;
 }
-function joinURL(){return `${location.origin}${location.pathname}?room=${encodeURIComponent(session.code)}`}
+function joinURL(){
+ const url=new URL(location.href);
+ url.search='';url.hash='';url.searchParams.set('room',session.code);
+ return url.href;
+}
+async function copyInviteURL(){
+ const text=joinURL();
+ let copied=false;
+ try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(text);copied=true}}catch{}
+ if(!copied){
+  const field=root.querySelector('#inviteUrl');
+  if(field){field.focus();field.select();field.setSelectionRange?.(0,field.value.length)}
+  try{copied=Boolean(document.execCommand?.('copy'))}catch{}
+ }
+ copyNotice=copied?'✓ Lien complet copié !':'Sélectionne le lien ci-dessus et copie-le.';
+}
 async function hostLogin(){await signInWithPopup(auth,new GoogleAuthProvider());me=auth.currentUser;render()}
-async function createRoom(){if(!me||me.isAnonymous||!me.emailVerified)throw Error('Connexion Google organisateur requise.');const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';for(let n=0;n<5;n++){const bytes=crypto.getRandomValues(new Uint8Array(8));const code=Array.from(bytes,b=>chars[b%chars.length]).join('');try{await set(at(code),{edition:'synopsis-v16-13',hostUid:me.uid,createdAt:serverTimestamp(),players:{charlotte:{uid:me.uid}},progress:{step:-1,influenceIndex:0}});await openRoom(code,'charlotte');return}catch(ex){if(ex.code==='PERMISSION_DENIED')throw Error('La création est refusée par Firebase. Vérifie la connexion organisateur et les règles correspondantes.');throw ex}}throw Error('Création impossible.')}
-async function openRoom(code,role){code=String(code||'').trim().toUpperCase();if(!/^[A-HJ-NP-Z2-9]{8}$/.test(code))throw Error('Code de salle invalide.');if(![...investigators,'charlotte'].includes(role))throw Error('Rôle inconnu.');const edition=(await get(at(code,'edition'))).val();if(!edition)throw Error('Salle introuvable.');if(edition!=='synopsis-v16-13')throw Error('Cette salle utilise une autre version. Utilise une nouvelle salle avec les règles fournies.');const hostUid=(await get(at(code,'hostUid'))).val();if(role==='charlotte'&&(me?.isAnonymous||hostUid!==me.uid))throw Error('Seule l’organisatrice peut accéder au Pilotage.');if(role!=='charlotte'&&hostUid===me.uid)throw Error('Utilise un navigateur privé pour incarner un autre joueur.');const existing=(await get(at(code,`players/${role}`))).val();if(existing&&existing.uid!==me.uid)throw Error('Personnage déjà réservé à un autre compte.');if(!existing)await set(at(code,`players/${role}`),{uid:me.uid});if(session)unsubscribe();timelineDraft=[];timelineError='';zoneChoice='';debateShowRecap=false;session={code,role};sessionStorage.setItem(sessionKey,JSON.stringify(session));tab=host()?'mj':'enquete';startListeners()}
+async function createRoom(){if(!me||me.isAnonymous||!me.emailVerified)throw Error('Connexion Google organisateur requise.');const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';for(let n=0;n<5;n++){const bytes=crypto.getRandomValues(new Uint8Array(8));const code=Array.from(bytes,b=>chars[b%chars.length]).join('');try{await set(at(code),{edition:'synopsis-v16-13',hostUid:me.uid,createdAt:serverTimestamp(),players:{charlotte:{uid:me.uid}},progress:{step:-1,influenceIndex:0}});await openRoom(code,'charlotte');return}catch(ex){if(ex.code==='PERMISSION_DENIED')throw Error('Impossible de créer la salle. Vérifie ta connexion et réessaie.');throw ex}}throw Error('Création impossible.')}
+async function openRoom(code,role){code=String(code||'').trim().toUpperCase();if(!/^[A-HJ-NP-Z2-9]{8}$/.test(code))throw Error('Code de salle invalide.');if(![...investigators,'charlotte'].includes(role))throw Error('Rôle inconnu.');const edition=(await get(at(code,'edition'))).val();if(!edition)throw Error('Salle introuvable.');if(edition!=='synopsis-v16-13')throw Error('Cette salle ne peut pas être ouverte avec cette version du jeu. Demande un nouveau code.');const hostUid=(await get(at(code,'hostUid'))).val();if(role==='charlotte'&&(me?.isAnonymous||hostUid!==me.uid))throw Error('Seule l’organisatrice peut accéder au Pilotage.');if(role!=='charlotte'&&hostUid===me.uid)throw Error('Utilise un navigateur privé pour incarner un autre joueur.');const existing=(await get(at(code,`players/${role}`))).val();if(existing&&existing.uid!==me.uid)throw Error('Personnage déjà réservé à un autre compte.');if(!existing)await set(at(code,`players/${role}`),{uid:me.uid});if(session)unsubscribe();copyNotice='';timelineDraft=[];timelineError='';zoneChoice='';debateShowRecap=false;session={code,role};sessionStorage.setItem(sessionKey,JSON.stringify(session));tab=host()?'mj':'enquete';startListeners()}
 function subscribeVotes(){if(firstUnsub)firstUnsub();if(secondUnsub)secondUnsub();const shared=host()||nowStage()>=STAGE.VERDICTS;const prefix=shared?'':session.role;firstUnsub=onValue(p(`votesInitial${prefix?'/'+prefix:''}`),s=>{if(shared)room.votesInitial=s.val()||{};else room.votesInitial={[session.role]:s.val()};renderSafely()},e=>{error='Votes initiaux : '+e.message;renderSafely()});secondUnsub=onValue(p(`votesFinal${prefix?'/'+prefix:''}`),s=>{if(shared)room.votesFinal=s.val()||{};else room.votesFinal={[session.role]:s.val()};renderSafely()},e=>{error='Votes finaux : '+e.message;renderSafely()})}
 function subscribeAnswer(){const step=nowStage();if(lastAnswerStep===step)return;lastAnswerStep=step;if(answerUnsub)answerUnsub();answerUnsub=null;room.currentAnswer=null;selectedAnswer=-1;transcriptDraft='';followup1Draft='';followup2Draft='';if(step<0||step>=18)return;const q=Q[step];if(host()||q.asker===session.role||q.target===session.role){answerUnsub=onValue(p(`answers/${q.id}`),s=>{room.currentAnswer=s.val();if(host()&&room.currentAnswer&&transcriptDraft===''){transcriptDraft=Q[step].answers[room.currentAnswer.value]||''}renderSafely()},e=>{error='Réponse : '+e.message;renderSafely()})}}
-function startListeners(){unsubscribe();loadLocalNotes();notesReady=false;noteStatus='Connexion au carnet…';room={players:{},presence:{},progress:{step:-1,influenceIndex:0},testimonies:{},votesInitial:{},votesFinal:{},absences:{},recapInitial:null,profileRecap:null,profileMode:'anonymous',profileView:false,timelineAnswers:{},zoneVotes:{},zoneResult:null,currentAnswer:null};unsub.push(onValue(p('edition'),s=>{if(!s.exists()&&session){clearSession('🕯️ Le MJ a quitté la salle. La partie est fermée pour tout le monde.');render()}}));unsub.push(onValue(p('players'),s=>{room.players=s.val()||{};renderSafely()},e=>{error=e.message;renderSafely()}));unsub.push(onValue(p('presence'),s=>{room.presence=s.val()||{};renderSafely()},e=>{error='Présences : '+e.message;renderSafely()}));subscribePresence();unsub.push(onValue(p('progress'),s=>{const before=nowStage();room.progress=s.val()||{step:0};const after=nowStage();if(before!==after){stageSound(before,after);tab=host()?'mj':after===STAGE.CLOCK?'affaire':'enquete';if(after!==before)window.scrollTo?.(0,0);timelineDraft=[];timelineError='';zoneChoice='';debateShowRecap=false;advanceConfirm=false;subscribeAnswer();subscribeVotes()}renderSafely()},e=>{error='Progression : '+e.message;renderSafely()}));unsub.push(onValue(p('testimonies'),s=>{room.testimonies=s.val()||{};renderSafely()},e=>{error='Interrogations : '+e.message;renderSafely()}));unsub.push(onValue(p('absences'),s=>{room.absences=s.val()||{};renderSafely()},e=>{error='Absences : '+e.message;renderSafely()}));unsub.push(onValue(p('recapInitial'),s=>{room.recapInitial=s.val()||null;renderSafely()},e=>{error='Récapitulatif : '+e.message;renderSafely()}));
+function startListeners(){unsubscribe();loadLocalNotes();notesReady=false;noteStatus='Connexion au carnet…';room={players:{},presence:{},progress:{step:-1,influenceIndex:0},testimonies:{},votesInitial:{},votesFinal:{},absences:{},recapInitial:null,profileRecap:null,profileMode:'anonymous',profileView:false,timelineAnswers:{},zoneVotes:{},zoneResult:null,currentAnswer:null};unsub.push(onValue(p('edition'),s=>{if(!s.exists()&&session){clearSession('🕯️ La cheffe d’enquête a quitté la salle. La partie est fermée pour tout le monde.');render()}}));unsub.push(onValue(p('players'),s=>{room.players=s.val()||{};renderSafely()},e=>{error=e.message;renderSafely()}));unsub.push(onValue(p('presence'),s=>{room.presence=s.val()||{};renderSafely()},e=>{error='Présences : '+e.message;renderSafely()}));subscribePresence();unsub.push(onValue(p('progress'),s=>{const before=nowStage();room.progress=s.val()||{step:0};const after=nowStage();if(before!==after){stageSound(before,after);tab=host()?'mj':after===STAGE.CLOCK?'affaire':'enquete';if(after!==before)window.scrollTo?.(0,0);timelineDraft=[];timelineError='';zoneChoice='';debateShowRecap=false;advanceConfirm=false;subscribeAnswer();subscribeVotes()}renderSafely()},e=>{error='Progression : '+e.message;renderSafely()}));unsub.push(onValue(p('testimonies'),s=>{room.testimonies=s.val()||{};renderSafely()},e=>{error='Interrogations : '+e.message;renderSafely()}));unsub.push(onValue(p('absences'),s=>{room.absences=s.val()||{};renderSafely()},e=>{error='Absences : '+e.message;renderSafely()}));unsub.push(onValue(p('recapInitial'),s=>{room.recapInitial=s.val()||null;renderSafely()},e=>{error='Récapitulatif : '+e.message;renderSafely()}));
  unsub.push(onValue(p('profileRecap'),s=>{room.profileRecap=s.val()||null;renderSafely()},e=>{error='Bilan des profils : '+e.message;renderSafely()}));
  unsub.push(onValue(p('profileMode'),s=>{room.profileMode=s.val()==='named'?'named':'anonymous';renderSafely()},e=>{error='Présentation des profils : '+e.message;renderSafely()}));
  unsub.push(onValue(p('profileView'),s=>{room.profileView=s.val()===true;renderSafely()},e=>{error='Écran des profils : '+e.message;renderSafely()}));
  const privatePath=host()?'':`/${session.role}`;
  timelineUnsub=onValue(p(`timelineAnswers${privatePath}`),s=>{room.timelineAnswers=host()?s.val()||{}:{[session.role]:s.val()||null};renderSafely()},e=>{error='Chronologie : '+e.message;renderSafely()});
  zoneVotesUnsub=onValue(p(`zoneVotes${privatePath}`),s=>{room.zoneVotes=host()?s.val()||{}:{[session.role]:s.val()||null};renderSafely()},e=>{error='Votes de zone : '+e.message;renderSafely()});
- unsub.push(onValue(p('zoneResult'),s=>{room.zoneResult=s.val()||null;renderSafely()},e=>{error='Zone révélée : '+e.message;renderSafely()}));noteUnsub=onValue(p(`notebooks/${session.role}`),s=>{const cloud=s.val()||{};for(const who of suspects)if(!dirty.has(who)){if(cloud[who])notes[who]=normalizedNote(cloud[who]);else delete notes[who]}notesReady=true;noteStatus=dirty.size?'Envoi des notes en cours…':'Carnet à jour (pendant la partie)';if(dirty.size)setTimeout(()=>void saveNotes(),250);renderSafely()},e=>{noteStatus='Carnet indisponible : données locales conservées';noteSync()});subscribeAnswer();subscribeVotes();renderSafely()}
+ unsub.push(onValue(p('zoneResult'),s=>{room.zoneResult=s.val()||null;renderSafely()},e=>{error='Zone révélée : '+e.message;renderSafely()}));noteUnsub=onValue(p(`notebooks/${session.role}`),s=>{const cloud=s.val()||{};for(const who of suspects)if(!dirty.has(who)){if(cloud[who])notes[who]=normalizedNote(cloud[who]);else delete notes[who]}notesReady=true;noteStatus=dirty.size?'Envoi des notes en cours…':'Carnet à jour (pendant la partie)';if(dirty.size)setTimeout(()=>void saveNotes(),250);renderSafely()},e=>{noteStatus='Carnet indisponible. Vérifie ta connexion.';noteSync()});subscribeAnswer();subscribeVotes();renderSafely()}
 async function submitAnswer(){const q=Q[nowStage()];if(!q||q.target!==session.role||selectedAnswer<0)throw Error('Choisis une réponse avant de confirmer.');await set(p(`answers/${q.id}`),{value:selectedAnswer,posture:POSTURES[selectedAnswer],by:me.uid,submittedAt:serverTimestamp()})}
 async function saveTestimony(){
- if(!host()||nowStage()<0||nowStage()>=18)throw Error('Action réservée au MJ.');
+ if(!host()||nowStage()<0||nowStage()>=18)throw Error('Action réservée à la cheffe d’enquête.');
  const step=nowStage(),q=Q[step];
  if(!room.currentAnswer)throw Error('Attends la réponse du joueur.');
  const statement=(transcriptDraft||q.answers[room.currentAnswer.value]||'').trim();
@@ -410,9 +479,9 @@ async function vote(final){
 }
 async function markAbsent(id,round){if(!host()||!investigators.includes(id)||!['initial','final'].includes(round))throw Error('Action interdite.');if(nowStage()!==(round==='initial'?STAGE.FIRST:STAGE.SECOND))throw Error('Cette étape est terminée.');await set(p(`absences/${round}/${id}`),true)}
 async function startGame(){
- if(!host()||!member())throw Error('Le lancement est réservé au MJ.');
- if(nowStage()!==-1)throw Error('L’audience a déjà commencé.');if(!hostDisconnectArmed)throw Error('La fermeture automatique de la salle n’est pas prête.');
- if(connectedInvestigators()!==investigators.length)throw Error('Le MJ attend la connexion des six enquêteurs.');
+ if(!host()||!member())throw Error('Le lancement est réservé à la cheffe d’enquête.');
+ if(nowStage()!==-1)throw Error('L’audience a déjà commencé.');if(!hostPresenceReady)throw Error('La connexion de la cheffe d’enquête n’est pas encore prête.');
+ if(connectedInvestigators()!==investigators.length)throw Error('La cheffe d’enquête attend la connexion des six enquêteurs.');
  await set(p('progress/step'),0);
 }
 function buildInitialRecap(){
@@ -443,18 +512,18 @@ async function buildProfileRecap(){
  return {players,totalReplies:investigators.reduce((n,id)=>n+players[id].total,0)};
 }
 async function showProfiles(){
- if(!host()||nowStage()!==STAGE.RECAP||room.profileView)throw Error('Cette étape est réservée au MJ.');
+ if(!host()||nowStage()!==STAGE.RECAP||room.profileView)throw Error('Cette étape est réservée à la cheffe d’enquête.');
  if(!room.profileRecap?.players)throw Error('Le bilan des profils n’est pas prêt.');
  await set(p('profileView'),true);
 }
 async function setProfileMode(mode){
- if(!host()||![STAGE.RECAP,STAGE.DISCUSS].includes(nowStage()))throw Error('Le mode d’affichage est réservé au MJ pendant le bilan et le débat.');
+ if(!host()||![STAGE.RECAP,STAGE.DISCUSS].includes(nowStage()))throw Error('Le mode d’affichage est réservé à la cheffe d’enquête pendant le bilan et le débat.');
  if(!['anonymous','named'].includes(mode))throw Error('Mode inconnu.');
  await set(p('profileMode'),mode);
 }
 function profileRecapHTML(){
  const summary=room.profileRecap;
- if(!summary?.players)return `<section class="card profile-recap"><div class="quiet">BILAN INTERMÉDIAIRE · LES PROFILS</div><h3>🎭 Comment avons-nous répondu ?</h3><p>Le MJ prépare le bilan des répliques…</p></section>`;
+ if(!summary?.players)return `<section class="card profile-recap"><div class="quiet">BILAN INTERMÉDIAIRE · LES PROFILS</div><h3>🎭 Comment avons-nous répondu ?</h3><p>La cheffe d’enquête prépare le bilan des répliques…</p></section>`;
  const named=room.profileMode==='named';
  const challenges=investigators.flatMap((id,i)=>{
   const x=summary.players[id];if(!x||x.total<2)return [];
@@ -470,7 +539,7 @@ function profileRecapHTML(){
   const name=named?fullName(id):`Profil ${'ABCDEF'[i]}`;
   return `<div class="profile-card"><strong>${h(name)}</strong><span class="profile-title">${h(profileLabel(x))}</span><div class="profile-counts"><span>🔎 ${x.semi||0} semi-vérité${x.semi===1?'':'s'}</span><span>🌀 ${x.esquive||0} esquive${x.esquive===1?'':'s'}</span><span>🎭 ${x.diversion||0} diversion${x.diversion===1?'':'s'}</span></div><p class="small muted">${x.total||0} réplique${x.total===1?'':'s'} choisie${x.total===1?'':'s'}</p></div>`;
  }).join('');
- return `<section class="card profile-recap" aria-label="Bilan des styles de réponse"><div class="quiet">BILAN INTERMÉDIAIRE · LES PROFILS</div><h2>🎭 Qui a répondu comment ?</h2><p>Certains ont hésité, d’autres ont esquivé ou raconté des histoires incroyables… Voici les styles de réponses choisis pendant les interrogations.</p><p class="small muted">${named?'Prénoms visibles — décision du MJ.':'Profils anonymes — le MJ peut choisir d’afficher les noms.'}</p><div class="profile-grid">${cards}</div><div class="collective-reflection"><h3>🎤 Pour lancer le débat</h3><p>Pourquoi certains ont-ils changé de sujet ? Une diversion peut-elle nous tromper ? Posez vos questions aux personnages !</p>${challenges?`<div class="profile-challenges">${challenges}</div>`:''}</div><p class="small muted">Ce sont des postures jouées dans la fiction, pas des preuves de vol ni des jugements sur la sincérité des joueurs. Les nombres de répliques sont différents selon les rôles.</p></section>`;
+ return `<section class="card profile-recap" aria-label="Bilan des styles de réponse"><div class="quiet">BILAN INTERMÉDIAIRE · LES PROFILS</div><h2>🎭 Qui a répondu comment ?</h2><p>Certains ont hésité, d’autres ont esquivé ou raconté des histoires incroyables… Voici les styles de réponses choisis pendant les interrogations.</p><p class="small muted">${named?'Prénoms visibles — décision de la cheffe d’enquête.':'Profils anonymes — la cheffe d’enquête peut choisir d’afficher les noms.'}</p><div class="profile-grid">${cards}</div><div class="collective-reflection"><h3>🎤 Pour lancer le débat</h3><p>Pourquoi certains ont-ils changé de sujet ? Une diversion peut-elle nous tromper ? Posez vos questions aux personnages !</p>${challenges?`<div class="profile-challenges">${challenges}</div>`:''}</div><p class="small muted">Ce sont des postures jouées dans la fiction, pas des preuves de vol ni des jugements sur la sincérité des joueurs. Les nombres de répliques sont différents selon les rôles.</p></section>`;
 }
 async function advance(){
  if(!host())throw Error('Pilotage réservé à l’organisatrice.');
@@ -493,11 +562,11 @@ async function advance(){
 }
 async function nextInfluence(){if(!host()||nowStage()!==STAGE.INFLUENCES)throw Error('Action réservée au second tableau.');const count=investigators.filter(id=>{const b=room.votesFinal?.[id];return b&&investigators.includes(b.influencedBy)&&b.influencedBy!==id}).length;if((room.progress?.influenceIndex||0)>=count)return;await set(p('progress/influenceIndex'),(room.progress?.influenceIndex||0)+1)}
 async function deleteSession(){
- if(!host()||!session)throw Error('Seul le MJ peut fermer la salle.');
+ if(!host()||!session)throw Error('Seule la cheffe d’enquête peut fermer la salle.');
  if(!confirm('Fermer la salle pour tout le monde ? La partie et les carnets seront effacés.'))return;
  const code=session.code;
  await remove(at(code));
- clearSession('🎭 La salle est fermée. Pour rejouer, le MJ créera une nouvelle partie.');
+ clearSession('🎭 La salle est fermée. Pour rejouer, la cheffe d’enquête créera une nouvelle partie.');
 }
 function latestVotes(){return investigators.map(id=>({id,initial:room.votesInitial?.[id]||null,final:room.votesFinal?.[id]||null,absentInitial:room.absences?.initial?.[id],absentFinal:room.absences?.final?.[id]}))}
 function formatVote(b){return b?(b.suspect==='indetermine'?'Preuves insuffisantes':fullName(b.suspect))+(b.argument?` — « ${b.argument} »`:''):'Abstention / vote absent'}
@@ -506,7 +575,7 @@ function influenceEdges(){return investigators.flatMap(id=>{const b=room.votesFi
 function classificationFacts(){const items=[];const changed=latestVotes().filter(x=>x.initial?.suspect&&x.final?.suspect&&x.initial.suspect!==x.final.suspect);if(changed.length)items.push(`${changed.length} joueur${changed.length>1?'s ont':' a'} changé de suspect entre les deux votes.`);const edges=influenceEdges();if(edges.length)items.push(`${edges.length} influence${edges.length>1?'s ont':' a'} été explicitement déclarée${edges.length>1?'s':''}.`);const repeated=Object.values(room.votesInitial||{}).filter(x=>x.source==='collectif').length;if(repeated)items.push(`${repeated} personne${repeated>1?'s':''} ${repeated>1?'ont':'a'} déclaré s’appuyer surtout sur les soupçons du groupe.`);return items.slice(0,3)}
 function initialRecap(){
  const summary=room.recapInitial;
- if(!summary)return `<section class="card reveal-stage"><div class="quiet">LES PREMIERS SOUPÇONS</div><h2>Le Tribunal compte les voix…</h2><p>Le MJ prépare le récapitulatif anonyme. Aucun nom de votant ne sera révélé.</p></section>`;
+ if(!summary)return `<section class="card reveal-stage"><div class="quiet">LES PREMIERS SOUPÇONS</div><h2>Le Tribunal compte les voix…</h2><p>La cheffe d’enquête prépare le récapitulatif anonyme. Aucun nom de votant ne sera révélé.</p></section>`;
  const entries=Object.entries(summary.counts||{}).filter(([id,n])=>[...suspects,'indetermine'].includes(id)&&Number.isInteger(n)&&n>0).sort((a,b)=>b[1]-a[1]||[...suspects,'indetermine'].indexOf(a[0])-[...suspects,'indetermine'].indexOf(b[0]));
  const total=Number(summary.totalVotes)||0;
  const cards=entries.map(([id,n])=>`<div class="suspicion-row"><div class="suspicion-label"><strong>${h(id==='indetermine'?'❔ Preuves insuffisantes':fullName(id))}</strong><span>${n} voix</span></div><div class="suspicion-meter" aria-hidden="true"><span style="width:${total?Math.round(100*n/total):0}%"></span></div></div>`).join('');
@@ -523,7 +592,7 @@ function timelinePuzzle(){
  if(!isPlayer)return `<section class="card timeline-puzzle"><h3>🕰️ La chronologie</h3><p>Les six enquêteurs remettent les faits dans l'ordre depuis leur téléphone.</p></section>`;
  if(mine)return `<section class="card timeline-puzzle"><h3>✓ Chronologie retrouvée</h3><p>Tu as remis les trois événements dans le bon ordre.</p><p><strong>Avant 20 h 28 :</strong> James voit le coffret.<br><strong>Vers 20 h 30 :</strong> Charlotte remarque son absence.<br><strong>20 h 31 :</strong> les lumières s'éteignent.</p><p>Le coffret a donc disparu <strong>entre 20 h 28 et 20 h 30</strong>.</p><p class="small muted">Le Tribunal attend les autres enquêteurs.</p></section>`;
  const available=TIME_SEQUENCE.filter(f=>!timelineDraft.includes(f.id));
- return `<section class="card reveal-stage timeline-puzzle"><div class="quiet">ÉNIGME · LES HEURES</div><h2>Remets les faits dans le bon ordre</h2><p>Touche les événements du plus ancien au plus récent. Aucun indice n'a besoin d'être déplacé physiquement.</p><div aria-label="Ton classement">${timelineDraft.map((id,i)=>`<div class="sequence-row"><strong>${i+1}.</strong> ${h(TIME_SEQUENCE.find(x=>x.id===id)?.text||id)}</div>`).join('')||'<p class="muted small">Choisis le premier événement.</p>'}</div><div class="time-pick-grid">${available.map(f=>`<button type="button" class="time-pick" data-time-pick="${f.id}">${h(f.text)}</button>`).join('')}</div>${timelineError?`<p class="warning-line" role="alert">${h(timelineError)}</p>`:''}<div class="puzzle-actions"><button type="button" class="btn secondary" data-action="timeline-undo" ${!timelineDraft.length?'disabled':''}>↶ Annuler le dernier</button><button type="button" class="btn" data-action="timeline-check" ${timelineDraft.length!==3?'disabled':''}>Vérifier mon ordre</button></div></section>`;
+ return `<section class="card reveal-stage timeline-puzzle"><div class="quiet">ÉNIGME · LES HEURES</div><h2>Remets les faits dans le bon ordre</h2><p>Touche les événements du plus ancien au plus récent. </p><div aria-label="Ton classement">${timelineDraft.map((id,i)=>`<div class="sequence-row"><strong>${i+1}.</strong> ${h(TIME_SEQUENCE.find(x=>x.id===id)?.text||id)}</div>`).join('')||'<p class="muted small">Choisis le premier événement.</p>'}</div><div class="time-pick-grid">${available.map(f=>`<button type="button" class="time-pick" data-time-pick="${f.id}">${h(f.text)}</button>`).join('')}</div>${timelineError?`<p class="warning-line" role="alert">${h(timelineError)}</p>`:''}<div class="puzzle-actions"><button type="button" class="btn secondary" data-action="timeline-undo" ${!timelineDraft.length?'disabled':''}>↶ Annuler le dernier</button><button type="button" class="btn" data-action="timeline-check" ${timelineDraft.length!==3?'disabled':''}>Vérifier mon ordre</button></div></section>`;
 }
 async function checkTimeline(){
  if(!investigators.includes(session.role)||nowStage()!==STAGE.CLOCK)throw Error('L’énigme chronologique n’est pas disponible.');
@@ -552,7 +621,7 @@ async function revealZone(){
  for(const id of investigators)counts[room.zoneVotes[id].zone]++;
  await set(p('zoneResult'),{zone:'jouets',counts,totalVotes:6,revealedAt:serverTimestamp()});
 }
-function stagesHTML(){const step=nowStage();if(step===STAGE.VERDICTS)return tableVerdicts();if(step===STAGE.INFLUENCES)return tableInfluences();if(step===STAGE.CERTAINTIES)return tableCertainties();if(step===STAGE.FAKE)return fakeVerdict();if(step===STAGE.CLOCK)return enigmaClock();if(step===STAGE.ENOLA)return enolaReveal();if(step===STAGE.ZONE)return enigmaZone();if(step===STAGE.FIN)return `<div class="card reveal-stage"><div class="quiet">FIN DE LA PARTIE</div><h2>🎃 HALLOWEEN SAUVÉ !</h2><p><strong>Le Trésor est retrouvé et partagé.</strong> Aucun vol, aucun coupable : Enola voulait jouer.</p><p>Le plus grand trésor était la famille réunie autour de cette table.</p><p class="small muted">Le MJ peut maintenant fermer la salle. Rien à télécharger ni à sauvegarder.</p></div>`;return ''}
+function stagesHTML(){const step=nowStage();if(step===STAGE.VERDICTS)return tableVerdicts();if(step===STAGE.INFLUENCES)return tableInfluences();if(step===STAGE.CERTAINTIES)return tableCertainties();if(step===STAGE.FAKE)return fakeVerdict();if(step===STAGE.CLOCK)return enigmaClock();if(step===STAGE.ENOLA)return enolaReveal();if(step===STAGE.ZONE)return enigmaZone();if(step===STAGE.FIN)return `<div class="card reveal-stage"><div class="quiet">FIN DE LA PARTIE</div><h2>🎃 HALLOWEEN SAUVÉ !</h2><p><strong>Le Trésor est retrouvé et partagé.</strong> Aucun vol, aucun coupable : Enola voulait jouer.</p><p>Le plus grand trésor était la famille réunie autour de cette table.</p></div>`;return ''}
 function interrogation(){const step=nowStage();if(step>=18)return stageContent();const q=Q[step],ans=room.currentAnswer,asking=q.asker===session.role,target=q.target===session.role;const previous=revisions(q.id),last=latestTestimony(q.id);let html=`<div class="card"><div class="round">MANCHE ${q.round}/3 · INTERROGATION ${q.id}/18</div><div class="versus"><strong>${h(fullName(q.asker))}</strong><span>interroge →</span><strong>${h(fullName(q.target))}</strong></div><div class="big-question">« ${h(q.question)} »</div>`;
  if(asking)html+='<p class="role-instruction">🎤 Lis la question à voix haute. Après la réponse, tu peux poser une ou deux questions en plus.</p>';
  if(target&&!ans)html+=`<p class="role-instruction"><strong>🎭 À toi !</strong> Choisis une réplique, puis dis-la à voix haute.</p><div class="response-grid">${q.answers.map((a,i)=>`<button type="button" class="response-card ${selectedAnswer===i?'selected':''}" data-answer-choice="${i}" aria-pressed="${selectedAnswer===i}"><span class="response-letter">${'ABC'[i]}</span><span>${h(a)}</span></button>`).join('')}</div><button class="btn w100" data-action="answer" ${selectedAnswer<0?'disabled':''}>✅ C’est ma réponse !</button>`;
@@ -561,32 +630,32 @@ function interrogation(){const step=nowStage();if(step>=18)return stageContent()
  if(!asking&&!target)html+='<p>👂 Écoute bien ! Tu peux noter tes soupçons dans 📋 Mon Cluedo.</p>';
  if(last)html+=`<div class="clue-line"><strong>✅ Réponse entendue</strong><p>${h(last.statement)}</p>${last.followup1?`<p>Relance 1 : ${h(last.followup1)}</p>`:''}${last.followup2?`<p>Relance 2 : ${h(last.followup2)}</p>`:''}${previous.length>1?`<p class="small">${previous.length-1} correction(s) conservée(s) dans l’historique.</p>`:''}</div>`;
  html+='</div>';return html}
-function confrontation(){return `<section class="card reveal-stage debate-stage"><div class="quiet">LE TRIBUNAL OUVRE LE DÉBAT</div><h2>🎤 À vous de défendre vos idées !</h2><p>Vous avez découvert les soupçons du groupe. Maintenant, parlez-en ensemble.</p><p><strong>Qui soupçonnez-vous ? Qu'est-ce qui vous fait penser ça ?</strong> Appuyez-vous sur les indices, écoutez les autres et posez vos questions.</p><p>Vous avez le droit de changer d'avis… ou de garder votre idée !</p><p>Regardez aussi le <strong>bilan des profils</strong> : pourquoi quelqu'un a-t-il esquivé ou choisi une diversion ?</p><p class="small muted">Rien à écrire : tout se passe à l'oral. Le MJ annoncera quand ce sera l'heure du dernier vote. Votre premier vote reste secret.</p><div class="debate-review"><button type="button" class="btn secondary w100" data-action="toggle-recap">${debateShowRecap?'Masquer les premiers soupçons':'👁 Revoir les résultats du premier vote'}</button>${debateShowRecap?initialRecap()+profileRecapHTML():''}</div></section>`}
+function confrontation(){return `<section class="card reveal-stage debate-stage"><div class="quiet">LE TRIBUNAL OUVRE LE DÉBAT</div><h2>🎤 À vous de défendre vos idées !</h2><p>Vous avez découvert les soupçons du groupe. Maintenant, parlez-en ensemble.</p><p><strong>Qui soupçonnez-vous ? Qu'est-ce qui vous fait penser ça ?</strong> Appuyez-vous sur les indices, écoutez les autres et posez vos questions.</p><p>Vous avez le droit de changer d'avis… ou de garder votre idée !</p><p>Regardez aussi le <strong>bilan des profils</strong> : pourquoi quelqu'un a-t-il esquivé ou choisi une diversion ?</p><p class="small muted">Rien à écrire : tout se passe à l'oral. La cheffe d’enquête annoncera quand ce sera l'heure du dernier vote. Votre premier vote reste secret.</p><div class="debate-review"><button type="button" class="btn secondary w100" data-action="toggle-recap">${debateShowRecap?'Masquer les premiers soupçons':'👁 Revoir les résultats du premier vote'}</button>${debateShowRecap?initialRecap()+profileRecapHTML():''}</div></section>`}
 function stageContent(){
  const s=nowStage();
- if(s===STAGE.FIRST||s===STAGE.SECOND)return investigators.includes(session.role)?voteForm(s===STAGE.SECOND):`<div class="card"><h2>${h(stageName(s))}</h2><p>Les enquêteurs votent chacun sur leur téléphone. Le MJ ne vote pas.</p></div>`;
+ if(s===STAGE.FIRST||s===STAGE.SECOND)return investigators.includes(session.role)?voteForm(s===STAGE.SECOND):`<div class="card"><h2>${h(stageName(s))}</h2><p>Les enquêteurs votent chacun sur leur téléphone. La cheffe d’enquête ne vote pas.</p></div>`;
  if(s===STAGE.RECAP)return room.profileView?profileRecapHTML():initialRecap();
  if(s===STAGE.DISCUSS)return confrontation();
  return stagesHTML();
 }
 function affaire(){const step=nowStage(),pieces=[{at:0,title:'Disparition constatée',text:'Vers 20 h 30, Charlotte remarque la table vide. Un déplacement ne prouve pas un vol.'},{at:3,title:'Friandise de Nino',text:'Nino reconnaît avoir pris un bonbon en cachette, sans lien démontré avec le coffret.'},{at:4,title:'Dernière observation du coffret',text:'James l’a vu sur la table avant 20 h 28. Il n’atteste rien après.'},{at:6,title:'Sac de Mathieu',text:'Mathieu avait caché un sac de friandises, non le coffret.'},{at:12,title:'Blackout',text:'Charlotte avait programmé l’extinction à 20 h 31, indépendamment de la disparition.'},{at:16,title:'Message de Norah et Matys',text:'Le message concernait une plaisanterie indépendante du Trésor.'},{at:17,title:'Petite silhouette',text:'Nino a aperçu une silhouette non identifiée allant vers les jouets avant le noir.'},{at:18,title:'Emballage près des jouets',text:'Indice numérique : un emballage a été remarqué près des jouets ; son origine est inconnue.'}];return `<div class="card"><h2>🕰️ L’affaire</h2>${step===STAGE.CLOCK?timelinePuzzle():''}<p>Faits et témoignages accessibles au fur et à mesure, sans révéler le dénouement.</p>${pieces.filter(p=>step>=p.at).map(p=>`<div class="clue-line"><strong>${h(p.title)}</strong><p>${h(p.text)}</p></div>`).join('')}${(step===STAGE.FIN||Boolean(room.zoneResult))?`<h3>Les faits, une fois le Trésor retrouvé</h3>${FACTS.map(([t,x])=>`<div class="clockline"><strong>${h(t)}</strong><p>${h(x)}</p></div>`).join('')}`:''}</div>`}
-function personalMirror(){if(nowStage()<STAGE.VERDICTS)return '';const first=room.votesInitial?.[session.role],last=room.votesFinal?.[session.role];if(!first&&!last)return '';return `<div class="mirror-panel"><h3>🪞 Le miroir de tes certitudes</h3><p><strong>Premier vote :</strong> ${h(formatVote(first))}</p><p><strong>Vote final :</strong> ${h(formatVote(last))}</p>${last?.influencedBy?`<p><strong>Influence déclarée :</strong> ${h(last.influencedBy==='aucune'?'Aucune':last.influencedBy==='inconnue'?'Je ne sais pas':fullName(last.influencedBy))}</p>`:''}<p class="small">Il s’agit de tes propres déclarations, sans interprétation automatique.</p></div>`}
+function personalMirror(){if(nowStage()<STAGE.VERDICTS)return '';const first=room.votesInitial?.[session.role],last=room.votesFinal?.[session.role];if(!first&&!last)return '';return `<div class="mirror-panel"><h3>🪞 Le miroir de tes certitudes</h3><p><strong>Premier vote :</strong> ${h(formatVote(first))}</p><p><strong>Vote final :</strong> ${h(formatVote(last))}</p>${last?.influencedBy?`<p><strong>Influence déclarée :</strong> ${h(last.influencedBy==='aucune'?'Aucune':last.influencedBy==='inconnue'?'Je ne sais pas':fullName(last.influencedBy))}</p>`:''}</div>`}
 function carnet(){const n=normalizedNote(notes[selectedPerson]),statusNames={inconnu:'❔ Inconnu',suspect:'🔴 Suspect',verifier:'🟠 À vérifier',ecarte:'🟢 Écarté'};const readonly=nowStage()>=STAGE.FIN;let header=`<div class="card"><div class="round">CARNET CONFIDENTIEL</div><h2>📋 Mon Cluedo</h2><p class="small" data-note-sync>${h(noteStatus)}</p><div class="cluedo-switch"><button class="cluedo-switch-btn ${notebookView==='dossiers'?'active':''}" data-cluedo-view="dossiers">🔎 Dossiers suspects</button><button class="cluedo-switch-btn ${notebookView==='souvenirs'?'active':''}" data-cluedo-view="souvenirs">🧩 Mes souvenirs</button></div></div>`;
  if(notebookView==='souvenirs')return header+personalMirror()+`<div class="card"><h3>Ce dont ton personnage se souvient</h3>${(MEMORIES[session.role]||[]).map((t,i)=>`<div class="memory-entry"><strong>${i+1}.</strong><p>${h(t)}</p></div>`).join('')}</div>`;
- return header+personalMirror()+`<div class="card"><div class="person-grid">${suspects.map(id=>`<button type="button" class="person-tile ${selectedPerson===id?'selected':''}" data-person-note="${id}"><span class="emoji">${h(fullName(id).split(' ')[0])}</span><span class="name">${h(fullName(id).split(' ').slice(1).join(' '))}</span><span class="tiny">${h(statusNames[normalizedNote(notes[id]).status])}</span></button>`).join('')}</div><h3>${h(fullName(selectedPerson))}</h3><div class="status-picker">${noteStatuses.map(id=>`<button type="button" class="status-pill ${n.status===id?'active':''}" data-status="${id}" ${readonly?'disabled':''}>${h(statusNames[id])}</button>`).join('')}</div><div class="quick-tags">${NOTE_TAGS.map(([id,label])=>`<button type="button" class="quick-tag" data-tag="${id}" aria-pressed="${n.tags[id]}" ${readonly?'disabled':''}>${h(label)}</button>`).join('')}</div><label>Mes notes privées<textarea id="noteText" data-note="${selectedPerson}" maxlength="600" ${readonly?'readonly':''}>${h(n.text)}</textarea></label><p class="small muted">Ton carnet reste privé et disparaît quand le MJ ferme la salle.</p><div class="analysis-flash"><strong>🕯️ Question pour ton enquête</strong><p>Qu’as-tu réellement vu ou entendu concernant ${h(fullName(selectedPerson))}, et qu’as-tu seulement déduit ?</p></div></div>`}
+ return header+personalMirror()+`<div class="card"><div class="person-grid">${suspects.map(id=>`<button type="button" class="person-tile ${selectedPerson===id?'selected':''}" data-person-note="${id}"><span class="emoji">${h(fullName(id).split(' ')[0])}</span><span class="name">${h(fullName(id).split(' ').slice(1).join(' '))}</span><span class="tiny">${h(statusNames[normalizedNote(notes[id]).status])}</span></button>`).join('')}</div><h3>${h(fullName(selectedPerson))}</h3><div class="status-picker">${noteStatuses.map(id=>`<button type="button" class="status-pill ${n.status===id?'active':''}" data-status="${id}" ${readonly?'disabled':''}>${h(statusNames[id])}</button>`).join('')}</div><div class="quick-tags">${NOTE_TAGS.map(([id,label])=>`<button type="button" class="quick-tag" data-tag="${id}" aria-pressed="${n.tags[id]}" ${readonly?'disabled':''}>${h(label)}</button>`).join('')}</div><label>Mes notes privées<textarea id="noteText" data-note="${selectedPerson}" maxlength="600" ${readonly?'readonly':''}>${h(n.text)}</textarea></label><p class="small muted">Ce carnet est à toi : garde tes idées secrètes !</p><div class="analysis-flash"><strong>🕯️ Question pour ton enquête</strong><p>Qu’as-tu réellement vu ou entendu concernant ${h(fullName(selectedPerson))}, et qu’as-tu seulement déduit ?</p></div></div>`}
 function pilotage(){if(!host())return '';const st=nowStage(),readiness=(round)=>`<div class="status-list">${investigators.map(id=>{const complete=room?.[round==='initial'?'votesInitial':'votesFinal']?.[id];const absent=room.absences?.[round]?.[id];return `<div class="status-line"><span>${h(fullName(id))}</span><span>${complete?'✓ Voté':absent?'– Abstention':`<button type="button" class="btn secondary btn-small" data-absent="${round}:${id}">Marquer absent</button>`}</span></div>`}).join('')}</div>`;
- let html=`<section class="card host-panel"><div class="round">MODE PILOTAGE · CONFIDENTIEL</div><h2>${h(stageName(st))}</h2><p class="small muted">🎛️ Tu pilotes l’audience. Les joueurs suivent sur leurs téléphones.</p>`;
- if(st===-1){const online=connectedInvestigators();return `<section class="card host-panel host-ready"><div class="round">ESPACE MJ · CONFIDENTIEL</div><h2>Ouvrir l’audience</h2><p>Le prologue est affiché sur les téléphones. Attends la connexion des six enquêteurs avant de lancer le jeu.</p><div class="people">${investigators.map(id=>`<div class="person-status ${connected(id)?'present':''}">${connected(id)?'✓ Connecté':'◌ En attente'}<br>${h(fullName(id))}</div>`).join('')}</div><p role="status"><strong>${online}/6 enquêteurs connectés</strong>${online===6?' — Tout le monde est là.':' — Lancement en attente des participants.'}</p><button class="btn w100" data-action="start-game" ${online===6&&hostDisconnectArmed?'':'disabled'}>⚖️ Ouvrir l’audience et lancer l’enquête</button><p class="small muted">Ce bouton est réservé au MJ ; Firebase vérifie également la présence des six enquêteurs.</p></section>`}
+ let html=`<section class="card host-panel"><div class="round">MODE PILOTAGE · CONFIDENTIEL</div><h2>${h(stageName(st))}</h2><p class="small muted">🎛️ À toi de mener l’enquête !</p>${soundPanel()}`;
+ if(st===-1){const online=connectedInvestigators();return `<section class="card host-panel host-ready"><div class="round">ESPACE CHEFFE D’ENQUÊTE · CONFIDENTIEL</div><h2>Ouvrir l’audience</h2><p>Le prologue est affiché sur les téléphones. Attends la connexion des six enquêteurs avant de lancer le jeu.</p><div class="people">${investigators.map(id=>`<div class="person-status ${connected(id)?'present':''}">${connected(id)?'✓ Connecté':'◌ En attente'}<br>${h(fullName(id))}</div>`).join('')}</div><p role="status"><strong>${online}/6 enquêteurs connectés</strong>${online===6?' — Tout le monde est là.':' — Lancement en attente des participants.'}</p><button class="btn w100" data-action="start-game" ${online===6&&hostPresenceReady?'':'disabled'}>⚖️ Ouvrir l’audience et lancer l’enquête</button>${soundPanel()}</section>`}
  if(st<18){
   const q=Q[st],ans=room.currentAnswer,last=latestTestimony(q.id);
   html+=`<div class="mj-question"><p><strong>🎤 ${h(fullName(q.asker))}</strong> interroge <strong>${h(fullName(q.target))}</strong></p><p class="mj-main-question">« ${h(q.question)} »</p></div>`;
   if(!ans)html+='<p class="role-instruction">⏳ Le joueur choisit sa réplique sur son téléphone.</p>';
-  else html+=`<div class="host-form"><p class="ok"><strong>✅ Réponse choisie par ${h(fullName(q.target))}</strong></p><p class="mj-selected-reply">« ${h(q.answers[ans.value])} »</p><label for="spoken">✏️ Reformulation du MJ <span class="small muted">(préremplie, modifiable si besoin)</span><textarea id="spoken" maxlength="1000">${h(transcriptDraft||q.answers[ans.value])}</textarea></label><details data-keep="mj-followups"><summary>➕ Ajouter une question ou une précision (facultatif)</summary><label>Précision 1<textarea id="followup1" maxlength="500">${h(followup1Draft)}</textarea></label><label>Précision 2<textarea id="followup2" maxlength="500">${h(followup2Draft)}</textarea></label></details><button class="btn w100" data-action="save-testimony">✅ Valider et passer à la question suivante →</button></div>`;
+  else html+=`<div class="host-form"><p class="ok"><strong>✅ Réponse choisie par ${h(fullName(q.target))}</strong></p><p class="mj-selected-reply">« ${h(q.answers[ans.value])} »</p><label for="spoken">✏️ Réponse à annoncer <span class="small muted">(préremplie, modifiable si besoin)</span><textarea id="spoken" maxlength="1000">${h(transcriptDraft||q.answers[ans.value])}</textarea></label><details data-keep="mj-followups"><summary>➕ Ajouter une question ou une précision (facultatif)</summary><label>Précision 1<textarea id="followup1" maxlength="500">${h(followup1Draft)}</textarea></label><label>Précision 2<textarea id="followup2" maxlength="500">${h(followup2Draft)}</textarea></label></details><button class="btn w100" data-action="save-testimony">✅ Valider et passer à la question suivante →</button></div>`;
   if(last)html+='<p class="ok">✅ Réponse déjà consignée. Tu peux poursuivre.</p>';
  }
   if(st===STAGE.RECAP)html+=room.profileView?'<p>Le bilan des profils est affiché sur les écrans. Lance la confrontation quand les joueurs l’ont consulté.</p>':'<p>Les soupçons anonymes sont affichés. Affiche ensuite le bilan des profils avant la confrontation.</p><button class="btn secondary w100" data-action="show-profiles">🎭 Afficher le bilan des profils</button>';
  if(st===STAGE.RECAP||st===STAGE.DISCUSS)html+=`<div class="profile-host-controls"><h3>Affichage des profils</h3><div class="profile-mode-choices"><button type="button" class="btn secondary" data-profile-mode="anonymous" aria-pressed="${room.profileMode!=='named'}">🎭 Anonyme</button><button type="button" class="btn secondary" data-profile-mode="named" aria-pressed="${room.profileMode==='named'}">👥 Avec les prénoms</button></div></div>`;
- if(st===STAGE.DISCUSS)html+=`<p>Échanges libres autour de la table. Les joueurs peuvent revoir les résultats anonymes. Aucun registre à remplir.</p>`;
+ if(st===STAGE.DISCUSS)html+=`<p>Place au débat ! Les joueurs peuvent revoir les premiers soupçons et le bilan des profils.</p>`;
  if(st===STAGE.CLOCK)html+=`<p>Les joueurs utilisent 🕰️ L’affaire pour classer trois événements.</p><div class="status-list">${investigators.map(id=>`<div class="status-line">${h(fullName(id))}<span>${room.timelineAnswers?.[id]?'✓ Ordre trouvé':'En cours'}</span></div>`).join('')}</div>`;
  if(st===STAGE.ZONE)html+=`<p>Vote simple sur la zone, un choix par enquêteur.</p><div class="status-list">${investigators.map(id=>`<div class="status-line">${h(fullName(id))}<span>${room.zoneVotes?.[id]?'✓ Zone choisie':'En attente'}</span></div>`).join('')}</div>${!room.zoneResult?`<button type="button" class="btn w100" data-action="reveal-zone" ${investigators.every(id=>room.zoneVotes?.[id])?'':'disabled'}>🧸 Révéler le lieu et autoriser la recherche</button>`:'<p>✓ Le lieu et l’autorisation d’ouvrir le coffret sont affichés sur tous les écrans.</p>'}`;
  if(st===STAGE.FIRST||st===STAGE.SECOND)html+=`<h3>${st===STAGE.FIRST?'Premiers votes':'Votes finaux'}</h3>${readiness(st===STAGE.FIRST?'initial':'final')}`;
@@ -610,15 +679,14 @@ function prologue({shared=false}={}){
   </div>
   ${!shared?`<div class="identity"><span class="small muted">Convocation personnelle au Tribunal</span><strong>${h(fullName(session.role))}</strong><p class="small">Vos souvenirs restent privés. Gardez-les jusqu'aux interrogations.</p></div>`:''}
   ${status}
-  <p class="small muted">${online}/6 enquêteurs connectés. Le MJ ouvrira l'audience quand tout le monde sera présent.</p>
-  <div class="sound-controls"><p class="small muted">Ambiance : résonances et cloches discrètes. Le son nécessite une interaction sur votre appareil.</p>${soundButton()}</div>
+  <p class="small muted">${online}/6 enquêteurs connectés. La cheffe d’enquête ouvrira l'audience quand tout le monde sera présent.</p>
  </section>`;
 }
 
 function screen(){const st=nowStage();if(st<0)return prologue({shared:true});if(st===STAGE.RECAP)return room.profileView?profileRecapHTML():initialRecap();if(st===STAGE.DISCUSS)return confrontation();if(st===STAGE.SECOND)return `<section class="card reveal-stage"><div class="quiet">DERNIÈRE DÉCISION</div><h2>Les débats sont clos.</h2><p>Chaque enquêteur choisit maintenant son dernier suspect, en secret.</p><p class="dramatic">Le Tribunal rendra bientôt son verdict.</p></section>`;if(st<STAGE.VERDICTS)return `<section class="card reveal-stage"><h2>🕯️ Le Tribunal des Roubatvot</h2><p>L’enquête est en cours. Écoutez les témoignages et confrontez vos hypothèses.</p></section>`;return stagesHTML()}
-function settings(){const connected=Object.keys(room?.players||{}).length;return `<details class="settings room-settings"><summary>Paramètres de la salle</summary><div class="room-settings-content"><p>Salle : <strong>${h(session.code)}</strong> · ${connected}/7 participants · ${h(stageName(nowStage()))}</p><div class="room-settings-actions"><button class="btn secondary" data-action="copy-url">Copier le lien</button><button class="btn secondary" data-action="leave">${host()?'🚪 Fermer la salle pour tous':'Quitter la salle'}</button>${host()?'<button class="btn secondary" data-action="open-screen">Ouvrir l’écran commun</button>':''}</div>${host()?`<details><summary>Vérité du scénario (confidentielle)</summary>${FACTS.map(([t,x])=>`<p><strong>${h(t)}</strong> — ${h(x)}</p>`).join('')}<p>La vérité sur Enola précède le vote sur la zone et la recherche physique du coffret. La lumière de 20 h 31 était programmée, indépendante. Aucun suspect n’a volé le coffret.</p></details>`:''}</div></details>`}
-function login(){const mj=qs.get('mj')==='1';return `<div class="card"><h2>Entrer dans l’enquête</h2>${mj?`<p>Accès organisatrice.</p>${me&&!me.isAnonymous?`<button class="btn" data-action="create">Créer la salle</button>`:`<button class="btn" data-action="google">Connexion Google</button>`}`:`<label>Code de salle<input id="code" maxlength="8" value="${h(joinCode)}" placeholder="ABCDEFGH"></label><p>Choisis ton personnage :</p><div class="person-grid">${investigators.map(id=>`<button type="button" class="person-tile ${selectedPlayer===id?'selected':''}" data-join-person="${id}">${h(fullName(id))}</button>`).join('')}</div><button class="btn" data-action="join">Rejoindre l’enquête</button><button class="btn secondary" data-action="host-link">Accès organisatrice</button>`}</div>`}
-function nav(){const sections=[['enquete','🎭 Tribunal'],['carnet','📋 Mon Cluedo'],['affaire','🕰️ L’affaire']];if(host())sections.push(['mj','⚖️ Espace MJ']);return `<div class="tabs ${host()?'tabs-host':''}">${sections.map(([id,label])=>`<button class="${tab===id?'active':''}" data-tab="${id}">${label}</button>`).join('')}</div>`}
+function settings(){const connected=Object.keys(room?.players||{}).length;return `<details class="settings room-settings"><summary>Paramètres de la salle</summary><div class="room-settings-content"><p>Salle : <strong>${h(session.code)}</strong> · ${connected}/7 participants · ${h(stageName(nowStage()))}</p><div class="invite-share"><label for="inviteUrl">Lien d’invitation de la tribu</label><input id="inviteUrl" type="text" readonly value="${h(joinURL())}" aria-label="Lien complet d’invitation" /><div class="invite-actions"><button type="button" class="btn secondary" data-action="copy-url">🔗 Copier le lien d’invitation</button><span class="small" role="status">${h(copyNotice)}</span></div></div><div class="room-settings-actions"><button class="btn secondary" data-action="leave">${host()?'🚪 Fermer la salle pour tous':'Quitter la salle'}</button>${host()?'<button class="btn secondary" data-action="open-screen">Ouvrir l’écran commun</button>':''}</div>${host()?`<details><summary>Vérité du scénario (confidentielle)</summary>${FACTS.map(([t,x])=>`<p><strong>${h(t)}</strong> — ${h(x)}</p>`).join('')}<p>La vérité sur Enola précède le vote sur la zone et la recherche physique du coffret. La lumière de 20 h 31 était programmée, indépendante. Aucun suspect n’a volé le coffret.</p></details>`:''}</div></details>`}
+function login(){const mj=qs.get('mj')==='1';return `<div class="card"><h2>Entrer dans l’enquête</h2>${mj?`<p>Tu diriges le Tribunal. L’enquête commence à ton signal.</p>${me&&!me.isAnonymous?`<button class="btn" data-action="create">Créer la salle</button>`:`<button class="btn" data-action="google">Connexion Google</button>`}`:`<label>Code de salle<input id="code" maxlength="8" value="${h(joinCode)}" placeholder="ABCDEFGH"></label><p>Choisis ton personnage :</p><div class="person-grid">${investigators.map(id=>`<button type="button" class="person-tile ${selectedPlayer===id?'selected':''}" data-join-person="${id}">${h(fullName(id))}</button>`).join('')}</div><button class="btn" data-action="join">Rejoindre l’enquête</button><button class="btn secondary" data-action="host-link">🕵️ Accès Cheffe d’enquête</button>`}</div>`}
+function nav(){const sections=[['enquete','🎭 Tribunal'],['carnet','📋 Mon Cluedo'],['affaire','🕰️ L’affaire']];if(host())sections.push(['mj','🕵️ Cheffe d’enquête']);return `<div class="tabs ${host()?'tabs-host':''}">${sections.map(([id,label])=>`<button class="${tab===id?'active':''}" data-tab="${id}">${label}</button>`).join('')}</div>`}
 function welcome(){return prologue()}
 function renderSafely(){if(!document.activeElement||!document.activeElement.matches('textarea,input,select'))render();else noteSync()}
 function render(){
@@ -635,7 +703,7 @@ function render(){
  for(const el of root.querySelectorAll('details[data-keep]'))el.open=expanded.has(el.dataset.keep);
 }
 root.addEventListener('input',e=>{if(e.target.dataset.note)editNote(e.target.dataset.note,'text',e.target.value);if(e.target.id==='voteReason')voteArgument=e.target.value;if(e.target.id==='influenceReason')influenceReason=e.target.value;if(e.target.id==='code')joinCode=e.target.value;if(e.target.id==='spoken')transcriptDraft=e.target.value;if(e.target.id==='followup1')followup1Draft=e.target.value;if(e.target.id==='followup2')followup2Draft=e.target.value;});
-root.addEventListener('click',async e=>{const el=e.target.closest('button');if(!el)return;if(el.dataset.tab){tab=el.dataset.tab;render();return}if(el.dataset.replay){replayIndex=Math.max(0,Math.min(FACTS.length-1,replayIndex+(el.dataset.replay==='next'?1:-1)));render();return}if(el.dataset.finalView){finalView=Number(el.dataset.finalView);render();return}if(el.dataset.cluedoView){notebookView=el.dataset.cluedoView;render();return}if(el.dataset.personNote){selectedPerson=el.dataset.personNote;render();return}if(el.dataset.joinPerson){selectedPlayer=el.dataset.joinPerson;render();return}if(el.dataset.answerChoice!==undefined){const i=Number(el.dataset.answerChoice);const q=Q[nowStage()];if(q?.target===session?.role&&!room.currentAnswer&&Number.isInteger(i)&&i>=0&&i<3){selectedAnswer=i;render()}return}if(el.dataset.status){editNote(selectedPerson,'status',el.dataset.status);render();return}if(el.dataset.tag){editNote(selectedPerson,'tag',el.dataset.tag);render();return}if(el.dataset.votePerson){chosenSuspect=el.dataset.votePerson;render();return}if(el.dataset.voteSource){chosenSource=chosenSource===el.dataset.voteSource?'':el.dataset.voteSource;render();return}if(el.dataset.timePick){if(nowStage()===STAGE.CLOCK&&!room.timelineAnswers?.[session.role]&&TIME_SEQUENCE.some(x=>x.id===el.dataset.timePick)&&!timelineDraft.includes(el.dataset.timePick)){timelineDraft.push(el.dataset.timePick);timelineError='';render()}return}if(el.dataset.zonePick){if(nowStage()===STAGE.ZONE&&!room.zoneVotes?.[session.role]&&ZONES.some(([id])=>id===el.dataset.zonePick)){zoneChoice=el.dataset.zonePick;render()}return}if(el.dataset.influencer){influencedBy=influencedBy===el.dataset.influencer?'':el.dataset.influencer;if(!investigators.includes(influencedBy))influenceReason='';render();return}if(el.dataset.profileMode){if(pending)return;pending=true;try{await setProfileMode(el.dataset.profileMode)}catch(ex){error=ex.message||String(ex)}finally{pending=false;render()}return}if(el.dataset.absent){const [round,id]=el.dataset.absent.split(':');if(confirm(`Confirmer l’abstention exceptionnelle de ${fullName(id)} ?`)){try{await markAbsent(id,round)}catch(ex){error=ex.message;render()}}return}const action=el.dataset.action;if(!action||pending)return;pending=true;error='';try{switch(action){case'clear-error':break;case'google':await hostLogin();break;case'create':await createRoom();break;case'join':enableSound();await openRoom(joinCode,selectedPlayer);break;case'host-link':location.assign(location.pathname+'?mj=1');return;case'leave':if(host())await deleteSession();else clearSession('Tu as quitté la salle.');break;case'copy-url':await navigator.clipboard.writeText(joinURL());break;case'open-screen':window.open(`${location.origin}${location.pathname}?screen=1&room=${encodeURIComponent(session.code)}`,'_blank');break;case'answer':await submitAnswer();break;case'save-testimony':await saveTestimony();break;case'start-game':await startGame();break;case'sound-toggle':toggleSound();break;case'show-profiles':await showProfiles();break;case'vote-initial':await vote(false);break;case'vote-final':await vote(true);break;case'advance':await advance();break;case'next-influence':await nextInfluence();break;case'toggle-recap':debateShowRecap=!debateShowRecap;break;case'timeline-undo':timelineDraft.pop();timelineError='';break;case'timeline-check':await checkTimeline();break;case'zone-vote':await castZone();break;case'reveal-zone':await revealZone();break;case'delete':await deleteSession();break;default:break}}catch(ex){error=ex.message||String(ex)}finally{pending=false;render()}});
+root.addEventListener('click',async e=>{const el=e.target.closest('button');if(!el)return;if(el.dataset.tab){tab=el.dataset.tab;render();return}if(el.dataset.soundCue){playSoundCue(el.dataset.soundCue);return}if(el.dataset.replay){replayIndex=Math.max(0,Math.min(FACTS.length-1,replayIndex+(el.dataset.replay==='next'?1:-1)));render();return}if(el.dataset.finalView){finalView=Number(el.dataset.finalView);render();return}if(el.dataset.cluedoView){notebookView=el.dataset.cluedoView;render();return}if(el.dataset.personNote){selectedPerson=el.dataset.personNote;render();return}if(el.dataset.joinPerson){selectedPlayer=el.dataset.joinPerson;render();return}if(el.dataset.answerChoice!==undefined){const i=Number(el.dataset.answerChoice);const q=Q[nowStage()];if(q?.target===session?.role&&!room.currentAnswer&&Number.isInteger(i)&&i>=0&&i<3){selectedAnswer=i;render()}return}if(el.dataset.status){editNote(selectedPerson,'status',el.dataset.status);render();return}if(el.dataset.tag){editNote(selectedPerson,'tag',el.dataset.tag);render();return}if(el.dataset.votePerson){chosenSuspect=el.dataset.votePerson;render();return}if(el.dataset.voteSource){chosenSource=chosenSource===el.dataset.voteSource?'':el.dataset.voteSource;render();return}if(el.dataset.timePick){if(nowStage()===STAGE.CLOCK&&!room.timelineAnswers?.[session.role]&&TIME_SEQUENCE.some(x=>x.id===el.dataset.timePick)&&!timelineDraft.includes(el.dataset.timePick)){timelineDraft.push(el.dataset.timePick);timelineError='';render()}return}if(el.dataset.zonePick){if(nowStage()===STAGE.ZONE&&!room.zoneVotes?.[session.role]&&ZONES.some(([id])=>id===el.dataset.zonePick)){zoneChoice=el.dataset.zonePick;render()}return}if(el.dataset.influencer){influencedBy=influencedBy===el.dataset.influencer?'':el.dataset.influencer;if(!investigators.includes(influencedBy))influenceReason='';render();return}if(el.dataset.profileMode){if(pending)return;pending=true;try{await setProfileMode(el.dataset.profileMode)}catch(ex){error=ex.message||String(ex)}finally{pending=false;render()}return}if(el.dataset.absent){const [round,id]=el.dataset.absent.split(':');if(confirm(`Confirmer l’abstention exceptionnelle de ${fullName(id)} ?`)){try{await markAbsent(id,round)}catch(ex){error=ex.message;render()}}return}const action=el.dataset.action;if(!action||pending)return;pending=true;error='';try{switch(action){case'clear-error':break;case'google':await hostLogin();break;case'create':await createRoom();break;case'join':await openRoom(joinCode,selectedPlayer);break;case'host-link':location.assign(location.pathname+'?mj=1');return;case'leave':if(host())await deleteSession();else clearSession('Tu as quitté la salle.');break;case'copy-url':await copyInviteURL();break;case'open-screen':window.open(`${location.origin}${location.pathname}?screen=1&room=${encodeURIComponent(session.code)}`,'_blank');break;case'answer':await submitAnswer();break;case'save-testimony':await saveTestimony();break;case'start-game':await startGame();break;case'sound-toggle':toggleSound();break;case'show-profiles':await showProfiles();break;case'vote-initial':await vote(false);break;case'vote-final':await vote(true);break;case'advance':await advance();break;case'next-influence':await nextInfluence();break;case'toggle-recap':debateShowRecap=!debateShowRecap;break;case'timeline-undo':timelineDraft.pop();timelineError='';break;case'timeline-check':await checkTimeline();break;case'zone-vote':await castZone();break;case'reveal-zone':await revealZone();break;case'delete':await deleteSession();break;default:break}}catch(ex){error=ex.message||String(ex)}finally{pending=false;render()}});
 onAuthStateChanged(auth,async user=>{me=user;try{if(!user){await signInAnonymously(auth);return}const old=screenMode&&qs.get('room')?{code:qs.get('room'),role:'charlotte'}:JSON.parse(sessionStorage.getItem(sessionKey)||'null');if(old&&!session){try{await openRoom(old.code,old.role)}catch(ex){sessionStorage.removeItem(sessionKey);error='Ancienne session indisponible. Retour à l’accueil.'}}render()}catch(ex){error=ex.message;render()}});
 
 </script></body></html>
